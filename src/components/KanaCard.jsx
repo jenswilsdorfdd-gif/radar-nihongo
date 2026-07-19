@@ -2,7 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { kanaData } from '../data/kanaData';
 
 const KanaCard = ({ day, mode, onBack }) => {
-  const currentDeck = kanaData[day] || [];
+  const currentDeck = kanaData[day];
+  
+  // CRASH-SCHUTZ: Falls der Tag nicht in der Datenbank existiert (z.B. Tag 15)
+  if (!currentDeck) {
+    return (
+      <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
+        <p className="text-red-500 font-bold mb-4">Fehler: Keine Daten für Tag {day} gefunden.</p>
+        <button onClick={onBack} className="bg-gray-700 py-3 px-6 rounded-xl font-bold">Zurück zum Menü</button>
+      </div>
+    );
+  }
+
   const [queue, setQueue] = useState([...currentDeck]);
   const [isFinished, setIsFinished] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -81,7 +92,8 @@ const KanaCard = ({ day, mode, onBack }) => {
 
   const handleReveal = () => {
     setIsRevealed(true);
-    if (mode === 'read') playAudio(currentCard.kana);
+    // Audio wird jetzt IMMER abgespielt, wenn aufgedeckt wird (auch beim Schreiben!)
+    playAudio(currentCard.kana);
   };
 
   const handleNext = (isCorrect) => {
@@ -165,11 +177,25 @@ const KanaCard = ({ day, mode, onBack }) => {
               ) : (
                 <div className="flex flex-col items-center animate-fade-in w-full">
                   <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">Die Lösung:</p>
-                  <div className="text-[6rem] font-bold text-green-400 leading-none mb-4">{currentCard.kana}</div>
+                  
+                  {/* KANA & AUDIO BUTTON WIEDER EINGEFÜGT */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-[6rem] font-bold text-green-400 leading-none">{currentCard.kana}</div>
+                    <button onClick={() => playAudio(currentCard.kana)} className="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-xl transition-all shadow-lg active:scale-90">🔊</button>
+                  </div>
+                  
+                  {/* VOLLER MERKSATZ WIEDER EINGEFÜGT */}
                   {currentCard.vocab && (
-                    <p className="text-gray-300 text-sm bg-gray-900 px-4 py-2 rounded-lg border border-gray-700">
-                      Beispiel: <span className="font-bold text-white">{currentCard.vocab}</span> ({currentCard.vocabMeaning})
-                    </p>
+                    <div className="w-full bg-gray-900 rounded-xl p-4 border border-gray-700 text-center mt-2">
+                      <p className="text-yellow-400 font-bold text-xl mb-1">{currentCard.vocab}</p>
+                      <p className="text-gray-300 text-sm mb-3">{currentCard.vocabMeaning}</p>
+                      {currentCard.sentence && (
+                        <div className="border-t border-gray-700 pt-3">
+                          <p className="text-white text-sm font-bold mb-1">{currentCard.sentence}</p>
+                          <p className="text-gray-400 text-xs italic">{currentCard.sentenceTranslation}</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
