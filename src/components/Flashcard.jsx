@@ -176,17 +176,17 @@ const Flashcard = ({ day, onBack }) => {
           <div className="w-full bg-blue-900/20 rounded-2xl p-6 border border-blue-500/30 mb-4 animate-fade-in">
             <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Sprach-Analyse</p>
             
-            {/* 1. Was die App gehört hat */}
+            {/* 1. Was die App gehört hat (Jetzt in hartem Rot bei Fehler) */}
             {transcript && (
               <div className="mb-4 pb-4 border-b border-blue-500/30">
                 <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
-                <p className={`text-xl font-bold ${isSpeechPerfect ? 'text-green-400' : 'text-yellow-400'}`}>
+                <p className={`text-xl font-bold ${isSpeechPerfect ? 'text-green-400' : 'text-red-500'}`}>
                   {transcript}
                 </p>
               </div>
             )}
 
-            {/* 2. Die perfekte Lösung (ohne deutsche Aufgabenstellung) */}
+            {/* 2. Die perfekte Lösung */}
             <div>
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Muster-Lösung:</p>
               <div className="flex justify-between items-start">
