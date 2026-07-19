@@ -1,4 +1,5 @@
 import React from 'react';
+import { kanaData } from '../data/kanaData';
 
 const KanaDeck = ({ currentDay, totalDays, mode, onBackToHome, onStartDay }) => {
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
@@ -72,14 +73,16 @@ const KanaDeck = ({ currentDay, totalDays, mode, onBackToHome, onStartDay }) => 
         </ul>
       </div>
 
-      {/* Das Raster (14 Kacheln, farblich an den Modus angepasst) */}
+      {/* Das Raster (14 Kacheln mit Gruppen-Titel!) */}
       <div className="w-full max-w-md grid grid-cols-2 gap-4 pb-8">
         {days.map((day) => {
           const isCompleted = day < currentDay;
           const isCurrent = day === currentDay;
           const isLocked = day > currentDay;
+          
+          const deckInfo = kanaData[day];
 
-          let btnClass = "py-4 rounded-xl font-bold text-lg transition-transform flex flex-col items-center justify-center ";
+          let btnClass = "py-3 px-2 rounded-xl font-bold transition-transform flex flex-col items-center justify-center text-center ";
           
           if (isCurrent) {
             btnClass += isWrite 
@@ -102,8 +105,13 @@ const KanaDeck = ({ currentDay, totalDays, mode, onBackToHome, onStartDay }) => 
               }}
               className={btnClass}
             >
-              <span>Tag</span>
-              <span>{day}</span>
+              <span className="text-lg">Tag {day}</span>
+              {/* Hier wird der Titel der Gruppe aus kanaData geladen */}
+              {deckInfo?.title && (
+                <span className="text-[0.65rem] opacity-80 mt-1 uppercase tracking-wider leading-tight">
+                  {deckInfo.title}
+                </span>
+              )}
             </button>
           );
         })}
