@@ -50,10 +50,11 @@ const KanaCard = ({ day, totalDays, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col items-center justify-center relative">
+    <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      {/* flex-1 w-full max-w-full overflow-hidden blockiert seitliches Verrutschen */}
       
-      {/* Header mit Zurück-Button und Zähler */}
-      <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+      {/* Header mit Zurück-Button und Zähler (mit mx-auto zentriert auf dem Handy) */}
+      <div className="absolute top-6 left-4 right-4 sm:left-6 sm:right-6 flex justify-between items-center z-10 w-full max-w-sm mx-auto">
         <button 
           onClick={onBack} 
           className="text-gray-400 hover:text-white text-sm uppercase tracking-widest font-bold"
@@ -65,9 +66,9 @@ const KanaCard = ({ day, totalDays, onBack }) => {
         </span>
       </div>
 
-      {/* Die interaktive Lernkarte */}
+      {/* Die interaktive Lernkarte - Dynamische Maximalbreite für kleine Handys */}
       <div 
-        className={`w-full max-w-sm aspect-[3/4] rounded-3xl shadow-2xl flex flex-col items-center justify-center p-8 cursor-pointer active:scale-95 transition-all ${isFlipped ? 'bg-gray-700' : 'bg-gray-800 border-b-4 border-green-500/50'}`}
+        className={`w-full max-w-[18rem] sm:max-w-sm aspect-[3/4] mx-auto rounded-3xl shadow-2xl flex flex-col items-center justify-center p-6 sm:p-8 cursor-pointer active:scale-95 transition-all ${isFlipped ? 'bg-gray-700' : 'bg-gray-800 border-b-4 border-green-500/50'}`}
         onClick={handleFlip} 
       >
         {isFlipped ? (
@@ -83,15 +84,16 @@ const KanaCard = ({ day, totalDays, onBack }) => {
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            <h1 className="text-8xl font-bold text-white tracking-widest mb-4">{currentCharacter.kana}</h1>
+          <div className="flex flex-col items-center text-center px-4">
+            {/* Schriftgröße skaliert auf winzigen Handys etwas runter */}
+            <h1 className="text-7xl sm:text-8xl font-bold text-white tracking-widest mb-4">{currentCharacter.kana}</h1>
             <p className="text-gray-500 text-xs uppercase tracking-widest">Klicken zum Aufdecken</p>
           </div>
         )}
       </div>
 
-      {/* Die Bewertungs-Buttons */}
-      <div className={`w-full max-w-sm mt-12 grid grid-cols-2 gap-4 transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      {/* Die Bewertungs-Buttons - mx-auto zentriert auch hier */}
+      <div className={`w-full max-w-[18rem] sm:max-w-sm mt-8 sm:mt-12 mx-auto grid grid-cols-2 gap-4 transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button 
           className="py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-red-400 active:scale-95 transition-all"
           onClick={(e) => { 

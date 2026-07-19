@@ -93,9 +93,9 @@ function App() {
   };
 
   return (
-    <div className="w-full h-full bg-gray-900 overflow-x-hidden font-sans">
+    <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col">
+      {/* min-h-screen, w-screen und max-w-full sorgen für 100%ige Passform auf Handys */}
       
-      {/* Das Home-Menü bekommt jetzt alle Fortschrittsdaten übergeben */}
       {activeView === 'home' && (
         <Home 
           onSelectMode={handleSelectMode} 
@@ -107,7 +107,6 @@ function App() {
         />
       )}
       
-      {/* PHASE 1: KANA */}
       {activeView === 'kana' && (
         <KanaDeck 
           currentDay={currentKanaDay} 
@@ -129,7 +128,6 @@ function App() {
         />
       )}
 
-      {/* PHASE 2: RADAR */}
       {activeView === 'dashboard' && (
         <Dashboard 
           currentDay={currentRadarDay} 
@@ -148,7 +146,6 @@ function App() {
         />
       )}
 
-      {/* PHASE 3: KANJI */}
       {activeView === 'kanji' && (
         <KanjiDeck 
           currentDay={currentKanjiDay} 
