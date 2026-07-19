@@ -58,12 +58,12 @@ const KanaDeck = ({ currentDay, totalDays, mode, onBackToHome, onStartDay }) => 
           ) : (
             <>
               <li>
-                <strong className="text-white block mb-1">▶ Visuelles Training</strong>
-                Präge dir das Zeichen ein und nutze die Beispielsätze, um ein Gefühl für echte japanische Wörter zu bekommen.
+                <strong className="text-white block mb-1">▶ Visuelles Training & Kopfkino</strong>
+                Präge dir das Zeichen über die visuellen Eselsbrücken ein! Du hast ein besseres Bild im Kopf? Klicke auf das ✏️-Symbol auf der Rückseite und speichere deine eigene Eselsbrücke dauerhaft ab.
               </li>
               <li>
                 <strong className="text-white block mb-1">▶ Auditives Lernen</strong>
-                Klicke auf die kleinen 🔊-Buttons, um dir die exakte Aussprache anzuhören. Sprich die Vokabeln und Sätze laut mit!
+                Klicke auf die kleinen 🔊-Buttons, um dir die exakte Aussprache anzuhören. Sprich die Vokabeln und Sätze laut mit, um ein Gefühl für echte japanische Wörter zu bekommen.
               </li>
             </>
           )}
