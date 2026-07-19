@@ -1,7 +1,7 @@
 import React from 'react';
 
 const KanjiDeck = ({ currentDay, onBackToHome, onStartDay }) => {
-  const totalDays = 7; // Wir starten hier mit dem 7-Tage-Bootcamp
+  const totalDays = 21; // Auf 21 Tage N5 Level angepasst
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
 
   return (
@@ -33,10 +33,14 @@ const KanjiDeck = ({ currentDay, onBackToHome, onStartDay }) => {
           System-Einweisung: Kanji
         </h2>
         <p className="text-sm text-gray-300 leading-relaxed mb-3">
-          Japanische Symbole bestehen aus Bedeutung und Lesung. Lerne hier die wichtigsten N5-Kanji aus dem Radar-System und ihre Anwendung im Alltag.
+          Japanische Symbole bestehen aus Form, Bedeutung und Lesung. Lerne hier die 121 wichtigsten N5-Kanji aus dem Radar-System.
+        </p>
+        <p className="text-sm text-gray-300 leading-relaxed mb-3">
+          <strong className="text-white block mb-1">▶ Kopfkino & Kontext</strong>
+          Nutze die Eselsbrücken, um dir das Zeichen einzuprägen. Beim Umdrehen zeigt dir das System echte japanische Beispielsätze (inkl. Lesehilfen und Audio).
         </p>
         <p className="text-sm text-gray-300 leading-relaxed pt-3 border-t border-gray-700">
-          <strong className="text-purple-400">Mechanik:</strong> Präge dir das Zeichen ein. Beim Umdrehen liest das System das Wort vor und zeigt dir einen Beispielsatz für die echte Welt.
+          <strong className="text-purple-400">Mechanik:</strong> Bei "Nochmal" wandert die Karte ans Ende der Warteschlange. Der Tag ist erst abgeschlossen, wenn der Stapel leer ist.
         </p>
       </div>
 
