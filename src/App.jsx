@@ -75,7 +75,8 @@ function App() {
   };
 
   const handleFinishKanji = (day) => {
-    if (day === currentKanjiDay && day < 7) setCurrentKanjiDay(prev => prev + 1);
+    // HIER WURDE DIE 7 ZU EINER 21 GEÄNDERT!
+    if (day === currentKanjiDay && day < 21) setCurrentKanjiDay(prev => prev + 1);
     setActiveView('kanji');
   };
 
