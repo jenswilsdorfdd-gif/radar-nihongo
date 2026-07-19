@@ -93,14 +93,16 @@ const KanaCard = ({ day, mode, onBack }) => {
                   <span className="text-gray-400 text-lg uppercase tracking-widest">{currentCharacter.romaji}</span>
                 </div>
                 
+                {/* NEUE VISUELLE ESELSBRÜCKE */}
+                {currentCharacter.mnemonic && (
+                  <div className="w-full bg-blue-900/30 border border-blue-500/40 rounded-xl p-3 mb-4 text-center">
+                    <p className="text-xs text-blue-400 font-bold tracking-widest uppercase mb-1">Eselsbrücke</p>
+                    <p className="text-gray-200 text-sm font-medium italic leading-snug">"{currentCharacter.mnemonic}"</p>
+                  </div>
+                )}
+                
                 {currentCharacter.vocab && (
                   <div className="w-full border-t border-gray-700 pt-4 mt-2">
-                    
-                    {/* DIE ESELSBRÜCKE IST WIEDER DA */}
-                    <p className="text-xs text-blue-400 font-bold tracking-widest uppercase mb-3">
-                      Eselsbrücke: "{currentCharacter.romaji.toUpperCase()}" wie...
-                    </p>
-
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <p className="text-xl font-bold text-white">{currentCharacter.vocab}</p>
                       <button onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.vocab); }} className="text-blue-400 hover:text-blue-300 bg-blue-500/10 p-2 rounded-full active:scale-90 transition-transform">🔊</button>
