@@ -3,14 +3,15 @@ import { kanaData } from '../data/kanaData';
 import DrawCanvas from './DrawCanvas'; 
 
 const KanaCard = ({ day, mode, onBack }) => {
+  const deckInfo = kanaData[day];
+  
   const [queue, setQueue] = useState(() => {
-    const data = kanaData[day];
-    return data ? [...data] : [{ kana: "ー", romaji: "Keine Daten für diesen Tag" }];
+    return deckInfo && deckInfo.cards ? [...deckInfo.cards] : [{ kana: "ー", romaji: "Keine Daten für diesen Tag" }];
   });
   
   const [isFlipped, setIsFlipped] = useState(false);
   const currentCharacter = queue[0];
-  const isWriteMode = mode === 'write'; // Erkennt den Modus automatisch
+  const isWriteMode = mode === 'write';
 
   const playAudio = (text) => {
     if ('speechSynthesis' in window) {
@@ -54,8 +55,18 @@ const KanaCard = ({ day, mode, onBack }) => {
         </span>
       </div>
 
+      <div className="w-full max-w-[20rem] sm:max-w-sm mx-auto mt-12 mb-4">
+        {/* HIER IST DIE NEUE INFO-BOX FÜR DIE AUSNAHMEN */}
+        {deckInfo?.note && (
+          <div className="bg-blue-900/40 border border-blue-500/50 p-4 rounded-xl text-sm text-blue-200 shadow-lg mb-4">
+            <strong className="text-blue-400 block mb-1 uppercase tracking-wider text-xs">💡 Trainer-Notiz:</strong> 
+            {deckInfo.note}
+          </div>
+        )}
+      </div>
+
       {isWriteMode ? (
-        <div className="w-full max-w-[20rem] sm:max-w-sm mx-auto flex flex-col items-center mt-12">
+        <div className="w-full max-w-[20rem] sm:max-w-sm mx-auto flex flex-col items-center">
           <div className="text-center mb-6">
             <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">Zeichne dieses Kana:</p>
             <h2 className="text-5xl font-bold text-white tracking-widest mb-1">{currentCharacter.romaji}</h2>
@@ -68,7 +79,7 @@ const KanaCard = ({ day, mode, onBack }) => {
       ) : (
         <>
           <div 
-            className={`w-full max-w-[20rem] sm:max-w-sm min-h-[24rem] mx-auto rounded-3xl shadow-2xl flex flex-col items-center p-6 sm:p-8 cursor-pointer transition-all mt-12 ${isFlipped ? 'bg-gray-800 border-t-4 border-blue-500/50 justify-start' : 'bg-gray-800 border-b-4 border-green-500/50 justify-center active:scale-95'}`}
+            className={`w-full max-w-[20rem] sm:max-w-sm min-h-[24rem] mx-auto rounded-3xl shadow-2xl flex flex-col items-center p-6 sm:p-8 cursor-pointer transition-all ${isFlipped ? 'bg-gray-800 border-t-4 border-blue-500/50 justify-start' : 'bg-gray-800 border-b-4 border-green-500/50 justify-center active:scale-95'}`}
             onClick={!isFlipped ? handleFlip : undefined}
           >
             {!isFlipped ? (
