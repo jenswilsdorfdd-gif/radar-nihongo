@@ -8,7 +8,8 @@ import KanjiDeck from './components/KanjiDeck';
 import KanjiCard from './components/KanjiCard';
 
 function App() {
-  const [activeView, setActiveView] = useState('home'); 
+  // TEST-HACK: Wir starten direkt in der Flashcard-Ansicht
+  const [activeView, setActiveView] = useState('learning-radar'); 
   const [kanaMode, setKanaMode] = useState('read'); // 'read' oder 'write'
   
   // RADAR
@@ -16,7 +17,8 @@ function App() {
     const saved = localStorage.getItem('radarDay');
     return saved ? parseInt(saved, 10) : 1; 
   });
-  const [learningRadarDay, setLearningRadarDay] = useState(1);
+  // TEST-HACK: Wir erzwingen Tag 7
+  const [learningRadarDay, setLearningRadarDay] = useState(7);
 
   // KANA - LESEN
   const [kanaReadDay, setKanaReadDay] = useState(() => {
