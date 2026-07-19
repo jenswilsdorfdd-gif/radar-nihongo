@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { radarData } from '../data/radarData';
 
-const Flashcard = ({ day, onBack }) => {
-  const dayData = radarData[day] || { morningRoutine: "Keine Daten.", scenarios: [{ context: "Keine Daten", userTask: "Tag fehlt." }] };
+const Flashcard = ({ day, onBack, onNextDay }) => {
+  const dayData = radarData[day] || { scenarios: [{ context: "Keine Daten", userTask: "Tag fehlt." }] };
   
   const [queue, setQueue] = useState([...dayData.scenarios]);
-  const [isFinished, setIsFinished] = useState(false); // NEU: Steuert den Abschluss-Screen
+  const [isFinished, setIsFinished] = useState(false);
   
   const [step, setStep] = useState(1);
   const [selectedIndex, setSelectedIndex] = useState(null);
   
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
+
+  const [speechAttempts, setSpeechAttempts] = useState(0);
+  const [speechResult, setSpeechResult] = useState(null); 
+
+  useEffect(() => {
+    if (radarData[day]) {
+      setQueue([...radarData[day].scenarios]);
+      setIsFinished(false);
+      resetState();
+    }
+  }, [day]);
 
   const currentScenario = queue[0];
 
@@ -25,6 +36,12 @@ const Flashcard = ({ day, onBack }) => {
       window.speechSynthesis.speak(utterance);
     }
   };
+
+  useEffect(() => {
+    if (speechResult === 'failed' && currentScenario?.userSpeech) {
+      playAudio(currentScenario.userSpeech);
+    }
+  }, [speechResult, currentScenario]);
 
   const handleListen = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -47,6 +64,20 @@ const Flashcard = ({ day, onBack }) => {
     recognition.onresult = (event) => {
       const result = event.results[0][0].transcript;
       setTranscript(result);
+      
+      const isPerfect = evaluateSpeech(currentScenario.userSpeech, result);
+      
+      if (isPerfect) {
+        setSpeechResult('perfect');
+      } else {
+        const nextAttempts = speechAttempts + 1;
+        setSpeechAttempts(nextAttempts);
+        if (nextAttempts >= 3) {
+          setSpeechResult('failed');
+        } else {
+          setSpeechResult('retry');
+        }
+      }
     };
 
     recognition.onerror = (event) => {
@@ -61,20 +92,15 @@ const Flashcard = ({ day, onBack }) => {
     recognition.start();
   };
 
-  const handleStartListening = () => {
-    setStep(2);
-  };
-
   const handleOptionSelect = (index) => {
     setSelectedIndex(index);
     setStep(3);
   };
 
-  const handleNextCard = () => {
-    const isCorrect = selectedIndex === currentScenario.correctIndex;
+  const advanceQueue = (isCorrect) => {
     if (isCorrect) {
       if (queue.length <= 1) {
-        setIsFinished(true); // NEU: Triggert den Sieges-Bildschirm
+        setIsFinished(true); 
       } else {
         setQueue(prev => prev.slice(1));
         resetState();
@@ -89,6 +115,8 @@ const Flashcard = ({ day, onBack }) => {
     setStep(1);
     setSelectedIndex(null);
     setTranscript('');
+    setSpeechAttempts(0);
+    setSpeechResult(null);
   };
 
   const renderTextWithFurigana = (text) => {
@@ -131,7 +159,25 @@ const Flashcard = ({ day, onBack }) => {
     );
   };
 
-  // NEU: Der Sieges-Bildschirm
+  const evaluateSpeech = (expectedRaw, transcriptRaw) => {
+    if (!transcriptRaw || !expectedRaw) return false;
+
+    let expectedKanji = expectedRaw.replace(/([^{]+){[^}]+}/g, "$1"); 
+    let expectedKana = expectedRaw.replace(/[^{]+{([^}]+)}/g, "$1");
+
+    const cleanRegex = /[\s、。！？?]/g;
+    expectedKanji = expectedKanji.replace(cleanRegex, '');
+    expectedKana = expectedKana.replace(cleanRegex, '');
+    let cleanTranscript = transcriptRaw.replace(cleanRegex, '');
+    
+    const politeRegex = /^(すみません|あの|えっと)/;
+    cleanTranscript = cleanTranscript.replace(politeRegex, '');
+    expectedKanji = expectedKanji.replace(politeRegex, '');
+    expectedKana = expectedKana.replace(politeRegex, '');
+
+    return cleanTranscript.includes(expectedKanji) || cleanTranscript.includes(expectedKana);
+  };
+
   if (isFinished) {
     return (
       <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -140,21 +186,16 @@ const Flashcard = ({ day, onBack }) => {
             ✓
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Abend-Routine</h1>
-          <h2 className="text-green-400 font-bold tracking-widest uppercase mb-8">Abgeschlossen</h2>
+          <h2 className="text-green-400 font-bold tracking-widest uppercase mb-12">Abgeschlossen</h2>
 
-          <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-blue-500 shadow-lg mb-8 text-left">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-blue-400 text-xl">☀️</span>
-              <p className="text-blue-400 text-sm font-bold tracking-widest uppercase">Morgen-Routine (Transfer)</p>
-            </div>
-            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-              {dayData.morningRoutine}
-            </p>
+          <div className="w-full space-y-4">
+            <button onClick={onBack} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600 uppercase tracking-widest">
+              Mission Beenden
+            </button>
+            <button onClick={onNextDay} className="w-full py-4 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg shadow-green-500/20 uppercase tracking-widest">
+              Weiter geht's (Schnelllerner)
+            </button>
           </div>
-
-          <button onClick={onBack} className="w-full py-4 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg shadow-green-500/20 uppercase tracking-widest">
-            Mission Beenden
-          </button>
         </div>
       </div>
     );
@@ -170,14 +211,6 @@ const Flashcard = ({ day, onBack }) => {
   }
 
   const isAnswerCorrect = selectedIndex === currentScenario.correctIndex;
-
-  const normalizeSpeechForComparison = (text) => {
-    let clean = text.replace(/([^{]+){[^}]+}/g, "$1"); 
-    return clean.replace(/[\s、。！？?]/g, '');
-  };
-  
-  const isSpeechPerfect = transcript && currentScenario.userSpeech && 
-    normalizeSpeechForComparison(transcript) === normalizeSpeechForComparison(currentScenario.userSpeech);
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -209,7 +242,8 @@ const Flashcard = ({ day, onBack }) => {
             <p className="text-white font-bold">{currentScenario.userTask}</p>
           </div>
           
-          {step === 1 && (
+          {/* Mikrofon */}
+          {step === 1 && speechResult !== 'perfect' && speechResult !== 'failed' && (
             <div className="mt-6 flex flex-col items-center">
               <button 
                 onClick={handleListen}
@@ -220,42 +254,44 @@ const Flashcard = ({ day, onBack }) => {
               <p className="text-xs text-gray-400 mt-2 uppercase tracking-widest">
                 {isListening ? 'Hört zu...' : 'Tippen & Sprechen'}
               </p>
-              
-              {transcript && (
-                <div className="mt-4 p-4 bg-gray-900 rounded-xl border border-gray-700 w-full text-center">
-                  <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Verstanden:</p>
-                  <p className="text-lg font-bold text-blue-400">{transcript}</p>
+            </div>
+          )}
+
+          {/* Direktes Sprach-Feedback in Phase 1 */}
+          {step === 1 && transcript && (
+            <div className="mt-6 w-full bg-blue-900/20 rounded-xl p-4 border border-blue-500/30 text-left animate-fade-in">
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
+              <p className={`text-lg font-bold mb-2 ${speechResult === 'perfect' ? 'text-green-400' : 'text-red-500'}`}>
+                {transcript}
+              </p>
+
+              {speechResult === 'retry' && (
+                <div className="bg-red-900/40 p-2 rounded border border-red-500/50 mt-2">
+                  <p className="text-red-300 text-xs font-bold uppercase text-center">
+                    Nicht ganz! Noch {3 - speechAttempts} Versuch(e)
+                  </p>
+                </div>
+              )}
+
+              {(speechResult === 'failed' || speechResult === 'perfect') && (
+                <div className="mt-4 pt-4 border-t border-blue-500/30">
+                  {speechResult === 'failed' && (
+                    <p className="text-red-400 text-xs font-bold uppercase mb-2">3 Fehlversuche. Muster-Lösung:</p>
+                  )}
+                  {speechResult === 'perfect' && (
+                    <p className="text-green-400 text-xs font-bold uppercase mb-2">Ziel erfasst! Muster-Lösung:</p>
+                  )}
+                  <div className="flex justify-between items-start">
+                    <p className="text-xl font-bold text-white leading-relaxed">
+                      {renderTextWithFurigana(currentScenario.userSpeech)}
+                    </p>
+                    <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
+                  </div>
                 </div>
               )}
             </div>
           )}
         </div>
-
-        {/* SPRACH-ANALYSE */}
-        {step >= 2 && (
-          <div className="w-full bg-blue-900/20 rounded-2xl p-6 border border-blue-500/30 mb-4 animate-fade-in">
-            <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Sprach-Analyse</p>
-            
-            {transcript && (
-              <div className="mb-4 pb-4 border-b border-blue-500/30">
-                <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
-                <p className={`text-xl font-bold ${isSpeechPerfect ? 'text-green-400' : 'text-red-500'}`}>
-                  {transcript}
-                </p>
-              </div>
-            )}
-
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Muster-Lösung:</p>
-              <div className="flex justify-between items-start">
-                <p className="text-2xl font-bold text-white leading-relaxed">
-                  {renderTextWithFurigana(currentScenario.userSpeech)}
-                </p>
-                <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* PHASE 2: AUDIO & MULTIPLE CHOICE */}
         {step === 2 && (
@@ -308,16 +344,37 @@ const Flashcard = ({ day, onBack }) => {
 
       </div>
 
-      {/* STEUERUNG */}
+      {/* STEUERUNG BOTTOM */}
       <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
+        
+        {/* Kontrollen in Phase 1 */}
         {step === 1 && (
-          <button onClick={handleStartListening} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
-            Gesprochen / Überspringen & Hören
-          </button>
+          <div className="space-y-3">
+            {(speechResult === 'perfect' || speechResult === 'failed') ? (
+              <>
+                <button onClick={() => setStep(2)} className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg shadow-blue-500/20 uppercase tracking-widest">
+                  Gegenüber antwortet (Phase 2)
+                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => advanceQueue(false)} className="flex-1 py-3 bg-red-700/80 hover:bg-red-600 rounded-xl font-bold text-white text-sm active:scale-95 transition-all shadow-lg border border-red-600">
+                    Nochmal (Ans Ende)
+                  </button>
+                  <button onClick={() => advanceQueue(true)} className="flex-1 py-3 bg-green-700/80 hover:bg-green-600 rounded-xl font-bold text-white text-sm active:scale-95 transition-all shadow-lg border border-green-600">
+                    Sitzt (Nächste)
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button onClick={() => setStep(2)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
+                Überspringen & Hören
+              </button>
+            )}
+          </div>
         )}
         
+        {/* Kontrollen in Phase 3 */}
         {step === 3 && (
-          <button onClick={handleNextCard} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
+          <button onClick={() => advanceQueue(isAnswerCorrect)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
             {isAnswerCorrect ? 'Sitzt (Nächste Karte)' : 'Nochmal (Ans Ende)'}
           </button>
         )}
