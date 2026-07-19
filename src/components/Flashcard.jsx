@@ -37,7 +37,7 @@ const Flashcard = ({ day, onBack }) => {
     recognition.lang = 'ja-JP'; 
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1; // Zwingt die Engine, sich auf das klarste Ergebnis zu fokussieren
+    recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -63,7 +63,6 @@ const Flashcard = ({ day, onBack }) => {
 
   const handleStartListening = () => {
     setStep(2);
-    // Autoplay entfernt! Der Nutzer triggert das Audio jetzt manuell.
   };
 
   const handleOptionSelect = (index) => {
@@ -124,6 +123,10 @@ const Flashcard = ({ day, onBack }) => {
 
   const isAnswerCorrect = selectedIndex === currentScenario.correctIndex;
 
+  // Helfer-Funktion für den Vergleich: Entfernt Leer- und Satzzeichen für einen fairen Abgleich
+  const normalizeText = (text) => text.replace(/[\s、。！？?]/g, '');
+  const isSpeechPerfect = transcript && currentScenario.userSpeech && normalizeText(transcript) === normalizeText(currentScenario.userSpeech);
+
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       
@@ -177,20 +180,19 @@ const Flashcard = ({ day, onBack }) => {
             {transcript && (
               <div className="mb-4 pb-4 border-b border-blue-500/30">
                 <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
-                <p className="text-xl font-bold text-yellow-400">{transcript}</p>
+                <p className={`text-xl font-bold ${isSpeechPerfect ? 'text-green-400' : 'text-yellow-400'}`}>
+                  {transcript}
+                </p>
               </div>
             )}
 
-            {/* 2. Die perfekte Lösung & 3. Die Bedeutung */}
+            {/* 2. Die perfekte Lösung (ohne deutsche Aufgabenstellung) */}
             <div>
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Muster-Lösung:</p>
-              <div className="flex justify-between items-start mb-1">
+              <div className="flex justify-between items-start">
                 <p className="text-2xl font-bold text-white">{currentScenario.userSpeech}</p>
-                <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90">🔊</button>
+                <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
               </div>
-              <p className="text-sm text-blue-300 italic bg-blue-900/40 p-3 rounded-lg border border-blue-500/20 mt-3">
-                "{currentScenario.userTask}"
-              </p>
             </div>
           </div>
         )}
