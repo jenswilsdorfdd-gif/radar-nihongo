@@ -16,8 +16,10 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   const [speechAttempts, setSpeechAttempts] = useState(0);
   const [speechResult, setSpeechResult] = useState(null); 
 
-  // NEU: Für den Scanner-Modus
   const [wrongScans, setWrongScans] = useState([]); 
+  
+  // NEU: Der Time-Attack State
+  const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
     if (radarData[day]) {
@@ -28,7 +30,34 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   }, [day]);
 
   const currentScenario = queue[0];
-  const isScanner = currentScenario?.type === 'scanner'; // NEU: Checkt, ob es eine Scanner-Karte ist
+  const isScanner = currentScenario?.type === 'scanner'; 
+
+  // NEU: Timer initialisieren, wenn die Karte ein Zeitlimit hat
+  useEffect(() => {
+    if (step === 1 && currentScenario?.timeLimit) {
+      setTimeLeft(currentScenario.timeLimit);
+    } else {
+      setTimeLeft(null);
+    }
+  }, [step, currentScenario]);
+
+  // NEU: Der tickende Countdown
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0 || step !== 1 || speechResult === 'perfect' || speechResult === 'failed') return;
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          clearInterval(timerId);
+          setSpeechResult('failed'); // ZEIT ABGELAUFEN -> FEHLSCHLAG!
+          return 0;
+        }
+        return prev - 0.1;
+      });
+    }, 100);
+
+    return () => clearInterval(timerId);
+  }, [timeLeft, step, speechResult]);
 
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
@@ -50,7 +79,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   const handleListen = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Dein Browser unterstützt leider keine Spracherkennung. Bitte nutze Chrome oder Safari auf deinem Handy.");
+      alert("Dein Browser unterstützt leider keine Spracherkennung. Bitte nutze Chrome oder Safari.");
       return;
     }
 
@@ -73,11 +102,13 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
       
       if (isPerfect) {
         setSpeechResult('perfect');
+        setTimeLeft(null); // Timer stoppen bei Erfolg
       } else {
         const nextAttempts = speechAttempts + 1;
         setSpeechAttempts(nextAttempts);
         if (nextAttempts >= 3) {
           setSpeechResult('failed');
+          setTimeLeft(null);
         } else {
           setSpeechResult('retry');
         }
@@ -101,11 +132,13 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setStep(3);
   };
 
-  // NEU: Scanner-Klick auswerten
   const handleScanClick = (chunk, index) => {
+    if (speechResult === 'failed') return; // Verhindert Klicks, wenn Zeit abgelaufen ist
+
     if (chunk.includes(currentScenario.target)) {
-      setSelectedIndex(0); // Dummy-Index für korrekte Auswertung in Step 3
-      setStep(3); // Direkt zur Erfolgs-Ansicht springen (Phase 2 wird übersprungen)
+      setSelectedIndex(0); 
+      setStep(3); 
+      setTimeLeft(null); // Timer stoppen bei Erfolg
     } else {
       setWrongScans(prev => [...prev, index]);
     }
@@ -131,7 +164,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setTranscript('');
     setSpeechAttempts(0);
     setSpeechResult(null);
-    setWrongScans([]); // Scanner Reset
+    setWrongScans([]); 
+    setTimeLeft(currentScenario?.timeLimit || null);
   };
 
   const renderTextWithFurigana = (text) => {
@@ -225,7 +259,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     );
   }
 
-  // Für Scanner reicht es, wenn es in Step 3 gelandet ist. Für Speech werten wir den Index aus.
   const isAnswerCorrect = isScanner ? step === 3 : selectedIndex === currentScenario.correctIndex;
 
   return (
@@ -242,9 +275,22 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
 
       <div className="w-full max-w-[22rem] sm:max-w-sm mx-auto mt-12 flex flex-col items-center">
         
-        {/* PHASE 1: SITUATION & EINGABE (SPRACHE ODER SCANNER) */}
-        <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4">
-          <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">Szenario</p>
+        {/* PHASE 1: SITUATION & EINGABE */}
+        <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4 relative overflow-hidden">
+          
+          {/* NEU: Visueller Countdown-Balken oben an der Karte */}
+          {currentScenario.timeLimit && step === 1 && (
+             <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-700">
+               <div 
+                 className={`h-full transition-all duration-100 linear ${timeLeft < currentScenario.timeLimit / 3 ? 'bg-red-500' : 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]'}`}
+                 style={{ width: `${(timeLeft / currentScenario.timeLimit) * 100}%` }}
+               />
+             </div>
+          )}
+
+          <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2 mt-2">
+            Szenario {currentScenario.timeLimit && <span className="ml-2 text-red-400 animate-pulse">⏰ TIME-ATTACK</span>}
+          </p>
           <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
           
           {currentScenario.physicalAction && (
@@ -266,7 +312,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             )}
           </div>
           
-          {/* NEU: MODUS-WEICHE -> Scanner ODER Mikrofon */}
+          {/* Scanner UI */}
           {step === 1 && isScanner && (
             <div className="mt-6 p-4 bg-gray-900 rounded-xl border border-gray-700 w-full text-center">
               <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-4 animate-pulse">Radar-Scan Aktiv</p>
@@ -290,6 +336,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             </div>
           )}
 
+          {/* Mikrofon UI */}
           {step === 1 && !isScanner && speechResult !== 'perfect' && speechResult !== 'failed' && (
             <div className="mt-6 flex flex-col items-center">
               <button 
@@ -304,13 +351,17 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             </div>
           )}
 
-          {/* Direktes Sprach-Feedback (nur bei Sprache) */}
-          {step === 1 && !isScanner && transcript && (
+          {/* Direktes Feedback */}
+          {step === 1 && (!isScanner && transcript || speechResult === 'failed') && (
             <div className="mt-6 w-full bg-blue-900/20 rounded-xl p-4 border border-blue-500/30 text-left animate-fade-in">
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
-              <p className={`text-lg font-bold mb-2 ${speechResult === 'perfect' ? 'text-green-400' : 'text-red-500'}`}>
-                {transcript}
-              </p>
+              {transcript && (
+                <>
+                  <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
+                  <p className={`text-lg font-bold mb-2 ${speechResult === 'perfect' ? 'text-green-400' : 'text-red-500'}`}>
+                    {transcript}
+                  </p>
+                </>
+              )}
 
               {speechResult === 'retry' && (
                 <div className="bg-red-900/40 p-2 rounded border border-red-500/50 mt-2">
@@ -323,16 +374,20 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
               {(speechResult === 'failed' || speechResult === 'perfect') && (
                 <div className="mt-4 pt-4 border-t border-blue-500/30">
                   {speechResult === 'failed' && (
-                    <p className="text-red-400 text-xs font-bold uppercase mb-2">3 Fehlversuche. Muster-Lösung:</p>
+                    <p className="text-red-400 text-xs font-bold uppercase mb-2">
+                      {timeLeft <= 0 ? "ZEIT ABGELAUFEN! Muster-Lösung:" : "Fehlschlag. Muster-Lösung:"}
+                    </p>
                   )}
                   {speechResult === 'perfect' && (
                     <p className="text-green-400 text-xs font-bold uppercase mb-2">Ziel erfasst! Muster-Lösung:</p>
                   )}
                   <div className="flex justify-between items-start">
                     <p className="text-xl font-bold text-white leading-relaxed">
-                      {renderTextWithFurigana(currentScenario.userSpeech)}
+                      {renderTextWithFurigana(currentScenario.userSpeech || currentScenario.target)}
                     </p>
-                    <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
+                    {currentScenario.userSpeech && (
+                      <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
+                    )}
                   </div>
                 </div>
               )}
@@ -340,7 +395,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           )}
         </div>
 
-        {/* PHASE 2: AUDIO & MULTIPLE CHOICE (Wird beim Scanner übersprungen) */}
+        {/* PHASE 2: AUDIO & MULTIPLE CHOICE */}
         {step === 2 && !isScanner && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-4 animate-fade-in text-center">
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">Gegenüber antwortet</p>
@@ -396,7 +451,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
       {/* STEUERUNG BOTTOM */}
       <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
         
-        {/* Kontrollen in Phase 1 (nur bei Sprache, Scanner schaltet automatisch weiter) */}
         {step === 1 && !isScanner && (
           <div className="space-y-3">
             {(speechResult === 'perfect' || speechResult === 'failed') ? (
@@ -421,7 +475,12 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           </div>
         )}
         
-        {/* Kontrollen in Phase 3 */}
+        {step === 1 && isScanner && speechResult === 'failed' && (
+          <button onClick={() => advanceQueue(false)} className="w-full py-4 bg-red-700/80 hover:bg-red-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-red-600">
+            Zu langsam! Nochmal (Ans Ende)
+          </button>
+        )}
+
         {step === 3 && (
           <button onClick={() => advanceQueue(isAnswerCorrect)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
             {isAnswerCorrect ? 'Sitzt (Nächste Karte)' : 'Nochmal (Ans Ende)'}

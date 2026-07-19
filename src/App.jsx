@@ -8,17 +8,12 @@ import KanjiDeck from './components/KanjiDeck';
 import KanjiCard from './components/KanjiCard';
 
 function App() {
-  // TEST-HACK: Wir starten direkt in der Flashcard-Ansicht
-  const [activeView, setActiveView] = useState('learning-radar'); 
-  const [kanaMode, setKanaMode] = useState('read'); // 'read' oder 'write'
+  const [activeView, setActiveView] = useState('home'); 
+  const [kanaMode, setKanaMode] = useState('read');
   
-  // RADAR
-  const [currentRadarDay, setCurrentRadarDay] = useState(() => {
-    const saved = localStorage.getItem('radarDay');
-    return saved ? parseInt(saved, 10) : 1; 
-  });
-  // TEST-HACK: Wir erzwingen Tag 7
-  const [learningRadarDay, setLearningRadarDay] = useState(7);
+  // WIR ENTSPERREN HIER EINFACH TAG 7 FÜR DICH ZUM TESTEN!
+  const [currentRadarDay, setCurrentRadarDay] = useState(7);
+  const [learningRadarDay, setLearningRadarDay] = useState(1);
 
   // KANA - LESEN
   const [kanaReadDay, setKanaReadDay] = useState(() => {
@@ -33,7 +28,7 @@ function App() {
   });
   
   const [learningKanaDay, setLearningKanaDay] = useState(1);
-  const kanaTotalDays = 14; // Fest auf 14 Tage gesetzt
+  const kanaTotalDays = 14; 
 
   // KANJI
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
@@ -79,6 +74,14 @@ function App() {
   const handleFinishKanji = (day) => {
     if (day === currentKanjiDay && day < 7) setCurrentKanjiDay(prev => prev + 1);
     setActiveView('kanji');
+  };
+
+  // WICHTIGER FIX: onNextDay Prop hinzugefügt, damit der Schnelllerner-Button nicht crasht!
+  const handleNextRadarDay = () => {
+    setLearningRadarDay(prev => prev + 1);
+    if (learningRadarDay === currentRadarDay && currentRadarDay < 21) {
+      setCurrentRadarDay(prev => prev + 1);
+    }
   };
 
   return (
@@ -130,7 +133,11 @@ function App() {
       )}
 
       {activeView === 'learning-radar' && (
-        <Flashcard day={learningRadarDay} onBack={() => handleFinishRadar(learningRadarDay)} />
+        <Flashcard 
+          day={learningRadarDay} 
+          onBack={() => handleFinishRadar(learningRadarDay)} 
+          onNextDay={handleNextRadarDay} 
+        />
       )}
 
       {activeView === 'kanji' && (
