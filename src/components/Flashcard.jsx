@@ -7,11 +7,9 @@ const Flashcard = ({ day, onBack }) => {
     return data ? [...data] : [{ context: "Keine Daten", userTask: "Tag fehlt." }];
   });
   
-  // step 1: Szenario & Sprechen -> step 2: Audio & Multiple Choice -> step 3: Auflösung
   const [step, setStep] = useState(1);
   const [selectedIndex, setSelectedIndex] = useState(null);
   
-  // NEU: Spracherkennung (State)
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
 
@@ -27,7 +25,6 @@ const Flashcard = ({ day, onBack }) => {
     }
   };
 
-  // NEU: Die Mikrofon-Funktion
   const handleListen = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
@@ -37,13 +34,13 @@ const Flashcard = ({ day, onBack }) => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'ja-JP'; // Zwingt das Mikrofon, Japanisch zu verstehen
+    recognition.lang = 'ja-JP'; 
     recognition.continuous = false;
     recognition.interimResults = false;
 
     recognition.onstart = () => {
       setIsListening(true);
-      setTranscript(''); // Vorherigen Text löschen
+      setTranscript(''); 
     };
 
     recognition.onresult = (event) => {
@@ -148,7 +145,6 @@ const Flashcard = ({ day, onBack }) => {
             <p className="text-white font-bold">{currentScenario.userTask}</p>
           </div>
           
-          {/* NEU: Das Mikrofon-Feature in Phase 1 */}
           {step === 1 && (
             <div className="mt-6 flex flex-col items-center">
               <button 
@@ -161,7 +157,6 @@ const Flashcard = ({ day, onBack }) => {
                 {isListening ? 'Hört zu...' : 'Tippen & Sprechen'}
               </p>
               
-              {/* Zeigt an, was die App verstanden hat */}
               {transcript && (
                 <div className="mt-4 p-4 bg-gray-900 rounded-xl border border-gray-700 w-full text-center">
                   <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Verstanden:</p>
@@ -172,14 +167,31 @@ const Flashcard = ({ day, onBack }) => {
           )}
         </div>
 
-        {/* DEIN EINSATZ (Ab Phase 2 sichtbar als Kontrolle) */}
+        {/* SPRACH-ANALYSE (Ab Phase 2 sichtbar) */}
         {step >= 2 && (
           <div className="w-full bg-blue-900/20 rounded-2xl p-6 border border-blue-500/30 mb-4 animate-fade-in">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-blue-400 text-xs font-bold tracking-widest uppercase">Muster-Lösung:</p>
+            <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Sprach-Analyse</p>
+            
+            {/* 1. Was die App gehört hat */}
+            {transcript && (
+              <div className="mb-4 pb-4 border-b border-blue-500/30">
+                <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
+                <p className="text-xl font-bold text-yellow-400">{transcript}</p>
+              </div>
+            )}
+
+            {/* 2. Die perfekte Lösung & 3. Die Bedeutung */}
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Muster-Lösung:</p>
+              <div className="flex justify-between items-start mb-1">
+                <p className="text-2xl font-bold text-white">{currentScenario.userSpeech}</p>
+                <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90">🔊</button>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">{currentScenario.userRomaji}</p>
+              <p className="text-sm text-blue-300 italic bg-blue-900/40 p-3 rounded-lg border border-blue-500/20">
+                "{currentScenario.userTask}"
+              </p>
             </div>
-            <p className="text-2xl font-bold text-white mb-1">{currentScenario.userSpeech}</p>
-            <p className="text-xs text-gray-400">{currentScenario.userRomaji}</p>
           </div>
         )}
 
@@ -190,7 +202,7 @@ const Flashcard = ({ day, onBack }) => {
             
             <button 
               onClick={() => playAudio(currentScenario.npcReply)} 
-              className="w-20 h-20 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto hover:bg-red-600/40 active:scale-95 transition-all"
+              className="w-20 h-20 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto hover:bg-red-600/40 active:scale-95 transition-all shadow-lg shadow-red-500/10"
             >
               🔊
             </button>
@@ -219,7 +231,7 @@ const Flashcard = ({ day, onBack }) => {
               <p className={`text-xs font-bold tracking-widest uppercase ${isAnswerCorrect ? 'text-green-400' : 'text-red-400'}`}>
                 {isAnswerCorrect ? 'Ziel erfasst' : 'Fehlerhafte Ortung'}
               </p>
-              <button onClick={() => playAudio(currentScenario.npcReply)} className="text-gray-400 hover:text-white text-lg">🔊</button>
+              <button onClick={() => playAudio(currentScenario.npcReply)} className="text-gray-400 hover:text-white text-lg active:scale-90">🔊</button>
             </div>
 
             <p className="text-xl text-white mb-2 leading-relaxed">
@@ -235,11 +247,11 @@ const Flashcard = ({ day, onBack }) => {
 
       </div>
 
-      {/* STEUERUNG (Nur Phase 1 & 3) */}
-      <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto">
+      {/* STEUERUNG */}
+      <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
         {step === 1 && (
           <button onClick={handleStartListening} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
-            Ich habe gesprochen / Überspringen & Hören
+            Gesprochen / Überspringen & Hören
           </button>
         )}
         
