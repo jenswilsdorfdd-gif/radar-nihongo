@@ -1,7 +1,6 @@
 import React from 'react';
 
 const Home = ({ onSelectMode, onReset, kanaDay, kanaTotal, radarDay, kanjiDay }) => {
-  // Eine kleine Hilfsfunktion, um die Balkenlänge zu berechnen
   const getProgress = (current, total) => `${(Math.min(current, total) / total) * 100}%`;
 
   return (
@@ -14,16 +13,31 @@ const Home = ({ onSelectMode, onReset, kanaDay, kanaTotal, radarDay, kanjiDay })
         Reset
       </button>
 
-      <div className="mb-12 text-center mt-8">
+      {/* --- NEUER LOGO UND TITEL BEREICH --- */}
+      <div className="mb-12 text-center mt-8 flex flex-col items-center">
+        
+        {/* Die Logo-Box */}
+        <div className="w-24 h-24 bg-gray-800 rounded-3xl border-2 border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/20 mb-6 relative overflow-hidden group">
+          
+          {/* Variante 1: Emoji (Aktuell aktiv) */}
+          <span className="text-5xl group-hover:scale-110 transition-transform cursor-default select-none">⛩️</span>
+
+          {/* Variante 2: Echtes Bild (Deaktiviert)
+              Wenn du ein eigenes Logo hast: Lade es in den Ordner "public" hoch, nenne es "logo.png",
+              lösche die <span> Zeile oben und entferne die // vor der nächsten Zeile: */}
+          {/* <img src="/logo.png" alt="RADAR Logo" className="w-full h-full object-cover" /> */}
+          
+        </div>
+
         <h1 className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400 mb-2">
           RADAR
         </h1>
         <p className="text-gray-500 tracking-widest text-sm uppercase">Nippon Survival System</p>
       </div>
+      {/* ------------------------------------- */}
 
       <div className="w-full max-w-sm space-y-4 pb-8">
         
-        {/* PHASE 1: KANA */}
         <button 
           onClick={() => onSelectMode('kana')}
           className="w-full bg-gray-800 hover:bg-gray-700 text-left p-5 rounded-2xl shadow-lg border-2 border-transparent focus:border-green-500 active:scale-95 transition-all group relative overflow-hidden"
@@ -42,7 +56,6 @@ const Home = ({ onSelectMode, onReset, kanaDay, kanaTotal, radarDay, kanjiDay })
           </div>
         </button>
 
-        {/* PHASE 2: RADAR */}
         <button 
           onClick={() => onSelectMode('radar')}
           className="w-full bg-gray-800 hover:bg-gray-700 text-left p-5 rounded-2xl shadow-lg border-2 border-transparent focus:border-blue-500 active:scale-95 transition-all group relative overflow-hidden"
@@ -61,7 +74,6 @@ const Home = ({ onSelectMode, onReset, kanaDay, kanaTotal, radarDay, kanjiDay })
           </div>
         </button>
 
-        {/* PHASE 3: KANJI */}
         <button 
           onClick={() => onSelectMode('kanji')}
           className="w-full bg-gray-800 hover:bg-gray-700 text-left p-5 rounded-2xl shadow-lg border-2 border-transparent focus:border-purple-500 active:scale-95 transition-all group relative overflow-hidden"
