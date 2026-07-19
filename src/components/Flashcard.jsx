@@ -16,6 +16,9 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   const [speechAttempts, setSpeechAttempts] = useState(0);
   const [speechResult, setSpeechResult] = useState(null); 
 
+  // NEU: Für den Scanner-Modus
+  const [wrongScans, setWrongScans] = useState([]); 
+
   useEffect(() => {
     if (radarData[day]) {
       setQueue([...radarData[day].scenarios]);
@@ -25,9 +28,10 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   }, [day]);
 
   const currentScenario = queue[0];
+  const isScanner = currentScenario?.type === 'scanner'; // NEU: Checkt, ob es eine Scanner-Karte ist
 
   const playAudio = (text) => {
-    if ('speechSynthesis' in window) {
+    if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
       const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -97,6 +101,16 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setStep(3);
   };
 
+  // NEU: Scanner-Klick auswerten
+  const handleScanClick = (chunk, index) => {
+    if (chunk.includes(currentScenario.target)) {
+      setSelectedIndex(0); // Dummy-Index für korrekte Auswertung in Step 3
+      setStep(3); // Direkt zur Erfolgs-Ansicht springen (Phase 2 wird übersprungen)
+    } else {
+      setWrongScans(prev => [...prev, index]);
+    }
+  };
+
   const advanceQueue = (isCorrect) => {
     if (isCorrect) {
       if (queue.length <= 1) {
@@ -117,14 +131,15 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setTranscript('');
     setSpeechAttempts(0);
     setSpeechResult(null);
+    setWrongScans([]); // Scanner Reset
   };
 
   const renderTextWithFurigana = (text) => {
     if (!text) return null;
-    const parts = text.split(/([^{]+{[^}]+})/g);
+    const parts = text.split(/([^\s]+{[^}]+})/g);
     
     return parts.map((part, i) => {
-      const match = part.match(/(.+){(.+)}/);
+      const match = part.match(/([^{]+){([^}]+)}/);
       if (match) {
         return (
           <ruby key={i} className="px-0.5">
@@ -201,7 +216,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     );
   }
 
-  if (!currentScenario.userSpeech) {
+  if (!currentScenario) {
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
         <h2 className="text-xl font-bold text-yellow-500 mb-4">Noch keine Missionen für Tag {day}</h2>
@@ -210,7 +225,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     );
   }
 
-  const isAnswerCorrect = selectedIndex === currentScenario.correctIndex;
+  // Für Scanner reicht es, wenn es in Step 3 gelandet ist. Für Speech werten wir den Index aus.
+  const isAnswerCorrect = isScanner ? step === 3 : selectedIndex === currentScenario.correctIndex;
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -226,7 +242,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
 
       <div className="w-full max-w-[22rem] sm:max-w-sm mx-auto mt-12 flex flex-col items-center">
         
-        {/* PHASE 1: SITUATION & SPRECHEN */}
+        {/* PHASE 1: SITUATION & EINGABE (SPRACHE ODER SCANNER) */}
         <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4">
           <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">Szenario</p>
           <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
@@ -240,10 +256,41 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
 
           <div className="pt-4 border-t border-gray-700 text-center">
             <p className="text-white font-bold">{currentScenario.userTask}</p>
+            
+            {currentScenario.vocabHint && (
+              <div className="mt-3 inline-block bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-1.5">
+                <p className="text-xs text-yellow-400 font-bold tracking-wide uppercase">
+                  Vokabel: <span className="text-white ml-1 text-sm">{renderTextWithFurigana(currentScenario.vocabHint)}</span>
+                </p>
+              </div>
+            )}
           </div>
           
-          {/* Mikrofon */}
-          {step === 1 && speechResult !== 'perfect' && speechResult !== 'failed' && (
+          {/* NEU: MODUS-WEICHE -> Scanner ODER Mikrofon */}
+          {step === 1 && isScanner && (
+            <div className="mt-6 p-4 bg-gray-900 rounded-xl border border-gray-700 w-full text-center">
+              <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-4 animate-pulse">Radar-Scan Aktiv</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {currentScenario.textChunks.map((chunk, index) => {
+                  const isWrong = wrongScans.includes(index);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleScanClick(chunk, index)}
+                      className={`text-lg px-3 py-2 rounded-lg transition-all shadow-md font-bold ${
+                        isWrong ? 'bg-red-900/50 text-red-500 border border-red-500/30 scale-95' 
+                                : 'bg-gray-700 text-gray-200 border border-gray-600 hover:bg-gray-600 active:scale-95'
+                      }`}
+                    >
+                      {chunk}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {step === 1 && !isScanner && speechResult !== 'perfect' && speechResult !== 'failed' && (
             <div className="mt-6 flex flex-col items-center">
               <button 
                 onClick={handleListen}
@@ -257,8 +304,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             </div>
           )}
 
-          {/* Direktes Sprach-Feedback in Phase 1 */}
-          {step === 1 && transcript && (
+          {/* Direktes Sprach-Feedback (nur bei Sprache) */}
+          {step === 1 && !isScanner && transcript && (
             <div className="mt-6 w-full bg-blue-900/20 rounded-xl p-4 border border-blue-500/30 text-left animate-fade-in">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
               <p className={`text-lg font-bold mb-2 ${speechResult === 'perfect' ? 'text-green-400' : 'text-red-500'}`}>
@@ -293,8 +340,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           )}
         </div>
 
-        {/* PHASE 2: AUDIO & MULTIPLE CHOICE */}
-        {step === 2 && (
+        {/* PHASE 2: AUDIO & MULTIPLE CHOICE (Wird beim Scanner übersprungen) */}
+        {step === 2 && !isScanner && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-4 animate-fade-in text-center">
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">Gegenüber antwortet</p>
             
@@ -329,11 +376,13 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
               <p className={`text-xs font-bold tracking-widest uppercase ${isAnswerCorrect ? 'text-green-400' : 'text-red-400'}`}>
                 {isAnswerCorrect ? 'Ziel erfasst' : 'Fehlerhafte Ortung'}
               </p>
-              <button onClick={() => playAudio(currentScenario.npcReply)} className="text-gray-400 hover:text-white text-lg active:scale-90">🔊</button>
+              {!isScanner && (
+                <button onClick={() => playAudio(currentScenario.npcReply)} className="text-gray-400 hover:text-white text-lg active:scale-90">🔊</button>
+              )}
             </div>
 
             <p className="text-xl text-white mb-4 leading-relaxed">
-              {renderHighlightedText(currentScenario.npcReply, currentScenario.keyword, isAnswerCorrect)}
+              {isScanner ? currentScenario.npcReply : renderHighlightedText(currentScenario.npcReply, currentScenario.keyword, isAnswerCorrect)}
             </p>
             
             <p className="text-sm text-gray-300 italic border-t border-gray-700/50 pt-3">
@@ -347,8 +396,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
       {/* STEUERUNG BOTTOM */}
       <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
         
-        {/* Kontrollen in Phase 1 */}
-        {step === 1 && (
+        {/* Kontrollen in Phase 1 (nur bei Sprache, Scanner schaltet automatisch weiter) */}
+        {step === 1 && !isScanner && (
           <div className="space-y-3">
             {(speechResult === 'perfect' || speechResult === 'failed') ? (
               <>
