@@ -56,7 +56,6 @@ const KanaCard = ({ day, mode, onBack }) => {
       </div>
 
       <div className="w-full max-w-[20rem] sm:max-w-sm mx-auto mt-12 mb-4">
-        {/* Info-Box für Ausnahmen */}
         {deckInfo?.note && (
           <div className="bg-blue-900/40 border border-blue-500/50 p-4 rounded-xl text-sm text-blue-200 shadow-lg mb-4">
             <strong className="text-blue-400 block mb-1 uppercase tracking-wider text-xs">💡 Trainer-Notiz:</strong> 
@@ -91,18 +90,22 @@ const KanaCard = ({ day, mode, onBack }) => {
               <div className="flex flex-col items-center text-center w-full h-full overflow-y-auto scrollbar-hide">
                 <div className="mb-4">
                   <h2 className="text-5xl font-bold text-green-400 mb-1">{currentCharacter.kana}</h2>
-                  {/* Der reine Laut bleibt als Kontrolle, Vokabel/Satz-Romaji sind WEG */}
                   <span className="text-gray-400 text-lg uppercase tracking-widest">{currentCharacter.romaji}</span>
                 </div>
                 
                 {currentCharacter.vocab && (
                   <div className="w-full border-t border-gray-700 pt-4 mt-2">
+                    
+                    {/* DIE ESELSBRÜCKE IST WIEDER DA */}
+                    <p className="text-xs text-blue-400 font-bold tracking-widest uppercase mb-3">
+                      Eselsbrücke: "{currentCharacter.romaji.toUpperCase()}" wie...
+                    </p>
+
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <p className="text-xl font-bold text-white">{currentCharacter.vocab}</p>
                       <button onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.vocab); }} className="text-blue-400 hover:text-blue-300 bg-blue-500/10 p-2 rounded-full active:scale-90 transition-transform">🔊</button>
                     </div>
-                    {/* HIER WURDE DAS ROMAJI GELÖSCHT */}
-                    <p className="text-sm text-yellow-400 font-medium mt-2">{currentCharacter.vocabMeaning}</p>
+                    <p className="text-sm text-yellow-400 font-medium mt-1">{currentCharacter.vocabMeaning}</p>
                   </div>
                 )}
                 
@@ -112,8 +115,7 @@ const KanaCard = ({ day, mode, onBack }) => {
                       <p className="text-sm sm:text-base font-bold text-white leading-tight">{currentCharacter.sentence}</p>
                       <button onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.sentence); }} className="text-blue-400 hover:text-blue-300 bg-blue-500/10 p-2 rounded-full flex-shrink-0 active:scale-90 transition-transform">🔊</button>
                     </div>
-                    {/* HIER WURDE DAS ROMAJI GELÖSCHT */}
-                    <p className="text-xs text-blue-300 font-medium italic mt-2">"{currentCharacter.sentenceTranslation}"</p>
+                    <p className="text-xs text-blue-300 font-medium italic mt-1">"{currentCharacter.sentenceTranslation}"</p>
                   </div>
                 )}
               </div>
