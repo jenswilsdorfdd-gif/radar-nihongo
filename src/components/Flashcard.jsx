@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { radarData } from '../data/radarData';
 
 const Flashcard = ({ day, onBack }) => {
-  const [queue, setQueue] = useState(() => {
-    const data = radarData[day];
-    return data ? [...data] : [{ context: "Keine Daten", userTask: "Tag fehlt." }];
-  });
+  const dayData = radarData[day] || { morningRoutine: "Keine Daten.", scenarios: [{ context: "Keine Daten", userTask: "Tag fehlt." }] };
+  
+  const [queue, setQueue] = useState([...dayData.scenarios]);
+  const [isFinished, setIsFinished] = useState(false); // NEU: Steuert den Abschluss-Screen
   
   const [step, setStep] = useState(1);
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -18,7 +18,6 @@ const Flashcard = ({ day, onBack }) => {
   const playAudio = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      // Wir müssen für das Audio die Furigana-Klammern entfernen, sonst liest die Stimme sie als Text vor
       const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ja-JP';
@@ -75,7 +74,7 @@ const Flashcard = ({ day, onBack }) => {
     const isCorrect = selectedIndex === currentScenario.correctIndex;
     if (isCorrect) {
       if (queue.length <= 1) {
-        onBack();
+        setIsFinished(true); // NEU: Triggert den Sieges-Bildschirm
       } else {
         setQueue(prev => prev.slice(1));
         resetState();
@@ -92,9 +91,6 @@ const Flashcard = ({ day, onBack }) => {
     setTranscript('');
   };
 
-  // --------------------------------------------------------
-  // HELPER: Furigana Renderer (Macht aus Kanji{kana} schönes HTML)
-  // --------------------------------------------------------
   const renderTextWithFurigana = (text) => {
     if (!text) return null;
     const parts = text.split(/([^{]+{[^}]+})/g);
@@ -113,13 +109,9 @@ const Flashcard = ({ day, onBack }) => {
     });
   };
 
-  // --------------------------------------------------------
-  // HELPER: Keyword Highlight & Furigana
-  // --------------------------------------------------------
   const renderHighlightedText = (text, keyword, isCorrect) => {
     if (!text || !keyword) return renderTextWithFurigana(text);
     
-    // Einfacher Split nach dem genauen Keyword-String (inklusive der {}-Syntax)
     const parts = text.split(keyword);
     const highlightColor = isCorrect ? 'text-green-400' : 'text-red-400';
     
@@ -139,6 +131,35 @@ const Flashcard = ({ day, onBack }) => {
     );
   };
 
+  // NEU: Der Sieges-Bildschirm
+  if (isFinished) {
+    return (
+      <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="w-full max-w-sm mx-auto flex flex-col items-center text-center animate-fade-in">
+          <div className="w-20 h-20 bg-green-900/30 border-2 border-green-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+            ✓
+          </div>
+          <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Abend-Routine</h1>
+          <h2 className="text-green-400 font-bold tracking-widest uppercase mb-8">Abgeschlossen</h2>
+
+          <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-blue-500 shadow-lg mb-8 text-left">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-blue-400 text-xl">☀️</span>
+              <p className="text-blue-400 text-sm font-bold tracking-widest uppercase">Morgen-Routine (Transfer)</p>
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+              {dayData.morningRoutine}
+            </p>
+          </div>
+
+          <button onClick={onBack} className="w-full py-4 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg shadow-green-500/20 uppercase tracking-widest">
+            Mission Beenden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentScenario.userSpeech) {
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
@@ -150,10 +171,8 @@ const Flashcard = ({ day, onBack }) => {
 
   const isAnswerCorrect = selectedIndex === currentScenario.correctIndex;
 
-  // Helfer für den Mikrofon-Abgleich: 
-  // Entfernt Leerzeichen, Satzzeichen und extrahiert bei der Musterlösung die Kanjis aus den Furigana-Klammern
   const normalizeSpeechForComparison = (text) => {
-    let clean = text.replace(/([^{]+){[^}]+}/g, "$1"); // Kanji{kana} -> Kanji
+    let clean = text.replace(/([^{]+){[^}]+}/g, "$1"); 
     return clean.replace(/[\s、。！？?]/g, '');
   };
   
@@ -179,7 +198,6 @@ const Flashcard = ({ day, onBack }) => {
           <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">Szenario</p>
           <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
           
-          {/* NEU: Der Motorik-Block */}
           {currentScenario.physicalAction && (
             <div className="bg-orange-900/30 border border-orange-500/50 rounded-xl p-4 mb-4 text-center">
               <p className="text-orange-400 text-xs font-bold tracking-widest uppercase mb-1">Aktion ausführen</p>
@@ -213,7 +231,7 @@ const Flashcard = ({ day, onBack }) => {
           )}
         </div>
 
-        {/* SPRACH-ANALYSE (Ab Phase 2 sichtbar) */}
+        {/* SPRACH-ANALYSE */}
         {step >= 2 && (
           <div className="w-full bg-blue-900/20 rounded-2xl p-6 border border-blue-500/30 mb-4 animate-fade-in">
             <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Sprach-Analyse</p>
