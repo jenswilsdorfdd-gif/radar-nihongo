@@ -37,6 +37,7 @@ const Flashcard = ({ day, onBack }) => {
     recognition.lang = 'ja-JP'; 
     recognition.continuous = false;
     recognition.interimResults = false;
+    recognition.maxAlternatives = 1; // Zwingt die Engine, sich auf das klarste Ergebnis zu fokussieren
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -62,7 +63,7 @@ const Flashcard = ({ day, onBack }) => {
 
   const handleStartListening = () => {
     setStep(2);
-    playAudio(currentScenario.npcReply);
+    // Autoplay entfernt! Der Nutzer triggert das Audio jetzt manuell.
   };
 
   const handleOptionSelect = (index) => {
@@ -187,8 +188,7 @@ const Flashcard = ({ day, onBack }) => {
                 <p className="text-2xl font-bold text-white">{currentScenario.userSpeech}</p>
                 <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90">🔊</button>
               </div>
-              <p className="text-xs text-gray-400 mb-3">{currentScenario.userRomaji}</p>
-              <p className="text-sm text-blue-300 italic bg-blue-900/40 p-3 rounded-lg border border-blue-500/20">
+              <p className="text-sm text-blue-300 italic bg-blue-900/40 p-3 rounded-lg border border-blue-500/20 mt-3">
                 "{currentScenario.userTask}"
               </p>
             </div>
@@ -206,7 +206,7 @@ const Flashcard = ({ day, onBack }) => {
             >
               🔊
             </button>
-            <p className="text-sm text-gray-300 mb-6 italic">Audio genau anhören. Welche Information hast du erkannt?</p>
+            <p className="text-sm text-gray-300 mb-6 italic">Audio abspielen und zuhören. Welche Information erkennst du?</p>
 
             <div className="space-y-3">
               {currentScenario.options.map((option, index) => (
@@ -234,11 +234,10 @@ const Flashcard = ({ day, onBack }) => {
               <button onClick={() => playAudio(currentScenario.npcReply)} className="text-gray-400 hover:text-white text-lg active:scale-90">🔊</button>
             </div>
 
-            <p className="text-xl text-white mb-2 leading-relaxed">
+            <p className="text-xl text-white mb-4 leading-relaxed">
               {renderHighlightedText(currentScenario.npcReply, currentScenario.keyword, isAnswerCorrect)}
             </p>
             
-            <p className="text-xs text-gray-400 mb-4">{currentScenario.npcRomaji}</p>
             <p className="text-sm text-gray-300 italic border-t border-gray-700/50 pt-3">
               "{currentScenario.npcTranslation}"
             </p>
