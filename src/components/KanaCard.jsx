@@ -4,7 +4,6 @@ import { kanaData } from '../data/kanaData';
 const KanaCard = ({ day, mode, onBack }) => {
   const currentDeck = kanaData[day];
   
-  // CRASH-SCHUTZ: Falls der Tag nicht in der Datenbank existiert (z.B. Tag 15)
   if (!currentDeck) {
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
@@ -92,7 +91,6 @@ const KanaCard = ({ day, mode, onBack }) => {
 
   const handleReveal = () => {
     setIsRevealed(true);
-    // Audio wird jetzt IMMER abgespielt, wenn aufgedeckt wird (auch beim Schreiben!)
     playAudio(currentCard.kana);
   };
 
@@ -104,6 +102,37 @@ const KanaCard = ({ day, mode, onBack }) => {
     }
     setIsRevealed(false);
     clearCanvas();
+  };
+
+  // Komponente für den Eselsbrücken-Block (wird für Lesen und Schreiben genutzt)
+  const renderMerksatzBox = () => {
+    if (!currentCard.vocab) return null;
+    
+    return (
+      <div className="w-full bg-gray-900 rounded-xl p-4 border border-gray-700 text-center mt-2">
+        <p className="text-xs text-blue-400 font-bold tracking-widest uppercase mb-3">
+          Eselsbrücke: "{currentCard.sound.toUpperCase()}" wie...
+        </p>
+        
+        {/* Vokabel mit Audio */}
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <p className="text-yellow-400 font-bold text-xl">{currentCard.vocab}</p>
+          <button onClick={() => playAudio(currentCard.vocab)} className="text-gray-400 hover:text-white active:scale-90 transition-all text-lg">🔊</button>
+        </div>
+        <p className="text-gray-300 text-sm mb-3">{currentCard.vocabMeaning}</p>
+        
+        {/* Beispielsatz mit Audio */}
+        {currentCard.sentence && (
+          <div className="border-t border-gray-700 pt-3">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <p className="text-white text-sm font-bold">{currentCard.sentence}</p>
+              <button onClick={() => playAudio(currentCard.sentence)} className="text-gray-400 hover:text-white active:scale-90 transition-all text-lg">🔊</button>
+            </div>
+            <p className="text-gray-400 text-xs italic">{currentCard.sentenceTranslation}</p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -134,18 +163,7 @@ const KanaCard = ({ day, mode, onBack }) => {
                     <button onClick={() => playAudio(currentCard.kana)} className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-lg transition-all active:scale-90">🔊</button>
                   </div>
                   
-                  {currentCard.vocab && (
-                    <div className="w-full bg-gray-900 rounded-xl p-4 border border-gray-700 text-center mt-2">
-                      <p className="text-yellow-400 font-bold text-xl mb-1">{currentCard.vocab}</p>
-                      <p className="text-gray-300 text-sm mb-3">{currentCard.vocabMeaning}</p>
-                      {currentCard.sentence && (
-                        <div className="border-t border-gray-700 pt-3">
-                          <p className="text-white text-sm font-bold mb-1">{currentCard.sentence}</p>
-                          <p className="text-gray-400 text-xs italic">{currentCard.sentenceTranslation}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {renderMerksatzBox()}
                 </div>
               ) : (
                 <div className="h-20 flex items-center justify-center">
@@ -178,25 +196,14 @@ const KanaCard = ({ day, mode, onBack }) => {
                 <div className="flex flex-col items-center animate-fade-in w-full">
                   <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">Die Lösung:</p>
                   
-                  {/* KANA & AUDIO BUTTON WIEDER EINGEFÜGT */}
+                  {/* KANA & AUDIO BUTTON */}
                   <div className="flex items-center gap-4 mb-4">
                     <div className="text-[6rem] font-bold text-green-400 leading-none">{currentCard.kana}</div>
                     <button onClick={() => playAudio(currentCard.kana)} className="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-xl transition-all shadow-lg active:scale-90">🔊</button>
                   </div>
                   
-                  {/* VOLLER MERKSATZ WIEDER EINGEFÜGT */}
-                  {currentCard.vocab && (
-                    <div className="w-full bg-gray-900 rounded-xl p-4 border border-gray-700 text-center mt-2">
-                      <p className="text-yellow-400 font-bold text-xl mb-1">{currentCard.vocab}</p>
-                      <p className="text-gray-300 text-sm mb-3">{currentCard.vocabMeaning}</p>
-                      {currentCard.sentence && (
-                        <div className="border-t border-gray-700 pt-3">
-                          <p className="text-white text-sm font-bold mb-1">{currentCard.sentence}</p>
-                          <p className="text-gray-400 text-xs italic">{currentCard.sentenceTranslation}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* ESELSBRÜCKE & AUDIO */}
+                  {renderMerksatzBox()}
                 </div>
               )}
             </>
