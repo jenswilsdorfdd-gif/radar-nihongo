@@ -18,7 +18,9 @@ const Flashcard = ({ day, onBack }) => {
   const playAudio = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Wir müssen für das Audio die Furigana-Klammern entfernen, sonst liest die Stimme sie als Text vor
+      const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ja-JP';
       utterance.rate = 0.9; 
       window.speechSynthesis.speak(utterance);
@@ -27,7 +29,6 @@ const Flashcard = ({ day, onBack }) => {
 
   const handleListen = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
     if (!SpeechRecognition) {
       alert("Dein Browser unterstützt leider keine Spracherkennung. Bitte nutze Chrome oder Safari auf deinem Handy.");
       return;
@@ -91,8 +92,34 @@ const Flashcard = ({ day, onBack }) => {
     setTranscript('');
   };
 
+  // --------------------------------------------------------
+  // HELPER: Furigana Renderer (Macht aus Kanji{kana} schönes HTML)
+  // --------------------------------------------------------
+  const renderTextWithFurigana = (text) => {
+    if (!text) return null;
+    const parts = text.split(/([^{]+{[^}]+})/g);
+    
+    return parts.map((part, i) => {
+      const match = part.match(/(.+){(.+)}/);
+      if (match) {
+        return (
+          <ruby key={i} className="px-0.5">
+            {match[1]}
+            <rt className="text-[0.6em] text-gray-400">{match[2]}</rt>
+          </ruby>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  // --------------------------------------------------------
+  // HELPER: Keyword Highlight & Furigana
+  // --------------------------------------------------------
   const renderHighlightedText = (text, keyword, isCorrect) => {
-    if (!text || !keyword) return text;
+    if (!text || !keyword) return renderTextWithFurigana(text);
+    
+    // Einfacher Split nach dem genauen Keyword-String (inklusive der {}-Syntax)
     const parts = text.split(keyword);
     const highlightColor = isCorrect ? 'text-green-400' : 'text-red-400';
     
@@ -100,10 +127,10 @@ const Flashcard = ({ day, onBack }) => {
       <>
         {parts.map((part, index) => (
           <React.Fragment key={index}>
-            {part}
+            {renderTextWithFurigana(part)}
             {index < parts.length - 1 && (
               <span className={`font-extrabold text-2xl px-1 ${highlightColor}`}>
-                {keyword}
+                {renderTextWithFurigana(keyword)}
               </span>
             )}
           </React.Fragment>
@@ -123,9 +150,15 @@ const Flashcard = ({ day, onBack }) => {
 
   const isAnswerCorrect = selectedIndex === currentScenario.correctIndex;
 
-  // Helfer-Funktion für den Vergleich: Entfernt Leer- und Satzzeichen für einen fairen Abgleich
-  const normalizeText = (text) => text.replace(/[\s、。！？?]/g, '');
-  const isSpeechPerfect = transcript && currentScenario.userSpeech && normalizeText(transcript) === normalizeText(currentScenario.userSpeech);
+  // Helfer für den Mikrofon-Abgleich: 
+  // Entfernt Leerzeichen, Satzzeichen und extrahiert bei der Musterlösung die Kanjis aus den Furigana-Klammern
+  const normalizeSpeechForComparison = (text) => {
+    let clean = text.replace(/([^{]+){[^}]+}/g, "$1"); // Kanji{kana} -> Kanji
+    return clean.replace(/[\s、。！？?]/g, '');
+  };
+  
+  const isSpeechPerfect = transcript && currentScenario.userSpeech && 
+    normalizeSpeechForComparison(transcript) === normalizeSpeechForComparison(currentScenario.userSpeech);
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -144,8 +177,17 @@ const Flashcard = ({ day, onBack }) => {
         {/* PHASE 1: SITUATION & SPRECHEN */}
         <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4">
           <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">Szenario</p>
-          <p className="text-gray-300 text-sm">{currentScenario.context}</p>
-          <div className="mt-4 pt-4 border-t border-gray-700">
+          <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
+          
+          {/* NEU: Der Motorik-Block */}
+          {currentScenario.physicalAction && (
+            <div className="bg-orange-900/30 border border-orange-500/50 rounded-xl p-4 mb-4 text-center">
+              <p className="text-orange-400 text-xs font-bold tracking-widest uppercase mb-1">Aktion ausführen</p>
+              <p className="text-orange-200 font-bold">{currentScenario.physicalAction}</p>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-gray-700 text-center">
             <p className="text-white font-bold">{currentScenario.userTask}</p>
           </div>
           
@@ -176,7 +218,6 @@ const Flashcard = ({ day, onBack }) => {
           <div className="w-full bg-blue-900/20 rounded-2xl p-6 border border-blue-500/30 mb-4 animate-fade-in">
             <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Sprach-Analyse</p>
             
-            {/* 1. Was die App gehört hat (Jetzt in hartem Rot bei Fehler) */}
             {transcript && (
               <div className="mb-4 pb-4 border-b border-blue-500/30">
                 <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
@@ -186,11 +227,12 @@ const Flashcard = ({ day, onBack }) => {
               </div>
             )}
 
-            {/* 2. Die perfekte Lösung */}
             <div>
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Muster-Lösung:</p>
               <div className="flex justify-between items-start">
-                <p className="text-2xl font-bold text-white">{currentScenario.userSpeech}</p>
+                <p className="text-2xl font-bold text-white leading-relaxed">
+                  {renderTextWithFurigana(currentScenario.userSpeech)}
+                </p>
                 <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
               </div>
             </div>
@@ -217,7 +259,7 @@ const Flashcard = ({ day, onBack }) => {
                   onClick={() => handleOptionSelect(index)}
                   className="w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white text-left transition-colors"
                 >
-                  {option}
+                  {renderTextWithFurigana(option)}
                 </button>
               ))}
             </div>

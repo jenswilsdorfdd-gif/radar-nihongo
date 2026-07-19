@@ -3,32 +3,30 @@ export const radarData = {
     1: [
       {
         context: "Sie irren durch ein gigantisches Kaufhaus in Tokio und müssen dringend auf die Toilette.",
+        physicalAction: "Hand heben (Aufmerksamkeit erregen).",
         userTask: "Sprechen Sie eine Reinigungskraft an und fragen Sie nach der Toilette.",
-        userSpeech: "すみません、トイレはどこですか？",
-        userRomaji: "Sumimasen, toire wa doko desu ka?",
-        npcReply: "トイレですか？ あそこの みぎ です。",
-        npcRomaji: "Toire desu ka? Asoko no migi desu.",
-        keyword: "みぎ",
+        userSpeech: "すみません、トイレは どこですか？",
+        npcReply: "トイレですか？ あそこの 右{みぎ} です。",
+        keyword: "右{みぎ}",
         options: [
           "まっすぐ (Geradeaus)",
-          "みぎ (Rechts)",
-          "ひだり (Links)"
+          "右{みぎ} (Rechts)",
+          "左{ひだり} (Links)"
         ],
         correctIndex: 1,
         npcTranslation: "Die Toilette? Die ist dort drüben rechts."
       },
       {
         context: "Sie haben sich komplett verlaufen und brauchen eine Bahn-Anbindung.",
+        physicalAction: "Blicken Sie sich suchend im Raum um.",
         userTask: "Stoppen Sie einen Passanten und fragen Sie nach dem Bahnhof.",
-        userSpeech: "えきはどこですか？",
-        userRomaji: "Eki wa doko desu ka?",
-        npcReply: "しんごうを ひだり に まがってください。",
-        npcRomaji: "Shingou o hidari ni magatte kudasai.",
-        keyword: "ひだり",
+        userSpeech: "えきは どこですか？",
+        npcReply: "しんごうを 左{ひだり} に まがってください。",
+        keyword: "左{ひだり}",
         options: [
-          "みぎ (Rechts)",
+          "右{みぎ} (Rechts)",
           "まっすぐ (Geradeaus)",
-          "ひだり (Links)"
+          "左{ひだり} (Links)"
         ],
         correctIndex: 2,
         npcTranslation: "Biegen Sie an der Ampel links ab."
@@ -39,32 +37,30 @@ export const radarData = {
     2: [
       {
         context: "Sie fragen nach dem Weg zum Shinjuku-Bahnhof.",
+        physicalAction: "Auf der Stelle gehen und sofort stoppen.",
         userTask: "Wie fragen Sie nach dem Weg?",
         userSpeech: "しんじゅくえきは、どこですか？",
-        userRomaji: "Shinjuku-eki wa, doko desu ka?",
         npcReply: "まっすぐ いくと、えきがあります。",
-        npcRomaji: "Massugu iku to, eki ga arimasu.",
         keyword: "まっすぐ",
         options: [
           "まっすぐ (Geradeaus)",
-          "みぎ (Rechts)",
-          "ひだり (Links)"
+          "右{みぎ} (Rechts)",
+          "左{ひだり} (Links)"
         ],
         correctIndex: 0,
         npcTranslation: "Wenn Sie geradeaus gehen, kommt dort der Bahnhof."
       },
       {
         context: "Der Taxifahrer fragt Sie nach der Richtung an der nächsten Kreuzung.",
+        physicalAction: "Zeichnen Sie 'みぎ' groß in die Luft und werfen Sie den rechten Arm nach rechts.",
         userTask: "Sagen Sie ihm: 'Rechts, bitte.'",
-        userSpeech: "みぎ、おねがいします。",
-        userRomaji: "Migi, onegaishimasu.",
-        npcReply: "はい、かしこまりました。みぎ ですね。",
-        npcRomaji: "Hai, kashikomarimashita. Migi desu ne.",
-        keyword: "みぎ",
+        userSpeech: "右{みぎ}、おねがいします。",
+        npcReply: "はい、かしこまりました。右{みぎ} ですね。",
+        keyword: "右{みぎ}",
         options: [
-          "ひだり (Links)",
+          "左{ひだり} (Links)",
           "まっすぐ (Geradeaus)",
-          "みぎ (Rechts)"
+          "右{みぎ} (Rechts)"
         ],
         correctIndex: 2,
         npcTranslation: "Ja, verstanden. Nach rechts also."
@@ -75,11 +71,10 @@ export const radarData = {
     3: [
       {
         context: "Sie betreten ein Café und brauchen dringend Internet.",
+        physicalAction: "Hände leicht auf den Tisch stützen (wie an der Rezeption).",
         userTask: "Fragen Sie an der Kasse nach WLAN.",
-        userSpeech: "ワイファイはありますか？",
-        userRomaji: "Waifai wa arimasu ka?",
+        userSpeech: "ワイファイは ありますか？",
         npcReply: "はい、あります。パスワードはこちらです。",
-        npcRomaji: "Hai, arimasu. Pasuwaado wa kochira desu.",
         keyword: "あります",
         options: [
           "ありません (Gibt es nicht)",
@@ -91,14 +86,13 @@ export const radarData = {
       },
       {
         context: "Sie betreten ein Restaurant. Der Kellner begrüßt Sie herzlich.",
+        physicalAction: "Körperhaltung aufrecht, still stehen und zuhören.",
         userTask: "Antworten Sie nicht, sondern hören Sie genau zu, was er fragt!",
-        userSpeech: "(Zuhören)",
-        userRomaji: "-",
-        npcReply: "いらっしゃいませ！ なんめいさまですか？",
-        npcRomaji: "Irasshaimase! Nanmei-sama desu ka?",
-        keyword: "なんめいさま",
+        userSpeech: "...",
+        npcReply: "いらっしゃいませ！ 何名様{なんめいさま} ですか？",
+        keyword: "何名様{なんめいさま}",
         options: [
-          "なんめいさま (Wie viele Personen?)",
+          "何名様{なんめいさま} (Wie viele Personen?)",
           "いくらですか (Wie viel kostet das?)",
           "どこですか (Wo ist das?)"
         ],
