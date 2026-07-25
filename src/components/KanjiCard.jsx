@@ -1,14 +1,58 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { kanjiData } from '../data/kanjiData';
 
-const KanjiCard = ({ day, mode = 'read', onBack }) => {
+const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
   const currentDeck = kanjiData[day];
+  
+  // WÖRTERBUCH FÜR DIE UI-TEXTE
+  const texts = {
+    de: {
+      error1: "Fehler: Keine Daten für Tag",
+      error2: "gefunden.",
+      backMenu: "Zurück zum Menü",
+      backDeck: "Kanji-Deck",
+      backBtnSuccess: "Zurück zum Deck",
+      remaining: "Übrig:",
+      read: "Lesen",
+      write: "Schreiben",
+      hintRead: "Laut, Bedeutung & Satz?",
+      solution: "Die Lösung:",
+      clear: "Löschen",
+      reveal: "Aufdecken",
+      again: "Nochmal",
+      gotIt: "Sitzt",
+      mnemonicTitle: "Eselsbrücke",
+      day: "Tag",
+      perfect: "Perfekt abgeschlossen"
+    },
+    en: {
+      error1: "Error: No data found for Day",
+      error2: ".",
+      backMenu: "Back to Menu",
+      backDeck: "Kanji Deck",
+      backBtnSuccess: "Back to Deck",
+      remaining: "Remaining:",
+      read: "Read",
+      write: "Write",
+      hintRead: "Sound, Meaning & Sentence?",
+      solution: "The solution:",
+      clear: "Clear",
+      reveal: "Reveal",
+      again: "Again",
+      gotIt: "Got it",
+      mnemonicTitle: "Mnemonic",
+      day: "Day",
+      perfect: "Perfectly completed"
+    }
+  };
+
+  const t = texts[language] || texts.de;
   
   if (!currentDeck) {
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
-        <p className="text-red-500 font-bold mb-4">Fehler: Keine Daten für Tag {day} gefunden.</p>
-        <button onClick={onBack} className="bg-gray-700 py-3 px-6 rounded-xl font-bold">Zurück zum Menü</button>
+        <p className="text-red-500 font-bold mb-4">{t.error1} {day} {t.error2}</p>
+        <button onClick={onBack} className="bg-gray-700 py-3 px-6 rounded-xl font-bold">{t.backMenu}</button>
       </div>
     );
   }
@@ -98,16 +142,21 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
         <div className="w-20 h-20 bg-green-900/30 border-2 border-green-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]">✓</div>
-        <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Tag {day}</h1>
-        <h2 className="text-green-400 font-bold tracking-widest uppercase mb-12">Perfekt abgeschlossen</h2>
+        <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">{t.day} {day}</h1>
+        <h2 className="text-green-400 font-bold tracking-widest uppercase mb-12">{t.perfect}</h2>
         <button onClick={onBack} className="w-full max-w-sm py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white shadow-lg border border-gray-600 uppercase tracking-widest transition-all active:scale-95">
-          Zurück zum Deck
+          {t.backBtnSuccess}
         </button>
       </div>
     );
   }
 
   const currentCard = queue[0];
+  
+  // DYNAMISCHE DATEN (Deutsch oder Englisch)
+  const displayMeaning = language === 'en' && currentCard.meaningEn ? currentCard.meaningEn : currentCard.meaning;
+  const displayMnemonic = language === 'en' && currentCard.mnemonicEn ? currentCard.mnemonicEn : currentCard.mnemonic;
+  const displaySentenceTrans = language === 'en' && currentCard.sentenceTranslationEn ? currentCard.sentenceTranslationEn : currentCard.sentenceTranslation;
 
   const handleReveal = () => {
     setIsRevealed(true);
@@ -128,9 +177,9 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
     return (
       <div className="w-full bg-gray-900 rounded-xl p-4 border border-gray-700 text-center mt-2">
         <p className="text-xs text-blue-400 font-bold tracking-widest uppercase mb-3">
-          Eselsbrücke
+          {t.mnemonicTitle}
         </p>
-        <p className="text-gray-300 text-sm mb-3 font-medium italic">{currentCard.mnemonic}</p>
+        <p className="text-gray-300 text-sm mb-3 font-medium italic">{displayMnemonic}</p>
         
         {currentCard.sentence && (
           <div className="border-t border-gray-700 pt-3">
@@ -138,7 +187,7 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
               <p className="text-white text-lg font-bold">{renderTextWithFurigana(currentCard.sentence)}</p>
               <button onClick={() => playAudio(currentCard.sentence)} className="text-gray-400 hover:text-white active:scale-90 transition-all text-lg">🔊</button>
             </div>
-            <p className="text-gray-400 text-xs italic">{currentCard.sentenceTranslation}</p>
+            <p className="text-gray-400 text-xs italic">{displaySentenceTrans}</p>
           </div>
         )}
       </div>
@@ -148,15 +197,15 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute top-6 left-4 right-4 sm:left-6 sm:right-6 flex justify-between items-center z-10 w-full max-w-sm mx-auto">
-        <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">&larr; Kanji-Deck</button>
-        <span className="text-yellow-500 text-xs sm:text-sm font-bold">Übrig: {queue.length}</span>
+        <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">&larr; {t.backDeck}</button>
+        <span className="text-yellow-500 text-xs sm:text-sm font-bold">{t.remaining} {queue.length}</span>
       </div>
 
       <div className="w-full max-w-[22rem] sm:max-w-sm mx-auto mt-12 flex flex-col items-center">
         <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl flex flex-col items-center justify-center min-h-[300px] relative">
           
           <p className="absolute top-4 text-gray-500 text-xs font-bold uppercase tracking-widest">
-            {mode === 'read' ? 'Lesen' : 'Schreiben'}
+            {mode === 'read' ? t.read : t.write}
           </p>
 
           {mode === 'read' && (
@@ -171,13 +220,13 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
                     <p className="text-2xl font-extrabold text-blue-400 uppercase tracking-widest">{currentCard.reading}</p>
                     <button onClick={() => playAudio(currentCard.kanji)} className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-lg transition-all active:scale-90">🔊</button>
                   </div>
-                  <p className="text-yellow-400 font-bold text-xl mb-3">{currentCard.meaning}</p>
+                  <p className="text-yellow-400 font-bold text-xl mb-3">{displayMeaning}</p>
                   
                   {renderMerksatzBox()}
                 </div>
               ) : (
                 <div className="h-20 flex items-center justify-center">
-                  <p className="text-gray-500 text-sm italic">Laut, Bedeutung & Satz?</p>
+                  <p className="text-gray-500 text-sm italic">{t.hintRead}</p>
                 </div>
               )}
             </>
@@ -188,7 +237,7 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
               <div className="text-3xl font-extrabold text-blue-400 mt-4 mb-2 uppercase tracking-widest">
                 {currentCard.reading}
               </div>
-              <p className="text-yellow-400 font-bold text-lg mb-4">{currentCard.meaning}</p>
+              <p className="text-yellow-400 font-bold text-lg mb-4">{displayMeaning}</p>
               
               {!isRevealed ? (
                 <div className="w-full flex flex-col items-center">
@@ -200,11 +249,11 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
                     onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
                     onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
                   />
-                  <button onClick={clearCanvas} className="mt-3 text-xs text-gray-400 hover:text-white uppercase tracking-widest">Löschen</button>
+                  <button onClick={clearCanvas} className="mt-3 text-xs text-gray-400 hover:text-white uppercase tracking-widest">{t.clear}</button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center animate-fade-in w-full">
-                  <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">Die Lösung:</p>
+                  <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">{t.solution}</p>
                   <div className="flex items-center gap-4 mb-4">
                     <div className="text-[5rem] font-bold text-green-400 leading-none">{currentCard.kanji}</div>
                     <button onClick={() => playAudio(currentCard.kanji)} className="w-12 h-12 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-xl transition-all shadow-lg active:scale-90">🔊</button>
@@ -221,15 +270,15 @@ const KanjiCard = ({ day, mode = 'read', onBack }) => {
         <div className="w-full mt-6 flex flex-col gap-3">
           {!isRevealed ? (
             <button onClick={handleReveal} className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg shadow-blue-500/20 uppercase tracking-widest">
-              Aufdecken
+              {t.reveal}
             </button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => handleNext(false)} className="flex-1 py-4 bg-red-700/80 hover:bg-red-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-red-600 uppercase tracking-widest text-sm">
-                Nochmal
+                {t.again}
               </button>
               <button onClick={() => handleNext(true)} className="flex-1 py-4 bg-green-700/80 hover:bg-green-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-green-600 uppercase tracking-widest text-sm">
-                Sitzt
+                {t.gotIt}
               </button>
             </div>
           )}
