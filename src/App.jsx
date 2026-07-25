@@ -12,6 +12,12 @@ function App() {
   const [activeView, setActiveView] = useState('welcome'); 
   const [kanaMode, setKanaMode] = useState('read'); // 'read' oder 'write'
   
+  // --- NEU: THEME STATE (Hell/Dunkel) ---
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved !== null ? JSON.parse(saved) : true; // Standard ist Dark Mode
+  });
+  
   // RADAR
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
     const saved = localStorage.getItem('radarDay');
@@ -32,7 +38,7 @@ function App() {
   });
   
   const [learningKanaDay, setLearningKanaDay] = useState(1);
-  const kanaTotalDays = 14; // Fest auf 14 Tage gesetzt
+  const kanaTotalDays = 14; 
 
   // KANJI
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
@@ -42,6 +48,7 @@ function App() {
   const [learningKanjiDay, setLearningKanjiDay] = useState(1);
 
   // SPEICHERN
+  useEffect(() => { localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
   useEffect(() => { localStorage.setItem('radarDay', currentRadarDay); }, [currentRadarDay]);
   useEffect(() => { localStorage.setItem('kanaReadDay', kanaReadDay); }, [kanaReadDay]);
   useEffect(() => { localStorage.setItem('kanaWriteDay', kanaWriteDay); }, [kanaWriteDay]);
@@ -80,9 +87,29 @@ function App() {
     setActiveView('kanji');
   };
 
+  // Sichtbarkeit des Theme-Switches (nur auf Welcome und Home, damit es nicht die Zurück-Buttons beim Lernen verdeckt)
+  const showThemeSwitcher = activeView === 'welcome' || activeView === 'home';
+
   return (
-    <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col">
+    <div 
+      className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col transition-all duration-300"
+      /* Der Magische Filter: Wenn Light Mode, kehre Farben um und rotiere die Farbtöne zurück! */
+      style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
+    >
       
+      {/* THEME SWITCHER (Oben Links) */}
+      {showThemeSwitcher && (
+        <button 
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="fixed top-6 left-6 z-50 w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+          /* Der Button selbst wird doppelt invertiert, damit die Emojis ihre Farben behalten */
+          style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
+          title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}
+        >
+          <span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span>
+        </button>
+      )}
+
       {activeView === 'welcome' && (
         <Welcome onStart={() => setActiveView('home')} />
       )}
@@ -96,7 +123,7 @@ function App() {
             if (mode === 'kanji') setActiveView('kanji');
           }} 
           onReset={handleReset}
-          onGoToWelcome={() => setActiveView('welcome')} /* <-- NEU: Zurück zur Startseite */
+          onGoToWelcome={() => setActiveView('welcome')}
           kanaReadDay={kanaReadDay}
           kanaWriteDay={kanaWriteDay}
           radarDay={currentRadarDay}
