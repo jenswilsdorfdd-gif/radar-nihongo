@@ -95,7 +95,7 @@ function App() {
   };
 
   // ------------------------------------------------------------------
-  // SPRACHAUSWAHL-SCREEN (wird nur gezeigt, wenn noch NIE eine Sprache gesetzt wurde)
+  // SPRACHAUSWAHL-SCREEN 
   // ------------------------------------------------------------------
   if (!appLanguage) {
     return (
@@ -110,14 +110,18 @@ function App() {
             onClick={() => setAppLanguage('de')} 
             className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
           >
-            <img src="https://flagcdn.com/w40/de.png" alt="Deutsch" className="w-10 h-auto mb-2 rounded-sm shadow-sm" />
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm">
+              <img src="https://flagcdn.com/w80/de.png" alt="Deutsch" className="w-full h-full object-cover" />
+            </div>
             Deutsch
           </button>
           <button 
             onClick={() => setAppLanguage('en')} 
             className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
           >
-            <img src="https://flagcdn.com/w40/gb.png" alt="English" className="w-10 h-auto mb-2 rounded-sm shadow-sm" />
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm">
+              <img src="https://flagcdn.com/w80/gb.png" alt="English" className="w-full h-full object-cover" />
+            </div>
             English
           </button>
         </div>
@@ -151,15 +155,15 @@ function App() {
           {/* LANGUAGE SWITCHER */}
           <button 
             onClick={() => setAppLanguage(appLanguage === 'de' ? 'en' : 'de')}
-            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden p-0"
             style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
             title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}
           >
-            {/* Zeigt immer die Flagge der jeweils ANDEREN Sprache zum Umschalten an */}
+            {/* Bild füllt nun den gesamten runden Button aus */}
             <img 
-              src={appLanguage === 'de' ? "https://flagcdn.com/w40/gb.png" : "https://flagcdn.com/w40/de.png"} 
+              src={appLanguage === 'de' ? "https://flagcdn.com/w80/gb.png" : "https://flagcdn.com/w80/de.png"} 
               alt={appLanguage === 'de' ? "English" : "Deutsch"} 
-              className="w-5 h-auto rounded-[2px] shadow-sm" 
+              className="w-full h-full object-cover" 
             />
           </button>
 
