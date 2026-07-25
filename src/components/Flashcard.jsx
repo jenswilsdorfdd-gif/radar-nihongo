@@ -16,7 +16,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   const [speechAttempts, setSpeechAttempts] = useState(0);
   const [speechResult, setSpeechResult] = useState(null); 
 
-  // NEU: Für den Scanner-Modus
   const [wrongScans, setWrongScans] = useState([]); 
 
   useEffect(() => {
@@ -28,7 +27,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   }, [day]);
 
   const currentScenario = queue[0];
-  const isScanner = currentScenario?.type === 'scanner'; // NEU: Checkt, ob es eine Scanner-Karte ist
+  const isScanner = currentScenario?.type === 'scanner'; 
 
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
@@ -101,11 +100,10 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setStep(3);
   };
 
-  // NEU: Scanner-Klick auswerten
   const handleScanClick = (chunk, index) => {
     if (chunk.includes(currentScenario.target)) {
-      setSelectedIndex(0); // Dummy-Index für korrekte Auswertung in Step 3
-      setStep(3); // Direkt zur Erfolgs-Ansicht springen (Phase 2 wird übersprungen)
+      setSelectedIndex(0); 
+      setStep(3); 
     } else {
       setWrongScans(prev => [...prev, index]);
     }
@@ -131,7 +129,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setTranscript('');
     setSpeechAttempts(0);
     setSpeechResult(null);
-    setWrongScans([]); // Scanner Reset
+    setWrongScans([]); 
   };
 
   const renderTextWithFurigana = (text) => {
@@ -225,13 +223,13 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     );
   }
 
-  // Für Scanner reicht es, wenn es in Step 3 gelandet ist. Für Speech werten wir den Index aus.
   const isAnswerCorrect = isScanner ? step === 3 : selectedIndex === currentScenario.correctIndex;
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       
-      <div className="absolute top-6 left-4 right-4 sm:left-6 sm:right-6 flex justify-between items-center z-10 w-full max-w-sm mx-auto">
+      {/* HEADER FIX: left-1/2 -translate-x-1/2 zentriert perfekt, px-4 schützt den Rand */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 sm:px-6 flex justify-between items-center z-10">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">
           &larr; Radar-Deck
         </button>
@@ -242,7 +240,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
 
       <div className="w-full max-w-[22rem] sm:max-w-sm mx-auto mt-12 flex flex-col items-center">
         
-        {/* PHASE 1: SITUATION & EINGABE (SPRACHE ODER SCANNER) */}
+        {/* PHASE 1: SITUATION & EINGABE */}
         <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4">
           <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">Szenario</p>
           <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
@@ -266,7 +264,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             )}
           </div>
           
-          {/* NEU: MODUS-WEICHE -> Scanner ODER Mikrofon */}
           {step === 1 && isScanner && (
             <div className="mt-6 p-4 bg-gray-900 rounded-xl border border-gray-700 w-full text-center">
               <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-4 animate-pulse">Radar-Scan Aktiv</p>
@@ -304,7 +301,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             </div>
           )}
 
-          {/* Direktes Sprach-Feedback (nur bei Sprache) */}
           {step === 1 && !isScanner && transcript && (
             <div className="mt-6 w-full bg-blue-900/20 rounded-xl p-4 border border-blue-500/30 text-left animate-fade-in">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Deine Eingabe:</p>
@@ -340,7 +336,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           )}
         </div>
 
-        {/* PHASE 2: AUDIO & MULTIPLE CHOICE (Wird beim Scanner übersprungen) */}
+        {/* PHASE 2: AUDIO & MULTIPLE CHOICE */}
         {step === 2 && !isScanner && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-4 animate-fade-in text-center">
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">Gegenüber antwortet</p>
@@ -396,7 +392,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
       {/* STEUERUNG BOTTOM */}
       <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
         
-        {/* Kontrollen in Phase 1 (nur bei Sprache, Scanner schaltet automatisch weiter) */}
         {step === 1 && !isScanner && (
           <div className="space-y-3">
             {(speechResult === 'perfect' || speechResult === 'failed') ? (
@@ -421,7 +416,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           </div>
         )}
         
-        {/* Kontrollen in Phase 3 */}
         {step === 3 && (
           <button onClick={() => advanceQueue(isAnswerCorrect)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600">
             {isAnswerCorrect ? 'Sitzt (Nächste Karte)' : 'Nochmal (Ans Ende)'}
