@@ -89,7 +89,7 @@ export const kanaData = {
   },
   5: {
     title: "Hiragana: P-Laute & Kombinationen",
-    note: "Der kleine Kreis (Maru ゜) verwandelt die H-Reihe in ein knallendes P! Die Kombinationen (Yoon) liest du fließend als eine einzige Silbe.",
+    note: "Zwei Besonderheiten heute! 1. Der Kreis (Maru ゜) erzeugt weiche P-Laute. 2. Ein kleines ya, yu oder yo (Yoon) verschmilzt mit dem Zeichen davor zu einer einzigen, schnellen Silbe (wie 'shu' oder 'kya').",
     cards: [
       { kana: "ぱ", romaji: "pa", mnemonic: "Das Ha-Gesicht verschluckt einen runden Kreis (゜) und isst leckeres Brot (Pan).", vocab: "ぱん", vocabMeaning: "Brot", sentence: "ぱんを たべます。", sentenceTranslation: "Ich esse Brot." },
       { kana: "ぴ", romaji: "pi", mnemonic: "Das Hi-Gesicht bekommt ein rundes Auge (゜) und glänzt (Pikapika) im Licht.", vocab: "ぴかぴか", vocabMeaning: "Glänzend", sentence: "くるまが ぴかぴか です。", sentenceTranslation: "Das Auto glänzt." },
@@ -223,7 +223,7 @@ export const kanaData = {
   },
   12: {
     title: "Katakana: P-Laute & Kombinationen",
-    note: "Handakuten (゜) poppen wie Seifenblasen! Bei den Yo-on verschmilzt ein I-Laut mit ya/yu/yo zu einer rasanten englischen Silbe.",
+    note: "Zwei Besonderheiten! 1. Handakuten (゜) poppen wie Seifenblasen zu P-Lauten. 2. Bei den Yo-on verschmilzt ein I-Laut mit einem kleinen ya/yu/yo zu einer rasanten englischen Silbe.",
     cards: [
       { kana: "パ", romaji: "pa", mnemonic: "Das Hausdach (Ha) mit einer poppenden Sprechblase (゜) am PC (Pasokon).", vocab: "パソコン", vocabMeaning: "PC", sentence: "パソコンを つかう。", sentenceTranslation: "Den Computer benutzen." },
       { kana: "ピ", romaji: "pi", mnemonic: "Der flache Hintern (Hi) drückt einen Knopf (゜) am Klavier (Piano).", vocab: "ピアノ", vocabMeaning: "Klavier", sentence: "ピアノを ひく。", sentenceTranslation: "Klavier spielen." },
@@ -231,10 +231,10 @@ export const kanaData = {
       { kana: "ペ", romaji: "pe", mnemonic: "Die Bergspitze (He) balanciert einen runden Punkt (゜) auf dem Stift (Pen).", vocab: "ペン", vocabMeaning: "Stift", sentence: "ペンで かく。", sentenceTranslation: "Mit dem Stift schreiben." },
       { kana: "ポ", romaji: "po", mnemonic: "Das Holzkreuz (Ho) klebt einen Runden Sticker (゜) auf den Briefkasten (Posuto).", vocab: "ポスト", vocabMeaning: "Briefkasten", sentence: "ポストに いれる。", sentenceTranslation: "In den Briefkasten werfen." },
       { kana: "キャ", romaji: "kya", mnemonic: "Der KI-Schlüssel zündet den Turbo-YAK für nacktes Bargeld (Kyasshu).", vocab: "キャッシュ", vocabMeaning: "Bargeld", sentence: "キャッシュで はらう。", sentenceTranslation: "Mit Bargeld zahlen." },
-      { kana: "シャ", romaji: "sha", mnemonic: "Das SHI-Lächeln im Turbo-YAK zieht ein frisches Hemd (Shatsu) an.", vocab: "シャツ", vocabMeaning: "Hemd", sentence: "シャツを あらう。", sentenceTranslation: "Das Hemd waschen." },
+      { kana: "シャ", romaji: "sha", mnemonic: "Das SHI-Lächeln im Turbo-YAK zieht ein frisches Hemd (Shatsu).", vocab: "シャツ", vocabMeaning: "Hemd", sentence: "シャツを あらう。", sentenceTranslation: "Das Hemd waschen." },
       { kana: "シュ", romaji: "shu", mnemonic: "Das SHI-Lächeln bindet blitzschnell die neuen Schuhe (Shuuzu).", vocab: "シューズ", vocabMeaning: "Schuhe", sentence: "シューズを はく。", sentenceTranslation: "Die Schuhe anziehen." },
       { kana: "ショ", romaji: "sho", mnemonic: "Das SHI-Lächeln stürmt mit Turbo in den nächsten Laden (Shoppu).", vocab: "ショップ", vocabMeaning: "Laden", sentence: "ショップに いく。", sentenceTranslation: "In den Laden gehen." },
-      { kana: "チャ", romaji: "cha", mnemonic: "Der CHI-Tisch wackelt extrem, nutze die Chance (Chansu)!", vocab: "チャンス", vocabMeaning: "Chance", sentence: "チャンスが ある。", sentenceTranslation: "Es gibt eine Chance." },
+      { kana: "チャ", romaji: "cha", mnemonic: "Der CHI-Tisch wackelt extrem, nutze die Chance (Chansu).", vocab: "チャンス", vocabMeaning: "Chance", sentence: "チャンスが ある。", sentenceTranslation: "Es gibt eine Chance." },
       { kana: "チョ", romaji: "cho", mnemonic: "Der CHI-Tisch balanciert im Turbo ein Stück Schokolade (Chokoreeto).", vocab: "チョコレート", vocabMeaning: "Schokolade", sentence: "チョコレートが あまい。", sentenceTranslation: "Die Schokolade ist süß." },
       { kana: "ニュ", romaji: "nyu", mnemonic: "Die NI-Balken zeigen auf Hochtouren die neuesten News (Nyuusu).", vocab: "ニュース", vocabMeaning: "News", sentence: "ニュースを みる。", sentenceTranslation: "Ich schaue Nachrichten." },
       { kana: "ミュ", romaji: "myu", mnemonic: "Die MI-Raketen beschleunigen den fetten Beat der Musik (Myuujikku).", vocab: "ミュージック", vocabMeaning: "Musik", sentence: "ミュージックを きく。", sentenceTranslation: "Musik hören." },
