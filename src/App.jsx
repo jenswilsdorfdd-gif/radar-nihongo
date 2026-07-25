@@ -95,7 +95,7 @@ function App() {
   };
 
   // ------------------------------------------------------------------
-  // SPRACHAUSWAHL-SCREEN (wird nur gezeigt, wenn keine Sprache gesetzt ist)
+  // SPRACHAUSWAHL-SCREEN (wird nur gezeigt, wenn noch NIE eine Sprache gesetzt wurde)
   // ------------------------------------------------------------------
   if (!appLanguage) {
     return (
@@ -123,7 +123,8 @@ function App() {
     );
   }
 
-  const showThemeSwitcher = activeView === 'welcome' || activeView === 'home';
+  // Kontroll-Buttons (Hell/Dunkel + Sprache) nur auf Home und Welcome anzeigen
+  const showControls = activeView === 'welcome' || activeView === 'home';
 
   return (
     <div 
@@ -131,15 +132,31 @@ function App() {
       style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
     >
       
-      {showThemeSwitcher && (
-        <button 
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="fixed top-6 left-6 z-50 w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
-          style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
-          title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}
-        >
-          <span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span>
-        </button>
+      {/* FLOATING CONTROLS (Oben Links) */}
+      {showControls && (
+        <div className="fixed top-6 left-6 z-50 flex gap-3">
+          
+          {/* THEME SWITCHER */}
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+            style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
+            title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}
+          >
+            <span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span>
+          </button>
+
+          {/* LANGUAGE SWITCHER */}
+          <button 
+            onClick={() => setAppLanguage(appLanguage === 'de' ? 'en' : 'de')}
+            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+            style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
+            title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}
+          >
+            <span className="text-xl leading-none">{appLanguage === 'de' ? '🇬🇧' : '🇩🇪'}</span>
+          </button>
+
+        </div>
       )}
 
       {activeView === 'welcome' && (
