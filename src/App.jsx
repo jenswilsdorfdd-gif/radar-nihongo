@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Welcome from './components/Welcome';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import Flashcard from './components/Flashcard';
@@ -8,7 +9,7 @@ import KanjiDeck from './components/KanjiDeck';
 import KanjiCard from './components/KanjiCard';
 
 function App() {
-  const [activeView, setActiveView] = useState('home'); 
+  const [activeView, setActiveView] = useState('welcome'); 
   const [kanaMode, setKanaMode] = useState('read'); // 'read' oder 'write'
   
   // RADAR
@@ -75,7 +76,6 @@ function App() {
   };
 
   const handleFinishKanji = (day) => {
-    // HIER WURDE DIE 7 ZU EINER 21 GEÄNDERT!
     if (day === currentKanjiDay && day < 21) setCurrentKanjiDay(prev => prev + 1);
     setActiveView('kanji');
   };
@@ -83,6 +83,10 @@ function App() {
   return (
     <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col">
       
+      {activeView === 'welcome' && (
+        <Welcome onStart={() => setActiveView('home')} />
+      )}
+
       {activeView === 'home' && (
         <Home 
           onSelectMode={(mode) => {
