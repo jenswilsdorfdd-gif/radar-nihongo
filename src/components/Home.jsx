@@ -2,28 +2,26 @@ import React from 'react';
 
 const Home = ({ onSelectMode, onReset, kanaReadDay, kanaWriteDay, radarDay, kanjiDay }) => {
   return (
-    <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative">
+    <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
       {/* Reset Button Top Right */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-6 right-6 z-10">
         <button onClick={onReset} className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest uppercase">
           Reset
         </button>
       </div>
 
       {/* Logo Area */}
-      <div className="mt-12 mb-12 flex flex-col items-center">
-        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500" viewBox="0 0 100 100" fill="currentColor">
-            <text y=".9em" fontSize="90">⛩️</text>
-          </svg>
+      <div className="mt-12 mb-10 flex flex-col items-center">
+        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4">
+          <span className="text-5xl">⛩️</span>
         </div>
         <h1 className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">RADAR</h1>
-        <p className="text-gray-400 text-xs tracking-[0.3em] uppercase">Nippon Survival System</p>
+        <p className="text-gray-400 text-xs tracking-widest uppercase">Nippon Survival System</p>
       </div>
 
       {/* Navigation Cards */}
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-sm space-y-4 pb-12">
         
         {/* Phase 1: KANA LESEN */}
         <button 
@@ -77,11 +75,12 @@ const Home = ({ onSelectMode, onReset, kanaReadDay, kanaWriteDay, radarDay, kanj
         >
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Phase 3: Kanji N5</h2>
-            <span className="text-purple-500 text-sm font-bold">Tag {kanjiDay}/7</span>
+            {/* Hier die korrekten 21 Tage eingebaut! */}
+            <span className="text-purple-500 text-sm font-bold">Tag {kanjiDay}/21</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.</p>
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 7) * 100}%` }}></div>
+            <div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div>
           </div>
         </button>
 
