@@ -65,15 +65,23 @@ const DrawCanvas = ({ character, onResult }) => {
     setIsRevealed(true);
   };
 
+  // Dynamische Textgröße abhängig von der Zeichenlänge (für kawa, kya etc.)
+  const getTextSizeClass = (charLength) => {
+    if (charLength === 1) return 'text-[10rem]';
+    if (charLength === 2) return 'text-[7rem]';
+    return 'text-[4.5rem]';
+  };
+
   return (
     <div className="flex flex-col items-center w-full">
       
       <div className="relative w-full max-w-[18rem] aspect-square bg-gray-800 rounded-2xl shadow-inner border-2 border-gray-700 overflow-hidden mb-6 touch-none flex items-center justify-center">
         
-        {/* NEU: Die Hologramm/Materialisierungs-Animation */}
+        {/* Hologramm/Materialisierungs-Animation mit dynamischer Größe und ohne Zeilenumbruch */}
         <div 
-          className={`absolute flex items-center justify-center text-[10rem] font-bold text-green-500/60 select-none z-0 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]
+          className={`absolute flex items-center justify-center font-bold text-green-500/60 select-none z-0 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)] whitespace-nowrap
             ${isRevealed ? 'opacity-100 scale-100 blur-none' : 'opacity-0 scale-50 blur-xl'}
+            ${getTextSizeClass(character ? character.length : 1)}
           `}
         >
           {character}
