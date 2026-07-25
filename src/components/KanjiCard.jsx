@@ -4,7 +4,6 @@ import { kanjiData } from '../data/kanjiData';
 const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
   const currentDeck = kanjiData[day];
   
-  // WÖRTERBUCH FÜR DIE UI-TEXTE
   const texts = {
     de: {
       error1: "Fehler: Keine Daten für Tag",
@@ -111,7 +110,6 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      // Entferne Furigana-Klammern für das Audio
       const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ja-JP';
@@ -153,7 +151,6 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
 
   const currentCard = queue[0];
   
-  // DYNAMISCHE DATEN (Deutsch oder Englisch)
   const displayMeaning = language === 'en' && currentCard.meaningEn ? currentCard.meaningEn : currentCard.meaning;
   const displayMnemonic = language === 'en' && currentCard.mnemonicEn ? currentCard.mnemonicEn : currentCard.mnemonic;
   const displaySentenceTrans = language === 'en' && currentCard.sentenceTranslationEn ? currentCard.sentenceTranslationEn : currentCard.sentenceTranslation;
@@ -196,7 +193,9 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute top-6 left-4 right-4 sm:left-6 sm:right-6 flex justify-between items-center z-10 w-full max-w-sm mx-auto">
+      
+      {/* HEADER FIX: left-1/2 -translate-x-1/2 zentriert perfekt, px-4 schützt den Rand */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 sm:px-6 flex justify-between items-center z-10">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">&larr; {t.backDeck}</button>
         <span className="text-yellow-500 text-xs sm:text-sm font-bold">{t.remaining} {queue.length}</span>
       </div>
