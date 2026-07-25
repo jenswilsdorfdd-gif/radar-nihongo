@@ -96,6 +96,7 @@ function App() {
             if (mode === 'kanji') setActiveView('kanji');
           }} 
           onReset={handleReset}
+          onGoToWelcome={() => setActiveView('welcome')} /* <-- NEU: Zurück zur Startseite */
           kanaReadDay={kanaReadDay}
           kanaWriteDay={kanaWriteDay}
           radarDay={currentRadarDay}
