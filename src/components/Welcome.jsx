@@ -4,14 +4,22 @@ const Welcome = ({ onStart }) => {
   return (
     <div className="flex-1 bg-gray-900 text-white min-h-screen p-6 flex flex-col items-center overflow-y-auto scrollbar-hide">
       
-      <div className="w-full max-w-lg mt-8 mb-6 flex flex-col items-center">
-        <div className="w-24 h-24 bg-gray-800 rounded-full border-2 border-red-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.2)] mb-4">
-          <span className="text-5xl">🇯🇵</span>
+      <div className="w-full max-w-lg mt-10 mb-8 flex flex-col items-center">
+        {/* Das echte RADAR-Logo */}
+        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4">
+          <span className="text-5xl">⛩️</span>
         </div>
-        <h1 className="text-3xl font-extrabold tracking-wide text-center leading-tight mb-2">
+        <h1 className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">
+          RADAR
+        </h1>
+        <p className="text-gray-400 text-xs tracking-widest uppercase mb-8">
+          Nippon Survival System
+        </p>
+
+        <h2 className="text-3xl font-extrabold tracking-wide text-center leading-tight mb-2">
           Willkommen beim <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">Nippon Survival Training!</span>
-        </h1>
+        </h2>
       </div>
 
       <div className="w-full max-w-lg bg-gray-800/80 rounded-2xl p-6 border border-gray-700 shadow-xl space-y-6 text-gray-300 text-[0.95rem] leading-relaxed">
