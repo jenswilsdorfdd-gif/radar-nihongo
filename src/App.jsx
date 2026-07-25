@@ -110,13 +110,15 @@ function App() {
             onClick={() => setAppLanguage('de')} 
             className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
           >
-            <span className="text-3xl mb-2">🇩🇪</span> Deutsch
+            <img src="https://flagcdn.com/w40/de.png" alt="Deutsch" className="w-10 h-auto mb-2 rounded-sm shadow-sm" />
+            Deutsch
           </button>
           <button 
             onClick={() => setAppLanguage('en')} 
             className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
           >
-            <span className="text-3xl mb-2">🇬🇧</span> English
+            <img src="https://flagcdn.com/w40/gb.png" alt="English" className="w-10 h-auto mb-2 rounded-sm shadow-sm" />
+            English
           </button>
         </div>
       </div>
@@ -153,7 +155,12 @@ function App() {
             style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
             title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}
           >
-            <span className="text-xl leading-none">{appLanguage === 'de' ? '🇬🇧' : '🇩🇪'}</span>
+            {/* Zeigt immer die Flagge der jeweils ANDEREN Sprache zum Umschalten an */}
+            <img 
+              src={appLanguage === 'de' ? "https://flagcdn.com/w40/gb.png" : "https://flagcdn.com/w40/de.png"} 
+              alt={appLanguage === 'de' ? "English" : "Deutsch"} 
+              className="w-5 h-auto rounded-[2px] shadow-sm" 
+            />
           </button>
 
         </div>
