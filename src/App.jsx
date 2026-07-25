@@ -165,27 +165,57 @@ function App() {
       )}
       
       {activeView === 'kana-deck' && (
-        <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} />
+        <KanaDeck 
+          currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
+          totalDays={kanaTotalDays} 
+          mode={kanaMode} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
+          language={appLanguage} 
+        />
       )}
 
       {activeView === 'learning-kana' && (
-        <KanaCard day={learningKanaDay} mode={kanaMode} onBack={() => handleFinishKana(learningKanaDay)} />
+        <KanaCard 
+          day={learningKanaDay} 
+          mode={kanaMode} 
+          onBack={() => handleFinishKana(learningKanaDay)} 
+          language={appLanguage} 
+        />
       )}
 
       {activeView === 'dashboard' && (
-        <Dashboard currentDay={currentRadarDay} onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} onBackToHome={() => setActiveView('home')} />
+        <Dashboard 
+          currentDay={currentRadarDay} 
+          onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
+          onBackToHome={() => setActiveView('home')} 
+          language={appLanguage} 
+        />
       )}
 
       {activeView === 'learning-radar' && (
-        <Flashcard day={learningRadarDay} onBack={() => handleFinishRadar(learningRadarDay)} />
+        <Flashcard 
+          day={learningRadarDay} 
+          onBack={() => handleFinishRadar(learningRadarDay)} 
+          language={appLanguage} 
+        />
       )}
 
       {activeView === 'kanji' && (
-        <KanjiDeck currentDay={currentKanjiDay} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} />
+        <KanjiDeck 
+          currentDay={currentKanjiDay} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
+          language={appLanguage} 
+        />
       )}
 
       {activeView === 'learning-kanji' && (
-        <KanjiCard day={learningKanjiDay} onBack={() => handleFinishKanji(learningKanjiDay)} />
+        <KanjiCard 
+          day={learningKanjiDay} 
+          onBack={() => handleFinishKanji(learningKanjiDay)} 
+          language={appLanguage} 
+        />
       )}
 
     </div>
