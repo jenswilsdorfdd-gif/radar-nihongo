@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const Home = ({ onSelectMode, onReset, kanaReadDay, kanaWriteDay, radarDay, kanjiDay }) => {
+const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, radarDay, kanjiDay }) => {
+  const containerRef = useRef(null);
+
+  // Zwingt den Browser beim Laden der Hauptmenü-Seite ganz nach oben zu scrollen!
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, []);
+
   return (
-    <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
+    <div ref={containerRef} className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
       {/* Reset Button Top Right */}
       <div className="absolute top-6 right-6 z-10">
@@ -11,14 +21,17 @@ const Home = ({ onSelectMode, onReset, kanaReadDay, kanaWriteDay, radarDay, kanj
         </button>
       </div>
 
-      {/* Logo Area */}
-      <div className="mt-12 mb-10 flex flex-col items-center">
-        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4">
+      {/* Logo Area - Jetzt Klickbar zur Willkommensseite! */}
+      <button 
+        onClick={onGoToWelcome}
+        className="mt-12 mb-10 flex flex-col items-center group cursor-pointer transition-transform active:scale-95 focus:outline-none"
+      >
+        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 group-hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors">
           <span className="text-5xl">⛩️</span>
         </div>
         <h1 className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">RADAR</h1>
-        <p className="text-gray-400 text-xs tracking-widest uppercase">Nippon Survival System</p>
-      </div>
+        <p className="text-gray-400 text-xs tracking-widest uppercase group-hover:text-gray-300 transition-colors">Nippon Survival System</p>
+      </button>
 
       {/* Navigation Cards */}
       <div className="w-full max-w-sm space-y-4 pb-12">
@@ -75,7 +88,6 @@ const Home = ({ onSelectMode, onReset, kanaReadDay, kanaWriteDay, radarDay, kanj
         >
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Phase 3: Kanji N5</h2>
-            {/* Hier die korrekten 21 Tage eingebaut! */}
             <span className="text-purple-500 text-sm font-bold">Tag {kanjiDay}/21</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.</p>
