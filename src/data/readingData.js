@@ -65,7 +65,7 @@ export const readingData = {
       ]
     },
   
-    // LEVEL 2: Medium Paragraphs (Geschnitten in sinnvolle Sätze)
+    // LEVEL 2: Medium Paragraphs
     8: {
       title: "Tagesablauf", titleEn: "Daily Routine",
       sentences: [
