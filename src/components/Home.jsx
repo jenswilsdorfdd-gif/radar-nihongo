@@ -4,12 +4,12 @@ import { supabase } from '../supabaseClient';
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showParticleModal, setShowParticleModal] = useState(false); // NEU: State für das Partikel-Pop-up
+  const [showParticleModal, setShowParticleModal] = useState(false);
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [dojoCount, setDojoCount] = useState(7); // Basis-Wert
+  const [dojoCount, setDojoCount] = useState(7); 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -17,7 +17,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
-  // Beim Laden der Seite die Teilnehmerzahl aus Supabase holen
   useEffect(() => {
     window.scrollTo(0, 0);
     if (containerRef.current) {
@@ -30,7 +29,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         .select('*', { count: 'exact', head: true });
         
       if (!error && count !== null) {
-        setDojoCount(7 + count); // 7 + die echten Datenbank-Einträge
+        setDojoCount(7 + count); 
       }
     };
 
@@ -53,7 +52,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase3Title: "Phase 3: 21-Tage-Radar",
       phase3Desc: "Stresstest, Wortschatz und Reaktion für das Überleben im Alltag.",
       phase4Title: "Phase 4: Kanji N5",
-      phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
+      phase4Desc: "Lerne Bedeutung, Lesung und Anwendung complexer Zeichen.",
       groupTitle: "Live Dojo: Gruppen-Training",
       groupDesc: "Wende dein Wissen an! Melde dich hier für die interaktiven Live-Übungen an.",
       groupBtn: "Jetzt Registrieren",
@@ -152,7 +151,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     
-    // 1. Speichern in Supabase
     const { error } = await supabase
       .from('dojo_registrations')
       .insert([
@@ -170,7 +168,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       return; 
     }
 
-    // 2. Daten an den Make.com Webhook senden
     const WEBHOOK_URL = "https://hook.eu1.make.com/wmaxaao1iy2shoyk09mx6r2nyrv6awwt"; 
     
     try {
@@ -183,7 +180,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       console.error("Webhook Error:", webhookError);
     }
 
-    // 3. Wenn alles klappt: Counter hochzählen und Erfolgsmeldung zeigen
     setDojoCount(prev => prev + 1);
     setIsSubmitted(true);
   };
@@ -235,7 +231,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div></div>
         </button>
 
-        {/* --- NEUER BEREICH: PARTIKEL-CODE TRENNER --- */}
         <div className="py-2">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
@@ -256,7 +251,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         <div className="py-2">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
-        {/* --- ENDE PARTIKEL-CODE TRENNER --- */}
 
         <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
@@ -297,7 +291,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </div>
       </div>
 
-      {/* MODAL: INFO / FAHRPLAN */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
@@ -318,7 +311,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </div>
       )}
 
-      {/* NEUES MODAL: DER PARTIKEL-CODE */}
       {showParticleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-900 rounded-3xl border-2 border-orange-500/50 shadow-[0_0_40px_rgba(249,115,22,0.2)] overflow-hidden flex flex-col max-h-[85vh]">
@@ -342,14 +334,18 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
                 <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA3}</p>
               </div>
             </div>
+            
+            {/* HIER IST DAS UPDATE MIT DEM EINZELNEN BUTTON */}
             <div className="p-4 bg-black/50 border-t border-orange-500/30 shrink-0">
-              <button onClick={() => setShowParticleModal(false)} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-lg shadow-orange-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95">{t.modalClose}</button>
+              <button onClick={() => { setShowParticleModal(false); onSelectMode('particle-crashcourse'); }} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-lg shadow-orange-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95">
+                {language === 'en' ? 'Start Crash Course' : 'Crashkurs Starten'}
+              </button>
             </div>
+            
           </div>
         </div>
       )}
 
-      {/* MODAL: REGISTRIERUNG */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
