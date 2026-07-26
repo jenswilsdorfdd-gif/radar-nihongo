@@ -152,7 +152,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     }
 
     // 2. Daten an den Make.com Webhook senden (Repariert!)
-    const WEBHOOK_URL = "https://hook.eu1.make.com/q25aley6dxip97l3xaqj498jme4jlsjr"; 
+    const WEBHOOK_URL = "https://hook.eu1.make.com/wmaxaao1iy2shoyk09mx6r2nyrv6awwt"; 
     
     try {
       await fetch(WEBHOOK_URL, {
