@@ -67,7 +67,7 @@ const FinalExam = ({ onBack, language }) => {
 
   const t = texts[language] || texts.de;
 
-  // Der Master-Pool für die Prüfung (36 Fragen)
+  // Der Master-Pool für die Prüfung (36 Fragen) - ROMAJI WURDE ENTFERNT!
   const masterPool = [
     // KANA
     { category: 'kana', q: { de: "Welches Kana ist 'a'?", en: "Which Kana is 'a'?" }, options: ["あ", "お", "め", "ぬ"], correct: 0 },
@@ -99,16 +99,16 @@ const FinalExam = ({ onBack, language }) => {
     { category: 'particle', q: { de: "えき [ ? ] きました。 (Vom Bahnhof)", en: "えき [ ? ] きました。 (From the station)" }, options: ["から", "まで", "に", "で"], correct: 0 },
     { category: 'particle', q: { de: "ホテル [ ? ] おねがいします。(Bis zum Hotel)", en: "ホテル [ ? ] おねがいします。(Up to the hotel)" }, options: ["から", "を", "まで", "は"], correct: 2 },
     { category: 'particle', q: { de: "コーヒー [ ? ] のむ。", en: "コーヒー [ ? ] のむ。" }, options: ["が", "を", "に", "で"], correct: 1 },
-    // RADAR (FLOW & CONTEXT)
-    { category: 'radar', q: { de: "Du gehst ins Restaurant. Was sagst du?", en: "You enter a restaurant. What do you say?" }, options: ["Sumimasen!", "Arigatou!", "Sayounara!", "Oyasumi!"], correct: 0 },
-    { category: 'radar', q: { de: "Jemand bedankt sich bei dir. Du antwortest:", en: "Someone thanks you. You reply:" }, options: ["Gomen nasai.", "Dou itashimashite.", "Itadakimasu.", "Konnichiwa."], correct: 1 },
-    { category: 'radar', q: { de: "Vor dem Essen sagst du:", en: "Before eating, you say:" }, options: ["Gochisousama", "Itadakimasu", "Tadaima", "Okaeri"], correct: 1 },
-    { category: 'radar', q: { de: "Was bedeutet 'Eki wa doko desu ka?'", en: "What means 'Eki wa doko desu ka?'" }, options: ["Wie spät ist es?", "Wo ist der Bahnhof?", "Wie viel kostet das?", "Was ist das?"], correct: 1 },
-    { category: 'radar', q: { de: "Du kaufst ein und fragst nach dem Preis:", en: "You are shopping and ask for the price:" }, options: ["Ikura desu ka?", "Doko desu ka?", "Nan desu ka?", "Itsu desu ka?"], correct: 0 },
-    { category: 'radar', q: { de: "Du verlässt das Haus und sagst:", en: "You leave the house and say:" }, options: ["Tadaima", "Ittekimasu", "Okaeri", "Oyasumi"], correct: 1 },
-    { category: 'radar', q: { de: "Übersetze: 'Kore o kudasai.'", en: "Translate: 'Kore o kudasai.'" }, options: ["Das ist lecker.", "Das hier bitte.", "Wo ist das?", "Wie viel ist das?"], correct: 1 },
-    { category: 'radar', q: { de: "Du verstehst etwas nicht:", en: "You don't understand something:" }, options: ["Wakarimasen.", "Wakarimasu.", "Shirimasen.", "Chigaimasu."], correct: 0 },
-    { category: 'radar', q: { de: "Nach dem Essen sagst du:", en: "After eating, you say:" }, options: ["Itadakimasu", "Gochisousama deshita", "Konnichiwa", "Sumimasen"], correct: 1 }
+    // RADAR (FLOW & CONTEXT) - REIN IN KANA/KANJI!
+    { category: 'radar', q: { de: "Du gehst ins Restaurant. Was sagst du?", en: "You enter a restaurant. What do you say?" }, options: ["すみません！", "ありがとう！", "さようなら！", "おやすみ！"], correct: 0 },
+    { category: 'radar', q: { de: "Jemand bedankt sich bei dir. Du antwortest:", en: "Someone thanks you. You reply:" }, options: ["ごめんなさい。", "どういたしまして。", "いただきます。", "こんにちは。"], correct: 1 },
+    { category: 'radar', q: { de: "Vor dem Essen sagst du:", en: "Before eating, you say:" }, options: ["ごちそうさま", "いただきます", "ただいま", "おかえり"], correct: 1 },
+    { category: 'radar', q: { de: "Was bedeutet 「えきは どこ ですか」?", en: "What does 「えきは どこ ですか」 mean?" }, options: ["Wie spät ist es?", "Wo ist der Bahnhof?", "Wie viel kostet das?", "Was ist das?"], correct: 1 },
+    { category: 'radar', q: { de: "Du kaufst ein und fragst nach dem Preis:", en: "You are shopping and ask for the price:" }, options: ["いくらですか。", "どこですか。", "なんですか。", "いつですか。"], correct: 0 },
+    { category: 'radar', q: { de: "Du verlässt das Haus und sagst:", en: "You leave the house and say:" }, options: ["ただいま", "いってきます", "おかえり", "おやすみ"], correct: 1 },
+    { category: 'radar', q: { de: "Übersetze: 「これを ください」", en: "Translate: 「これを ください」" }, options: ["Das ist lecker.", "Das hier bitte.", "Wo ist das?", "Wie viel ist das?"], correct: 1 },
+    { category: 'radar', q: { de: "Du verstehst etwas nicht:", en: "You don't understand something:" }, options: ["わかりません。", "わかります。", "しりません。", "ちがいます。"], correct: 0 },
+    { category: 'radar', q: { de: "Nach dem Essen sagst du:", en: "After eating, you say:" }, options: ["いただきます", "ごちそうさまでした", "こんにちは", "すみません"], correct: 1 }
   ];
 
   // Startet die Prüfung und mischt 30 Fragen aus dem Pool
