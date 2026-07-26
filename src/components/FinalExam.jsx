@@ -5,7 +5,6 @@ const FinalExam = ({ onBack, language }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState(null);
 
   // Stats
   const [score, setScore] = useState(0);
@@ -25,9 +24,11 @@ const FinalExam = ({ onBack, language }) => {
       back: "Zurück",
       introTitle: "Die Abschluss-Prüfung",
       introSub: "Der ultimative Stresstest",
-      introDesc: "30 zufällige Fragen quer durch alle Phasen (Kana, Kanji, Partikel, Radar). Beweise, dass du für den japanischen Alltag bereit bist.",
+      introDesc: "30 zufällige Fragen quer durch alle Phasen (Kana, Kanji, Partikel, Radar). Beweise, dass du für den japanischen Alltag bereit bist. Es gibt kein Feedback zwischendurch – erst am Ende zeigt sich dein wahrer Rang.",
       startBtn: "Prüfung Starten",
       question: "Frage",
+      btnNext: "Weiter",
+      btnFinish: "Prüfung beenden & Auswerten",
       resultsTitle: "Prüfungs-Auswertung",
       totalScore: "Gesamtergebnis",
       rank: "Dein Rang:",
@@ -46,9 +47,11 @@ const FinalExam = ({ onBack, language }) => {
       back: "Back",
       introTitle: "Final Exam",
       introSub: "The Ultimate Stress Test",
-      introDesc: "30 random questions across all phases (Kana, Kanji, Particles, Radar). Prove that you are ready for everyday life in Japan.",
+      introDesc: "30 random questions across all phases (Kana, Kanji, Particles, Radar). Prove that you are ready for everyday life in Japan. There is no feedback in between – your true rank will be revealed at the end.",
       startBtn: "Start Exam",
       question: "Question",
+      btnNext: "Next",
+      btnFinish: "Finish Exam & Evaluate",
       resultsTitle: "Exam Results",
       totalScore: "Total Score",
       rank: "Your Rank:",
@@ -67,24 +70,24 @@ const FinalExam = ({ onBack, language }) => {
 
   const t = texts[language] || texts.de;
 
-  // Der Master-Pool für die Prüfung (36 Fragen) - ROMAJI WURDE ENTFERNT!
+  // Der Master-Pool für die Prüfung (36 Fragen) - KOMPLETT OHNE ROMAJI
   const masterPool = [
     // KANA
     { category: 'kana', q: { de: "Welches Kana ist 'a'?", en: "Which Kana is 'a'?" }, options: ["あ", "お", "め", "ぬ"], correct: 0 },
     { category: 'kana', q: { de: "Welches Kana ist 'shi'?", en: "Which Kana is 'shi'?" }, options: ["さ", "し", "き", "い"], correct: 1 },
-    { category: 'kana', q: { de: "Lies das Wort: くるま", en: "Read the word: くるま" }, options: ["Kuruma (Auto)", "Sakura (Kirsche)", "Kusuri (Medizin)", "Daruma (Puppe)"], correct: 0 },
+    { category: 'kana', q: { de: "Was bedeutet das Wort: くるま", en: "What does the word: くるま mean?" }, options: ["Auto", "Kirsche", "Medizin", "Puppe"], correct: 0 },
     { category: 'kana', q: { de: "Wie schreibt man 'Sushi' in Hiragana?", en: "How to write 'Sushi' in Hiragana?" }, options: ["さし", "すし", "そし", "せし"], correct: 1 },
     { category: 'kana', q: { de: "Welches Katakana ist 'ka'?", en: "Which Katakana is 'ka'?" }, options: ["カ", "キ", "ク", "ケ"], correct: 0 },
-    { category: 'kana', q: { de: "Lies: カメラ", en: "Read: カメラ" }, options: ["Kamera", "Karate", "Kataru", "Kurasu"], correct: 0 },
+    { category: 'kana', q: { de: "Was bedeutet das Wort: カメラ", en: "What does the word: カメラ mean?" }, options: ["Kamera", "Karate", "Gespräch", "Klasse"], correct: 0 },
     { category: 'kana', q: { de: "Welches Zeichen ist 'tsu'?", en: "Which character is 'tsu'?" }, options: ["う", "つ", "て", "と"], correct: 1 },
-    { category: 'kana', q: { de: "Wie schreibt man 'Neko' (Katze)?", en: "How to write 'Neko' (Cat)?" }, options: ["ねこ", "ぬこ", "にこ", "のこ"], correct: 0 },
+    { category: 'kana', q: { de: "Wie schreibt man Katze?", en: "How to write cat?" }, options: ["ねこ", "ぬこ", "にこ", "のこ"], correct: 0 },
     { category: 'kana', q: { de: "Welches Zeichen ist 'ya'?", en: "Which character is 'ya'?" }, options: ["ゆ", "よ", "や", "わ"], correct: 2 },
     // KANJI
     { category: 'kanji', q: { de: "Was bedeutet das Kanji 水 ?", en: "What does the Kanji 水 mean?" }, options: ["Feuer", "Wasser", "Baum", "Erde"], correct: 1 },
     { category: 'kanji', q: { de: "Was bedeutet das Kanji 木 ?", en: "What does the Kanji 木 mean?" }, options: ["Mensch", "Buch", "Baum/Holz", "Mond"], correct: 2 },
     { category: 'kanji', q: { de: "Finde das Kanji für 'Mensch / Person'", en: "Find the Kanji for 'Person'" }, options: ["入", "人", "八", "大"], correct: 1 },
     { category: 'kanji', q: { de: "Welches Kanji bedeutet 'groß'?", en: "Which Kanji means 'big'?" }, options: ["大", "小", "中", "太"], correct: 0 },
-    { category: 'kanji', q: { de: "Wie liest man 日 (Sonne/Tag)?", en: "How do you read 日 (Sun/Day)?" }, options: ["Tsuki", "Nichi / Hi", "Mizu", "Ki"], correct: 1 },
+    { category: 'kanji', q: { de: "Welches Kana steht für 日 (Sonne/Tag)?", en: "Which Kana stands for 日 (Sun/Day)?" }, options: ["つき", "にち / ひ", "みず", "き"], correct: 1 },
     { category: 'kanji', q: { de: "Was bedeutet 一 ?", en: "What does 一 mean?" }, options: ["Zwei", "Drei", "Eins", "Zehn"], correct: 2 },
     { category: 'kanji', q: { de: "Welches Kanji steht für 'Mund'?", en: "Which Kanji stands for 'Mouth'?" }, options: ["目", "口", "耳", "手"], correct: 1 },
     { category: 'kanji', q: { de: "Bedeutung von 山 ?", en: "Meaning of 山 ?" }, options: ["Fluss", "Berg", "Himmel", "Regen"], correct: 1 },
@@ -111,11 +114,8 @@ const FinalExam = ({ onBack, language }) => {
     { category: 'radar', q: { de: "Nach dem Essen sagst du:", en: "After eating, you say:" }, options: ["いただきます", "ごちそうさまでした", "こんにちは", "すみません"], correct: 1 }
   ];
 
-  // Startet die Prüfung und mischt 30 Fragen aus dem Pool
   const startExam = () => {
-    // Array mischen
     const shuffled = [...masterPool].sort(() => 0.5 - Math.random());
-    // 30 Fragen auswählen
     const selected = shuffled.slice(0, 30);
     
     setQuestions(selected);
@@ -127,19 +127,21 @@ const FinalExam = ({ onBack, language }) => {
       radar: { correct: 0, total: 0 }
     });
     setCurrentIndex(0);
+    setSelectedAnswer(null);
     setExamState('exam');
   };
 
-  const handleAnswer = (idx) => {
-    if (selectedAnswer !== null) return; // Verhindert Doppel-Klick
+  const handleSelectOption = (idx) => {
+    setSelectedAnswer(idx);
+  };
+
+  const handleNext = () => {
+    if (selectedAnswer === null) return;
 
     const currentQ = questions[currentIndex];
-    const isCorrect = idx === currentQ.correct;
-    
-    setSelectedAnswer(idx);
-    setIsAnswerCorrect(isCorrect);
+    const isCorrect = selectedAnswer === currentQ.correct;
 
-    // Score & Stats updaten
+    // Werte berechnen und speichern
     if (isCorrect) setScore(prev => prev + 1);
     
     setCategoryStats(prev => ({
@@ -150,17 +152,13 @@ const FinalExam = ({ onBack, language }) => {
       }
     }));
 
-    // Nach 1.5s zur nächsten Frage
-    setTimeout(() => {
-      setSelectedAnswer(null);
-      setIsAnswerCorrect(null);
-      
-      if (currentIndex + 1 < questions.length) {
-        setCurrentIndex(prev => prev + 1);
-      } else {
-        setExamState('result');
-      }
-    }, 1500);
+    // Weitergehen oder Auswertung anzeigen
+    if (currentIndex + 1 < questions.length) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedAnswer(null); // Auswahl zurücksetzen für nächste Frage
+    } else {
+      setExamState('result');
+    }
   };
 
   const getRank = (percentage) => {
@@ -208,6 +206,7 @@ const FinalExam = ({ onBack, language }) => {
 
   if (examState === 'exam') {
     const q = questions[currentIndex];
+    const isLastQuestion = currentIndex === questions.length - 1;
     
     // Kategorie-Farben
     const catColors = {
@@ -230,7 +229,7 @@ const FinalExam = ({ onBack, language }) => {
         </div>
 
         <div className="w-full max-w-sm flex justify-between items-center mt-6 mb-8">
-          <button onClick={onBack} className="text-gray-500 text-xs uppercase font-bold tracking-widest">
+          <button onClick={onBack} className="text-gray-500 text-xs uppercase font-bold tracking-widest hover:text-white">
             X Abbrechen
           </button>
           <span className="text-gray-400 text-xs font-bold tracking-widest">
@@ -238,7 +237,7 @@ const FinalExam = ({ onBack, language }) => {
           </span>
         </div>
 
-        <div className="w-full max-w-sm flex flex-col animate-fade-in">
+        <div className="w-full max-w-sm flex flex-col animate-fade-in flex-1">
           
           {/* Kategorie-Badge */}
           <div className="flex justify-center mb-6">
@@ -253,32 +252,40 @@ const FinalExam = ({ onBack, language }) => {
             </h2>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 mb-8">
             {q.options.map((opt, idx) => {
-              let btnClass = "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700";
-              
-              if (selectedAnswer !== null) {
-                if (idx === q.correct) {
-                  btnClass = "bg-green-900/50 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]";
-                } else if (idx === selectedAnswer && !isAnswerCorrect) {
-                  btnClass = "bg-red-900/50 border-red-500 text-red-400";
-                } else {
-                  btnClass = "bg-gray-900 border-gray-800 text-gray-600 opacity-50";
-                }
-              }
+              // Neutrales Styling: Blau/Cyan wenn ausgewählt, sonst Standard
+              const isSelected = selectedAnswer === idx;
+              const btnClass = isSelected 
+                ? "bg-cyan-900/50 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-[1.02]" 
+                : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-750 hover:border-gray-500";
 
               return (
                 <button
                   key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  disabled={selectedAnswer !== null}
-                  className={`w-full p-5 rounded-xl border-2 font-bold text-lg transition-all active:scale-95 ${btnClass}`}
+                  onClick={() => handleSelectOption(idx)}
+                  className={`w-full p-5 rounded-xl border-2 font-bold text-lg transition-all ${btnClass}`}
                 >
                   {opt}
                 </button>
               );
             })}
           </div>
+          
+          <div className="mt-auto pb-6">
+            <button
+              onClick={handleNext}
+              disabled={selectedAnswer === null}
+              className={`w-full py-5 rounded-xl font-bold text-white text-lg tracking-widest uppercase transition-all shadow-lg active:scale-95 ${
+                selectedAnswer !== null 
+                  ? "bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 shadow-red-500/20" 
+                  : "bg-gray-800 text-gray-500 cursor-not-allowed opacity-50"
+              }`}
+            >
+              {isLastQuestion ? t.btnFinish : t.btnNext}
+            </button>
+          </div>
+
         </div>
       </div>
     );
