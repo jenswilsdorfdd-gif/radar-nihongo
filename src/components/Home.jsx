@@ -16,6 +16,9 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
+  // LOCK MECHANISMUS: Alle Phasen müssen auf dem Maximum sein!
+  const isExamUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14 && readingDay >= 21 && radarDay >= 21 && kanjiDay >= 21;
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (containerRef.current) {
@@ -53,9 +56,11 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
       
-      // NEU: Texte für die Prüfung
+      // PRÜFUNG TEXTE
       examTitle: "Abschluss-Prüfung",
       examDesc: "Der finale 30-Fragen Stresstest. Beweise, was du gelernt hast.",
+      examLockedTitle: "Prüfung Gesperrt",
+      examLockedDesc: "Schließe alle Phasen komplett ab, um den finalen Test freizuschalten.",
       
       groupTitle: "Live Dojo: Gruppen-Training",
       groupDesc: "Wende dein Wissen an! Melde dich hier für die interaktiven Live-Übungen an.",
@@ -101,9 +106,11 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Learn meaning, reading, and application of complex characters.",
       
-      // NEU: Texte für die Prüfung
+      // EXAM TEXTS
       examTitle: "Final Exam",
       examDesc: "The ultimate 30-question stress test. Prove your skills.",
+      examLockedTitle: "Exam Locked",
+      examLockedDesc: "Complete all phases entirely to unlock the final test.",
       
       groupTitle: "Live Dojo: Group Training",
       groupDesc: "Apply your knowledge! Register here for interactive live exercises.",
@@ -230,7 +237,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
 
-        {/* Partikel Crashkurs Button - Jetzt direkt ansteuerbar */}
         <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
           <div>
@@ -279,14 +285,23 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent"></div>
         </div>
 
-        {/* NEU: Der Abschluss-Test Button */}
-        <button onClick={() => onSelectMode('final-exam')} className="w-full bg-red-900/40 p-6 rounded-2xl border-2 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:border-red-400 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/30 transition-all"></div>
-          <h2 className="text-2xl font-extrabold text-red-400 tracking-widest uppercase mb-2 flex items-center gap-3">
-            <span>🎓</span> {t.examTitle}
-          </h2>
-          <p className="text-gray-300 text-sm italic">{t.examDesc}</p>
-        </button>
+        {/* PRÜFUNGS BUTTON - Mit Sperr-Logik */}
+        {isExamUnlocked ? (
+          <button onClick={() => onSelectMode('final-exam')} className="w-full bg-red-900/40 p-6 rounded-2xl border-2 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:border-red-400 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/30 transition-all"></div>
+            <h2 className="text-2xl font-extrabold text-red-400 tracking-widest uppercase mb-2 flex items-center gap-3">
+              <span>🎓</span> {t.examTitle}
+            </h2>
+            <p className="text-gray-300 text-sm italic">{t.examDesc}</p>
+          </button>
+        ) : (
+          <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+            <h2 className="text-xl font-extrabold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-3">
+              <span>🔒</span> {t.examLockedTitle}
+            </h2>
+            <p className="text-gray-500 text-sm italic">{t.examLockedDesc}</p>
+          </div>
+        )}
 
         <div className="py-2"><hr className="border-gray-700" /></div>
 
