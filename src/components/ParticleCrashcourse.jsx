@@ -14,31 +14,31 @@ const ParticleCrashcourse = ({ onBack, language }) => {
   const texts = {
     de: {
       back: "Zurück",
-      title: "Partikel-Code",
-      subtitle: "Crashkurs Arsenal",
-      mission: "Mission",
+      title: "Die Partikel",
+      subtitle: "Grundlagen Crashkurs",
+      lesson: "Lektion",
       exampleLabel: "Beispiel:",
-      startMissionBtn: "Verstanden -> Mission starten",
-      correctText: "Richtig gesnipert! 🎯",
-      wrongText: "Fehlschuss! Richtig wäre:",
-      successTitle: "Code entschlüsselt",
-      successQuote: "Erfolgsquote:",
-      btnRetry: "Nochmal feuern",
-      btnHome: "Zurück ins Dojo"
+      startExerciseBtn: "Verstanden -> Übung starten",
+      correctText: "Richtig! 🎯",
+      wrongText: "Leider falsch! Richtig wäre:",
+      successTitle: "Crashkurs abgeschlossen",
+      successQuote: "Dein Ergebnis:",
+      btnRetry: "Nochmal üben",
+      btnHome: "Zurück zur Übersicht"
     },
     en: {
       back: "Back",
-      title: "Particle Code",
-      subtitle: "Crash Course Arsenal",
-      mission: "Mission",
+      title: "The Particles",
+      subtitle: "Basics Crash Course",
+      lesson: "Lesson",
       exampleLabel: "Example:",
-      startMissionBtn: "Got it -> Start Mission",
-      correctText: "Perfect Snipe! 🎯",
-      wrongText: "Missed! Correct would be:",
-      successTitle: "Code Decrypted",
-      successQuote: "Success Rate:",
-      btnRetry: "Fire Again",
-      btnHome: "Back to Dojo"
+      startExerciseBtn: "Got it -> Start Exercise",
+      correctText: "Correct! 🎯",
+      wrongText: "Incorrect! Correct would be:",
+      successTitle: "Crash Course Completed",
+      successQuote: "Your Score:",
+      btnRetry: "Practice Again",
+      btnHome: "Back to Overview"
     }
   };
 
@@ -50,15 +50,15 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["は", "を", "に"],
       de: {
         title: "Das Thema [ は ]",
-        explanation: "Wird als 'ha' geschrieben, aber 'wa' gelesen. Es markiert das Thema des Satzes und bedeutet quasi 'Was ... betrifft'.",
+        explanation: "Wird als 'ha' geschrieben, aber wie 'wa' ausgesprochen. Es zeigt, worüber der Satz spricht. Stell es dir vor wie 'Was ... angeht'.",
         exampleSentence: "わたし は じぇんす です。",
-        exampleTrans: "Ich bin Jens. (Was mich betrifft: Jens)",
+        exampleTrans: "Ich bin Jens. (Was mich angeht: Jens)",
         exerciseSentence: "きょう [ ? ] いい てんき です。",
         exerciseTrans: "Heute ist schönes Wetter."
       },
       en: {
         title: "The Topic [ は ]",
-        explanation: "Written as 'ha', but read as 'wa'. It marks the topic of the sentence, translating roughly to 'As for...'.",
+        explanation: "Written as 'ha' but pronounced as 'wa'. It shows what the sentence is about. Think of it like 'As for...'.",
         exampleSentence: "わたし は じぇんす です。",
         exampleTrans: "I am Jens. (As for me: Jens)",
         exerciseSentence: "きょう [ ? ] いい てんき です。",
@@ -70,17 +70,17 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["が", "を", "で"],
       de: {
         title: "Das direkte Objekt [ を ]",
-        explanation: "Der Zielsucher für Aktionen. Es markiert das Ding, mit dem du etwas machst (essen, trinken, lesen).",
+        explanation: "Verbindet eine Handlung mit einem Gegenstand. Es zeigt, WAS du isst, trinkst, kaufst oder liest.",
         exampleSentence: "すし を たべる。",
-        exampleTrans: "Sushi essen.",
+        exampleTrans: "Sushi essen. (WAS isst du? Sushi)",
         exerciseSentence: "みず [ ? ] のむ。",
         exerciseTrans: "Wasser trinken."
       },
       en: {
         title: "Direct Object [ を ]",
-        explanation: "The target for actions. It marks the thing you are interacting with (eat, drink, read).",
+        explanation: "Connects an action with an object. It shows WHAT you eat, drink, buy, or read.",
         exampleSentence: "すし を たべる。",
-        exampleTrans: "Eat sushi.",
+        exampleTrans: "Eat sushi. (WHAT do you eat? Sushi)",
         exerciseSentence: "みず [ ? ] のむ。",
         exerciseTrans: "Drink water."
       }
@@ -90,15 +90,15 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["に", "で", "を"],
       de: {
         title: "Das Ziel / Die Zeit [ に ]",
-        explanation: "Markiert das Ziel einer Bewegung ('nach', 'zu') oder einen exakten Zeitpunkt.",
+        explanation: "Zeigt das Ziel an, wohin du gehst ('nach', 'zu') oder an welchem genauen Zeitpunkt etwas passiert.",
         exampleSentence: "とうきょう に いきます。",
         exampleTrans: "Ich gehe nach Tokyo.",
         exerciseSentence: "がっこう [ ? ] きます。",
         exerciseTrans: "Ich komme zur Schule."
       },
       en: {
-        title: "Target / Time [ に ]",
-        explanation: "Marks the destination of a movement ('to') or an exact point in time.",
+        title: "Destination / Time [ に ]",
+        explanation: "Shows your destination ('to') or a specific time when something happens.",
         exampleSentence: "とうきょう に いきます。",
         exampleTrans: "I go to Tokyo.",
         exerciseSentence: "がっこう [ ? ] きます。",
@@ -109,16 +109,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       correct: "で",
       options: ["に", "で", "と"],
       de: {
-        title: "Ort der Handlung / Werkzeug [ で ]",
-        explanation: "Zeigt an, WO eine Aktion passiert oder WOMIT sie gemacht wird (Transportmittel, Werkzeug).",
+        title: "Ort der Handlung / Mittel [ で ]",
+        explanation: "Gibt an, WO du etwas machst, oder WOMIT (z. B. mit welchem Verkehrsmittel oder Werkzeug).",
         exampleSentence: "でんしゃ で いきます。",
         exampleTrans: "Ich fahre mit dem Zug.",
         exerciseSentence: "くるま [ ? ] かえる。",
         exerciseTrans: "Mit dem Auto zurückkehren."
       },
       en: {
-        title: "Action Location / Tool [ で ]",
-        explanation: "Shows WHERE an action takes place or WHAT tool/transport is used.",
+        title: "Location of Action / Means [ で ]",
+        explanation: "Indicates WHERE you do something, or WITH WHAT (like a tool or transport).",
         exampleSentence: "でんしゃ で いきます。",
         exampleTrans: "I go by train.",
         exerciseSentence: "くるま [ ? ] かえる。",
@@ -129,20 +129,20 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       correct: "が",
       options: ["は", "を", "が"],
       de: {
-        title: "Das Subjekt / Fokus [ が ]",
-        explanation: "Setzt den Fokus auf das Wer/Was. Wird oft bei Naturphänomenen oder für bloße Existenz ('es gibt') verwendet.",
+        title: "Das Subjekt [ が ]",
+        explanation: "Lenkt die Aufmerksamkeit auf eine Sache. Wird oft genutzt, wenn man beschreibt, was man gerade sieht (z. B. Wetter) oder um zu sagen, dass etwas existiert.",
         exampleSentence: "あめ が ふっています。",
-        exampleTrans: "Regen fällt. (Nicht: Der Regen...)",
+        exampleTrans: "Regen fällt. (Beschreibt, was gerade passiert)",
         exerciseSentence: "じかん [ ? ] ありません。",
-        exerciseTrans: "Es gibt keine Zeit. (Zeit ist nicht da)"
+        exerciseTrans: "Es gibt keine Zeit. (Zeit ist nicht vorhanden)"
       },
       en: {
-        title: "The Subject / Focus [ が ]",
-        explanation: "Puts the focus on the who/what. Often used for natural phenomena or pure existence ('there is').",
+        title: "The Subject [ が ]",
+        explanation: "Puts focus on a thing. Often used to describe what you currently see (e.g., weather) or to state that something exists.",
         exampleSentence: "あめ が ふっています。",
-        exampleTrans: "Rain is falling.",
+        exampleTrans: "Rain is falling. (Describing what is happening)",
         exerciseSentence: "じかん [ ? ] ありません。",
-        exerciseTrans: "There is no time."
+        exerciseTrans: "There is no time. (Time does not exist)"
       }
     },
     {
@@ -150,7 +150,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["に", "と", "から"],
       de: {
         title: "Mit / Und [ と ]",
-        explanation: "Verbindet Nomen wie ein 'und' oder bedeutet 'mit' einer Person.",
+        explanation: "Bedeutet 'und' (wenn man zwei Dinge verbindet) oder 'zusammen mit' (einer Person).",
         exampleSentence: "ともだち と たべる。",
         exampleTrans: "Mit einem Freund essen.",
         exerciseSentence: "かぞく [ ? ] いく。",
@@ -158,7 +158,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       },
       en: {
         title: "With / And [ と ]",
-        explanation: "Connects nouns like 'and', or means 'with' a person.",
+        explanation: "Means 'and' (when connecting two things) or 'together with' (a person).",
         exampleSentence: "ともだち と たべる。",
         exampleTrans: "Eat with a friend.",
         exerciseSentence: "かぞく [ ? ] いく。",
@@ -170,7 +170,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["まで", "から", "で"],
       de: {
         title: "Startpunkt [ から ]",
-        explanation: "Markiert den Startpunkt in Raum ('von/aus') oder Zeit ('ab').",
+        explanation: "Bedeutet 'von' oder 'aus'. Zeigt den Anfangspunkt von einem Ort oder einer Uhrzeit an.",
         exampleSentence: "えき から きました。",
         exampleTrans: "Ich bin vom Bahnhof gekommen.",
         exerciseSentence: "ドイツ [ ? ] きました。",
@@ -178,7 +178,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       },
       en: {
         title: "Starting Point [ から ]",
-        explanation: "Marks the starting point in space ('from') or time ('from/since').",
+        explanation: "Means 'from'. Shows the starting point of a place or a time.",
         exampleSentence: "えき から きました。",
         exampleTrans: "I came from the station.",
         exerciseSentence: "ドイツ [ ? ] きました。",
@@ -190,7 +190,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       options: ["から", "まで", "に"],
       de: {
         title: "Endpunkt [ まで ]",
-        explanation: "Das Gegenstück zu 'kara'. Es markiert das Ende in Raum ('bis zu') oder Zeit ('bis').",
+        explanation: "Bedeutet 'bis'. Zeigt das Ende von einem Weg oder einer Zeitspanne an.",
         exampleSentence: "ホテル まで あるく。",
         exampleTrans: "Bis zum Hotel laufen.",
         exerciseSentence: "くじ [ ? ] はたらく。",
@@ -198,7 +198,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       },
       en: {
         title: "Ending Point [ まで ]",
-        explanation: "The counterpart to 'kara'. It marks the end in space ('up to') or time ('until').",
+        explanation: "Means 'until' or 'up to'. Shows the end of a route or time period.",
         exampleSentence: "ホテル まで あるく。",
         exampleTrans: "Walk up to the hotel.",
         exerciseSentence: "くじ [ ? ] はたらく。",
@@ -222,7 +222,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       setFeedback(null);
       if (currentIndex < lessons.length - 1) {
         setCurrentIndex(currentIndex + 1);
-        setCurrentPhase('briefing'); // Zurück zum Briefing für den nächsten Partikel
+        setCurrentPhase('briefing'); 
       } else {
         setCurrentPhase('result');
       }
@@ -258,7 +258,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
           <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl relative mt-4">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-orange-500/50 text-orange-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/10 whitespace-nowrap">
-              {t.mission} {currentIndex + 1} / {lessons.length}
+              {t.lesson} {currentIndex + 1} / {lessons.length}
             </div>
             
             <h2 className="text-xl font-bold text-white mt-4 mb-3 border-b border-gray-700 pb-2">{currentData.title}</h2>
@@ -271,7 +271,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
             </div>
 
             <button onClick={() => setCurrentPhase('drill')} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl font-bold text-white tracking-widest uppercase shadow-lg shadow-orange-500/20 transition-all active:scale-95">
-              {t.startMissionBtn}
+              {t.startExerciseBtn}
             </button>
           </div>
         </div>
@@ -281,7 +281,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
           <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl relative mt-4">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-orange-500/50 text-orange-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/10 whitespace-nowrap">
-              {t.mission} {currentIndex + 1} / {lessons.length}
+              {t.lesson} {currentIndex + 1} / {lessons.length}
             </div>
             
             <p className="text-gray-400 text-sm text-center mb-6 italic mt-6 border-l-2 border-orange-500/50 pl-3 leading-relaxed">
@@ -318,7 +318,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       {currentPhase === 'result' && (
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in">
           <div className="w-full bg-gray-800 rounded-3xl p-8 border border-orange-500/30 text-center shadow-[0_0_30px_rgba(249,115,22,0.15)]">
-            <div className="text-6xl mb-6">{score >= 6 ? '🏆' : '💀'}</div>
+            <div className="text-6xl mb-6">{score >= 6 ? '🏆' : '👍'}</div>
             <h2 className="text-2xl font-extrabold text-white mb-2 uppercase tracking-wide">{t.successTitle}</h2>
             <p className="text-gray-400 mb-8 font-bold">{t.successQuote} <span className={score >= 6 ? 'text-green-400' : 'text-red-400'}>{score} / {lessons.length}</span></p>
             
