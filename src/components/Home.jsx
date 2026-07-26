@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, radarDay, kanjiDay, language }) => {
+const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -19,11 +19,14 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
       phase1WriteTitle: "Phase 1: Kana (Schreiben)",
       phase1WriteDesc: "Die Meisterklasse. Präge dir die exakte Linienführung ein.",
+      phase15Title: "Phase 1.5: Kana Flow",
+      phase15Desc: "Brücken-Training: Trainiere das flüssige Lesen in echten Alltagssituationen.",
       phase2Title: "Phase 2: 21-Tage-Radar",
       phase2Desc: "Stresstest, Wortschatz und Reaktion für das Überleben im Alltag.",
       phase3Title: "Phase 3: Kanji N5",
       phase3Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
-      day: "Tag"
+      day: "Tag",
+      scenario: "Szenario"
     },
     en: {
       reset: "Reset",
@@ -32,11 +35,14 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
       phase1WriteTitle: "Phase 1: Kana (Write)",
       phase1WriteDesc: "The masterclass. Memorize the exact stroke order.",
+      phase15Title: "Phase 1.5: Kana Flow",
+      phase15Desc: "Bridge Training: Practice fluent reading in real everyday situations.",
       phase2Title: "Phase 2: 21-Day Radar",
       phase2Desc: "Stress test, vocabulary, and reaction for everyday survival.",
       phase3Title: "Phase 3: Kanji N5",
       phase3Desc: "Learn meaning, reading, and application of complex characters.",
-      day: "Day"
+      day: "Day",
+      scenario: "Scenario"
     }
   };
 
@@ -91,6 +97,21 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <p className="text-gray-400 text-sm mb-4">{t.phase1WriteDesc}</p>
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
             <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div>
+          </div>
+        </button>
+
+        {/* Phase 1.5: KANA FLOW (Neu) */}
+        <button 
+          onClick={() => onSelectMode('reading')}
+          className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden"
+        >
+          <div className="flex justify-between items-end mb-2">
+            <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase15Title}</h2>
+            <span className="text-cyan-500 text-sm font-bold">{t.scenario} {readingDay}/3</span>
+          </div>
+          <p className="text-gray-400 text-sm mb-4">{t.phase15Desc}</p>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 3) * 100}%` }}></div>
           </div>
         </button>
 
