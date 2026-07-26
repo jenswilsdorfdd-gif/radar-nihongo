@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 const ParticleCrashcourse = ({ onBack, language }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  // Phasen: 'briefing' (Erklärung) -> 'drill' (Übung) -> 'feedback' (Auswertung) -> 'result' (Endstand)
+  const [currentPhase, setCurrentPhase] = useState('briefing'); 
   const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // Nach oben scrollen, wenn der Modus geladen wird
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [currentIndex, currentPhase]);
 
   const texts = {
     de: {
@@ -17,6 +17,8 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       title: "Partikel-Code",
       subtitle: "Crashkurs Arsenal",
       mission: "Mission",
+      exampleLabel: "Beispiel:",
+      startMissionBtn: "Verstanden -> Mission starten",
       correctText: "Richtig gesnipert! 🎯",
       wrongText: "Fehlschuss! Richtig wäre:",
       successTitle: "Code entschlüsselt",
@@ -29,6 +31,8 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       title: "Particle Code",
       subtitle: "Crash Course Arsenal",
       mission: "Mission",
+      exampleLabel: "Example:",
+      startMissionBtn: "Got it -> Start Mission",
       correctText: "Perfect Snipe! 🎯",
       wrongText: "Missed! Correct would be:",
       successTitle: "Code Decrypted",
@@ -40,139 +44,198 @@ const ParticleCrashcourse = ({ onBack, language }) => {
 
   const t = texts[language] || texts.de;
 
-  const questions = [
+  const lessons = [
     {
-      sentence: "わたし [ ? ] じぇんす です。",
       correct: "は",
       options: ["は", "を", "に"],
       de: {
-        translation: "Ich bin Jens. (Thema des Satzes)",
-        explanation: "は (wa) markiert das Thema. 'Was mich betrifft... ich bin Jens.'"
+        title: "Das Thema [ は ]",
+        explanation: "Wird als 'ha' geschrieben, aber 'wa' gelesen. Es markiert das Thema des Satzes und bedeutet quasi 'Was ... betrifft'.",
+        exampleSentence: "わたし は じぇんす です。",
+        exampleTrans: "Ich bin Jens. (Was mich betrifft: Jens)",
+        exerciseSentence: "きょう [ ? ] いい てんき です。",
+        exerciseTrans: "Heute ist schönes Wetter."
       },
       en: {
-        translation: "I am Jens. (Topic of the sentence)",
-        explanation: "は (wa) marks the topic. 'As for me... I am Jens.'"
+        title: "The Topic [ は ]",
+        explanation: "Written as 'ha', but read as 'wa'. It marks the topic of the sentence, translating roughly to 'As for...'.",
+        exampleSentence: "わたし は じぇんす です。",
+        exampleTrans: "I am Jens. (As for me: Jens)",
+        exerciseSentence: "きょう [ ? ] いい てんき です。",
+        exerciseTrans: "Today is good weather."
       }
     },
     {
-      sentence: "すし [ ? ] たべる。",
       correct: "を",
       options: ["が", "を", "で"],
       de: {
-        translation: "Sushi essen. (Objekt, das gegessen wird)",
-        explanation: "を (o) markiert das direkte Objekt. Das Sushi wird von der Aktion (essen) getroffen."
+        title: "Das direkte Objekt [ を ]",
+        explanation: "Der Zielsucher für Aktionen. Es markiert das Ding, mit dem du etwas machst (essen, trinken, lesen).",
+        exampleSentence: "すし を たべる。",
+        exampleTrans: "Sushi essen.",
+        exerciseSentence: "みず [ ? ] のむ。",
+        exerciseTrans: "Wasser trinken."
       },
       en: {
-        translation: "Eat sushi. (Object being eaten)",
-        explanation: "を (o) marks the direct object. The action (eating) directly affects the sushi."
+        title: "Direct Object [ を ]",
+        explanation: "The target for actions. It marks the thing you are interacting with (eat, drink, read).",
+        exampleSentence: "すし を たべる。",
+        exampleTrans: "Eat sushi.",
+        exerciseSentence: "みず [ ? ] のむ。",
+        exerciseTrans: "Drink water."
       }
     },
     {
-      sentence: "とうきょう [ ? ] いきます。",
       correct: "に",
       options: ["に", "で", "を"],
       de: {
-        translation: "Ich gehe nach Tokyo. (Ziel der Bewegung)",
-        explanation: "に (ni) markiert das Ziel einer Bewegung. (へ 'e' würde auch gehen, aber に ist präziser für den Endpunkt)."
+        title: "Das Ziel / Die Zeit [ に ]",
+        explanation: "Markiert das Ziel einer Bewegung ('nach', 'zu') oder einen exakten Zeitpunkt.",
+        exampleSentence: "とうきょう に いきます。",
+        exampleTrans: "Ich gehe nach Tokyo.",
+        exerciseSentence: "がっこう [ ? ] きます。",
+        exerciseTrans: "Ich komme zur Schule."
       },
       en: {
-        translation: "I go to Tokyo. (Target of movement)",
-        explanation: "に (ni) marks the destination. (へ 'e' works too, but に is more precise for the endpoint)."
+        title: "Target / Time [ に ]",
+        explanation: "Marks the destination of a movement ('to') or an exact point in time.",
+        exampleSentence: "とうきょう に いきます。",
+        exampleTrans: "I go to Tokyo.",
+        exerciseSentence: "がっこう [ ? ] きます。",
+        exerciseTrans: "I come to school."
       }
     },
     {
-      sentence: "でんしゃ [ ? ] いきます。",
       correct: "で",
       options: ["に", "で", "と"],
       de: {
-        translation: "Ich fahre mit dem Zug. (Mittel / Werkzeug)",
-        explanation: "で (de) markiert das Werkzeug oder Transportmittel. 'Mithilfe des Zuges'."
+        title: "Ort der Handlung / Werkzeug [ で ]",
+        explanation: "Zeigt an, WO eine Aktion passiert oder WOMIT sie gemacht wird (Transportmittel, Werkzeug).",
+        exampleSentence: "でんしゃ で いきます。",
+        exampleTrans: "Ich fahre mit dem Zug.",
+        exerciseSentence: "くるま [ ? ] かえる。",
+        exerciseTrans: "Mit dem Auto zurückkehren."
       },
       en: {
-        translation: "I travel by train. (Means / Tool)",
-        explanation: "で (de) marks the tool or means of transport. 'By means of the train'."
+        title: "Action Location / Tool [ で ]",
+        explanation: "Shows WHERE an action takes place or WHAT tool/transport is used.",
+        exampleSentence: "でんしゃ で いきます。",
+        exampleTrans: "I go by train.",
+        exerciseSentence: "くるま [ ? ] かえる。",
+        exerciseTrans: "Return by car."
       }
     },
     {
-      sentence: "あめ [ ? ] ふっています。",
       correct: "が",
       options: ["は", "を", "が"],
       de: {
-        translation: "Der Regen fällt. (Fokus auf das Subjekt)",
-        explanation: "が (ga) markiert das Subjekt, besonders bei Naturphänomenen oder neuen Informationen. Nicht 'Der Regen...', sondern 'Regen fällt!'"
+        title: "Das Subjekt / Fokus [ が ]",
+        explanation: "Setzt den Fokus auf das Wer/Was. Wird oft bei Naturphänomenen oder für bloße Existenz ('es gibt') verwendet.",
+        exampleSentence: "あめ が ふっています。",
+        exampleTrans: "Regen fällt. (Nicht: Der Regen...)",
+        exerciseSentence: "じかん [ ? ] ありません。",
+        exerciseTrans: "Es gibt keine Zeit. (Zeit ist nicht da)"
       },
       en: {
-        translation: "The rain is falling. (Focus on subject)",
-        explanation: "が (ga) marks the subject, especially for natural phenomena or new info. Emphasizes 'Rain is falling!'"
+        title: "The Subject / Focus [ が ]",
+        explanation: "Puts the focus on the who/what. Often used for natural phenomena or pure existence ('there is').",
+        exampleSentence: "あめ が ふっています。",
+        exampleTrans: "Rain is falling.",
+        exerciseSentence: "じかん [ ? ] ありません。",
+        exerciseTrans: "There is no time."
       }
     },
     {
-      sentence: "ともだち [ ? ] すしをたべる。",
       correct: "と",
       options: ["に", "と", "から"],
       de: {
-        translation: "Mit einem Freund Sushi essen.",
-        explanation: "と (to) bedeutet 'mit' (einer Person) oder verbindet zwei Nomen wie ein 'und'."
+        title: "Mit / Und [ と ]",
+        explanation: "Verbindet Nomen wie ein 'und' oder bedeutet 'mit' einer Person.",
+        exampleSentence: "ともだち と たべる。",
+        exampleTrans: "Mit einem Freund essen.",
+        exerciseSentence: "かぞく [ ? ] いく。",
+        exerciseTrans: "Mit der Familie gehen."
       },
       en: {
-        translation: "Eating sushi with a friend.",
-        explanation: "と (to) means 'with' (a person) or connects two nouns like 'and'."
+        title: "With / And [ と ]",
+        explanation: "Connects nouns like 'and', or means 'with' a person.",
+        exampleSentence: "ともだち と たべる。",
+        exampleTrans: "Eat with a friend.",
+        exerciseSentence: "かぞく [ ? ] いく。",
+        exerciseTrans: "Go with family."
       }
     },
     {
-      sentence: "えき [ ? ] きました。",
       correct: "から",
       options: ["まで", "から", "で"],
       de: {
-        translation: "Ich bin vom Bahnhof gekommen. (Startpunkt)",
-        explanation: "から (kara) markiert den Startpunkt in Zeit oder Raum ('von / aus')."
+        title: "Startpunkt [ から ]",
+        explanation: "Markiert den Startpunkt in Raum ('von/aus') oder Zeit ('ab').",
+        exampleSentence: "えき から きました。",
+        exampleTrans: "Ich bin vom Bahnhof gekommen.",
+        exerciseSentence: "ドイツ [ ? ] きました。",
+        exerciseTrans: "Ich bin aus Deutschland gekommen."
       },
       en: {
-        translation: "I came from the station. (Starting point)",
-        explanation: "から (kara) marks the starting point in time or space ('from')."
+        title: "Starting Point [ から ]",
+        explanation: "Marks the starting point in space ('from') or time ('from/since').",
+        exampleSentence: "えき から きました。",
+        exampleTrans: "I came from the station.",
+        exerciseSentence: "ドイツ [ ? ] きました。",
+        exerciseTrans: "I came from Germany."
       }
     },
     {
-      sentence: "ここ [ ? ] ホテルまで。",
-      correct: "から",
-      options: ["から", "に", "を"],
+      correct: "まで",
+      options: ["から", "まで", "に"],
       de: {
-        translation: "Von hier bis zum Hotel.",
-        explanation: "から (kara) = von. Kombiniert mit まで (made) = bis."
+        title: "Endpunkt [ まで ]",
+        explanation: "Das Gegenstück zu 'kara'. Es markiert das Ende in Raum ('bis zu') oder Zeit ('bis').",
+        exampleSentence: "ホテル まで あるく。",
+        exampleTrans: "Bis zum Hotel laufen.",
+        exerciseSentence: "くじ [ ? ] はたらく。",
+        exerciseTrans: "Bis 9 Uhr arbeiten."
       },
       en: {
-        translation: "From here to the hotel.",
-        explanation: "から (kara) = from. Combined with まで (made) = to/until."
+        title: "Ending Point [ まで ]",
+        explanation: "The counterpart to 'kara'. It marks the end in space ('up to') or time ('until').",
+        exampleSentence: "ホテル まで あるく。",
+        exampleTrans: "Walk up to the hotel.",
+        exerciseSentence: "くじ [ ? ] はたらく。",
+        exerciseTrans: "Work until 9 o'clock."
       }
     }
   ];
 
   const handleAnswer = (selected) => {
-    const isCorrect = selected === questions[currentQuestion].correct;
+    const isCorrect = selected === lessons[currentIndex].correct;
     if (isCorrect) setScore(score + 1);
     
     setFeedback({
       correct: isCorrect,
       selected: selected
     });
+    
+    setCurrentPhase('feedback');
 
     setTimeout(() => {
       setFeedback(null);
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
+      if (currentIndex < lessons.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setCurrentPhase('briefing'); // Zurück zum Briefing für den nächsten Partikel
       } else {
-        setShowResult(true);
+        setCurrentPhase('result');
       }
-    }, 3000); // Zeigt die Erklärung für 3 Sekunden, damit man sie in Ruhe lesen kann
+    }, 2500); 
   };
 
   const resetCourse = () => {
-    setCurrentQuestion(0);
+    setCurrentIndex(0);
     setScore(0);
-    setShowResult(false);
+    setCurrentPhase('briefing');
   };
 
-  const currentQData = questions[currentQuestion][language] || questions[currentQuestion].de;
+  const currentData = lessons[currentIndex]?.[language] || lessons[currentIndex]?.de;
 
   return (
     <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
@@ -191,32 +254,53 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         <p className="text-gray-400 text-xs tracking-widest uppercase mt-2">{t.subtitle}</p>
       </div>
 
-      {!showResult ? (
+      {currentPhase === 'briefing' && (
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
           <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl relative mt-4">
-            
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-orange-500/50 text-orange-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/10 whitespace-nowrap">
-              {t.mission} {currentQuestion + 1} / {questions.length}
+              {t.mission} {currentIndex + 1} / {lessons.length}
+            </div>
+            
+            <h2 className="text-xl font-bold text-white mt-4 mb-3 border-b border-gray-700 pb-2">{currentData.title}</h2>
+            <p className="text-gray-300 text-sm leading-relaxed mb-6">{currentData.explanation}</p>
+            
+            <div className="bg-gray-900 p-4 rounded-xl border border-gray-700 mb-6">
+              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2 block">{t.exampleLabel}</span>
+              <p className="text-2xl font-bold text-white mb-1">{currentData.exampleSentence}</p>
+              <p className="text-gray-400 text-xs italic">{currentData.exampleTrans}</p>
+            </div>
+
+            <button onClick={() => setCurrentPhase('drill')} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl font-bold text-white tracking-widest uppercase shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+              {t.startMissionBtn}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(currentPhase === 'drill' || currentPhase === 'feedback') && (
+        <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
+          <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl relative mt-4">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-orange-500/50 text-orange-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/10 whitespace-nowrap">
+              {t.mission} {currentIndex + 1} / {lessons.length}
             </div>
             
             <p className="text-gray-400 text-sm text-center mb-6 italic mt-6 border-l-2 border-orange-500/50 pl-3 leading-relaxed">
-              {currentQData.translation}
+              {currentData.exerciseTrans}
             </p>
             
             <h2 className="text-3xl font-bold text-center text-white mb-8 tracking-wider bg-gray-900 py-4 rounded-xl border border-gray-700 shadow-inner">
-              {questions[currentQuestion].sentence}
+              {currentData.exerciseSentence}
             </h2>
 
-            {feedback ? (
+            {currentPhase === 'feedback' ? (
               <div className={`p-5 rounded-2xl border-2 ${feedback.correct ? 'bg-green-900/30 border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.1)]' : 'bg-red-900/30 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.1)]'} animate-fade-in`}>
-                <h3 className={`font-bold mb-3 ${feedback.correct ? 'text-green-400' : 'text-red-400'}`}>
-                  {feedback.correct ? t.correctText : `${t.wrongText} ${questions[currentQuestion].correct}`}
+                <h3 className={`font-bold text-lg text-center ${feedback.correct ? 'text-green-400' : 'text-red-400'}`}>
+                  {feedback.correct ? t.correctText : `${t.wrongText} ${lessons[currentIndex].correct}`}
                 </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">{currentQData.explanation}</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-3">
-                {questions[currentQuestion].options.map((option, idx) => (
+                {lessons[currentIndex].options.map((option, idx) => (
                   <button 
                     key={idx} 
                     onClick={() => handleAnswer(option)}
@@ -229,12 +313,14 @@ const ParticleCrashcourse = ({ onBack, language }) => {
             )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {currentPhase === 'result' && (
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in">
           <div className="w-full bg-gray-800 rounded-3xl p-8 border border-orange-500/30 text-center shadow-[0_0_30px_rgba(249,115,22,0.15)]">
             <div className="text-6xl mb-6">{score >= 6 ? '🏆' : '💀'}</div>
             <h2 className="text-2xl font-extrabold text-white mb-2 uppercase tracking-wide">{t.successTitle}</h2>
-            <p className="text-gray-400 mb-8 font-bold">{t.successQuote} <span className={score >= 6 ? 'text-green-400' : 'text-red-400'}>{score} / {questions.length}</span></p>
+            <p className="text-gray-400 mb-8 font-bold">{t.successQuote} <span className={score >= 6 ? 'text-green-400' : 'text-red-400'}>{score} / {lessons.length}</span></p>
             
             <div className="space-y-4">
               <button onClick={resetCourse} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors active:scale-95">
