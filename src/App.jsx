@@ -11,7 +11,6 @@ import ReadingDeck from './components/ReadingDeck';
 import ReadingCard from './components/ReadingCard';
 
 function App() {
-  // --- SPRACHE ---
   const [appLanguage, setAppLanguage] = useState(() => {
     return localStorage.getItem('appLanguage') || null;
   });
@@ -19,20 +18,17 @@ function App() {
   const [activeView, setActiveView] = useState('welcome'); 
   const [kanaMode, setKanaMode] = useState('read');
   
-  // THEME
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved !== null ? JSON.parse(saved) : true; 
   });
   
-  // RADAR
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
     const saved = localStorage.getItem('radarDay');
     return saved ? parseInt(saved, 10) : 1; 
   });
   const [learningRadarDay, setLearningRadarDay] = useState(1);
 
-  // KANA
   const [kanaReadDay, setKanaReadDay] = useState(() => {
     const saved = localStorage.getItem('kanaReadDay');
     return saved ? parseInt(saved, 10) : 1;
@@ -44,22 +40,19 @@ function App() {
   const [learningKanaDay, setLearningKanaDay] = useState(1);
   const kanaTotalDays = 14; 
 
-  // KANA FLOW (READING) - NEU
   const [readingDay, setReadingDay] = useState(() => {
     const saved = localStorage.getItem('readingDay');
     return saved ? parseInt(saved, 10) : 1;
   });
   const [learningReadingDay, setLearningReadingDay] = useState(1);
-  const readingTotalDays = 3; 
+  const readingTotalDays = 21; // FIX: JETZT 21 TAGE!
 
-  // KANJI
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
     const saved = localStorage.getItem('kanjiDay');
     return saved ? parseInt(saved, 10) : 1;
   });
   const [learningKanjiDay, setLearningKanjiDay] = useState(1);
 
-  // SPEICHERN
   useEffect(() => { if (appLanguage) localStorage.setItem('appLanguage', appLanguage); }, [appLanguage]);
   useEffect(() => { localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
   useEffect(() => { localStorage.setItem('radarDay', currentRadarDay); }, [currentRadarDay]);
@@ -68,7 +61,6 @@ function App() {
   useEffect(() => { localStorage.setItem('readingDay', readingDay); }, [readingDay]);
   useEffect(() => { localStorage.setItem('kanjiDay', currentKanjiDay); }, [currentKanjiDay]);
 
-  // RESET
   const handleReset = () => {
     const confirmMsg = appLanguage === 'en' 
       ? "Danger! Do you really want to reset all your progress to Day 1?" 
@@ -112,9 +104,6 @@ function App() {
     setActiveView('kanji');
   };
 
-  // ------------------------------------------------------------------
-  // SPRACHAUSWAHL-SCREEN 
-  // ------------------------------------------------------------------
   if (!appLanguage) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
@@ -124,74 +113,29 @@ function App() {
         <h1 className="text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8">RADAR SYSTEM</h1>
         <h2 className="text-xl mb-6 text-gray-300">Wähle deine Sprache / Choose your language</h2>
         <div className="flex gap-4">
-          <button 
-            onClick={() => setAppLanguage('de')} 
-            className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
-          >
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm">
-              <img src="https://flagcdn.com/w80/de.png" alt="Deutsch" className="w-full h-full object-cover" />
-            </div>
-            Deutsch
+          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center">
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm"><img src="https://flagcdn.com/w80/de.png" alt="Deutsch" className="w-full h-full object-cover" /></div>Deutsch
           </button>
-          <button 
-            onClick={() => setAppLanguage('en')} 
-            className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center"
-          >
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm">
-              <img src="https://flagcdn.com/w80/gb.png" alt="English" className="w-full h-full object-cover" />
-            </div>
-            English
+          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center">
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm"><img src="https://flagcdn.com/w80/gb.png" alt="English" className="w-full h-full object-cover" /></div>English
           </button>
         </div>
       </div>
     );
   }
 
-  // Kontroll-Buttons (Hell/Dunkel + Sprache) nur auf Home und Welcome anzeigen
   const showControls = activeView === 'welcome' || activeView === 'home';
 
   return (
-    <div 
-      className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col transition-all duration-300"
-      style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
-    >
-      
-      {/* FLOATING CONTROLS (Oben Links) */}
+    <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       {showControls && (
         <div className="fixed top-6 left-6 z-50 flex gap-3">
-          
-          {/* THEME SWITCHER */}
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none"
-            style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
-            title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}
-          >
-            <span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span>
-          </button>
-
-          {/* LANGUAGE SWITCHER */}
-          <button 
-            onClick={() => setAppLanguage(appLanguage === 'de' ? 'en' : 'de')}
-            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden p-0"
-            style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}
-            title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}
-          >
-            {/* Bild füllt nun den gesamten runden Button aus */}
-            <img 
-              src={appLanguage === 'de' ? "https://flagcdn.com/w80/gb.png" : "https://flagcdn.com/w80/de.png"} 
-              alt={appLanguage === 'de' ? "English" : "Deutsch"} 
-              className="w-full h-full object-cover" 
-            />
-          </button>
-
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}><span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span></button>
+          <button onClick={() => setAppLanguage(appLanguage === 'de' ? 'en' : 'de')} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden p-0" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}><img src={appLanguage === 'de' ? "https://flagcdn.com/w80/gb.png" : "https://flagcdn.com/w80/de.png"} alt={appLanguage === 'de' ? "English" : "Deutsch"} className="w-full h-full object-cover" /></button>
         </div>
       )}
 
-      {activeView === 'welcome' && (
-        <Welcome onStart={() => setActiveView('home')} language={appLanguage} />
-      )}
-
+      {activeView === 'welcome' && <Welcome onStart={() => setActiveView('home')} language={appLanguage} />}
       {activeView === 'home' && (
         <Home 
           onSelectMode={(mode) => {
@@ -201,90 +145,17 @@ function App() {
             if (mode === 'radar') setActiveView('dashboard');
             if (mode === 'kanji') setActiveView('kanji');
           }} 
-          onReset={handleReset}
-          onGoToWelcome={() => setActiveView('welcome')}
-          kanaReadDay={kanaReadDay}
-          kanaWriteDay={kanaWriteDay}
-          readingDay={readingDay}
-          radarDay={currentRadarDay}
-          kanjiDay={currentKanjiDay}
-          language={appLanguage}
+          onReset={handleReset} onGoToWelcome={() => setActiveView('welcome')} kanaReadDay={kanaReadDay} kanaWriteDay={kanaWriteDay} readingDay={readingDay} radarDay={currentRadarDay} kanjiDay={currentKanjiDay} language={appLanguage}
         />
       )}
-      
-      {activeView === 'kana-deck' && (
-        <KanaDeck 
-          currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
-          totalDays={kanaTotalDays} 
-          mode={kanaMode} 
-          onBackToHome={() => setActiveView('home')} 
-          onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'learning-kana' && (
-        <KanaCard 
-          day={learningKanaDay} 
-          mode={kanaMode} 
-          onBack={() => handleFinishKana(learningKanaDay)} 
-          language={appLanguage} 
-        />
-      )}
-
-      {/* NEU: READING DECK & CARD */}
-      {activeView === 'reading-deck' && (
-        <ReadingDeck 
-          currentDay={readingDay} 
-          totalDays={readingTotalDays} 
-          onBackToHome={() => setActiveView('home')} 
-          onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'learning-reading' && (
-        <ReadingCard 
-          day={learningReadingDay} 
-          onBack={() => handleFinishReading(learningReadingDay)} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'dashboard' && (
-        <Dashboard 
-          currentDay={currentRadarDay} 
-          onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
-          onBackToHome={() => setActiveView('home')} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'learning-radar' && (
-        <Flashcard 
-          day={learningRadarDay} 
-          onBack={() => handleFinishRadar(learningRadarDay)} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'kanji' && (
-        <KanjiDeck 
-          currentDay={currentKanjiDay} 
-          onBackToHome={() => setActiveView('home')} 
-          onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
-          language={appLanguage} 
-        />
-      )}
-
-      {activeView === 'learning-kanji' && (
-        <KanjiCard 
-          day={learningKanjiDay} 
-          onBack={() => handleFinishKanji(learningKanjiDay)} 
-          language={appLanguage} 
-        />
-      )}
-
+      {activeView === 'kana-deck' && <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} language={appLanguage} />}
+      {activeView === 'learning-kana' && <KanaCard day={learningKanaDay} mode={kanaMode} onBack={() => handleFinishKana(learningKanaDay)} language={appLanguage} />}
+      {activeView === 'reading-deck' && <ReadingDeck currentDay={readingDay} totalDays={readingTotalDays} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} language={appLanguage} />}
+      {activeView === 'learning-reading' && <ReadingCard day={learningReadingDay} onBack={() => handleFinishReading(learningReadingDay)} language={appLanguage} />}
+      {activeView === 'dashboard' && <Dashboard currentDay={currentRadarDay} onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} onBackToHome={() => setActiveView('home')} language={appLanguage} />}
+      {activeView === 'learning-radar' && <Flashcard day={learningRadarDay} onBack={() => handleFinishRadar(learningRadarDay)} language={appLanguage} />}
+      {activeView === 'kanji' && <KanjiDeck currentDay={currentKanjiDay} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} language={appLanguage} />}
+      {activeView === 'learning-kanji' && <KanjiCard day={learningKanjiDay} onBack={() => handleFinishKanji(learningKanjiDay)} language={appLanguage} />}
     </div>
   );
 }
