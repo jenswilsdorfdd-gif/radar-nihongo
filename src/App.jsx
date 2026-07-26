@@ -7,6 +7,8 @@ import KanaDeck from './components/KanaDeck';
 import KanaCard from './components/KanaCard';
 import KanjiDeck from './components/KanjiDeck';
 import KanjiCard from './components/KanjiCard';
+import ReadingDeck from './components/ReadingDeck';
+import ReadingCard from './components/ReadingCard';
 
 function App() {
   // --- SPRACHE ---
@@ -42,6 +44,14 @@ function App() {
   const [learningKanaDay, setLearningKanaDay] = useState(1);
   const kanaTotalDays = 14; 
 
+  // KANA FLOW (READING) - NEU
+  const [readingDay, setReadingDay] = useState(() => {
+    const saved = localStorage.getItem('readingDay');
+    return saved ? parseInt(saved, 10) : 1;
+  });
+  const [learningReadingDay, setLearningReadingDay] = useState(1);
+  const readingTotalDays = 3; 
+
   // KANJI
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
     const saved = localStorage.getItem('kanjiDay');
@@ -55,6 +65,7 @@ function App() {
   useEffect(() => { localStorage.setItem('radarDay', currentRadarDay); }, [currentRadarDay]);
   useEffect(() => { localStorage.setItem('kanaReadDay', kanaReadDay); }, [kanaReadDay]);
   useEffect(() => { localStorage.setItem('kanaWriteDay', kanaWriteDay); }, [kanaWriteDay]);
+  useEffect(() => { localStorage.setItem('readingDay', readingDay); }, [readingDay]);
   useEffect(() => { localStorage.setItem('kanjiDay', currentKanjiDay); }, [currentKanjiDay]);
 
   // RESET
@@ -67,10 +78,12 @@ function App() {
       setCurrentRadarDay(1);
       setKanaReadDay(1);
       setKanaWriteDay(1);
+      setReadingDay(1);
       setCurrentKanjiDay(1);
       localStorage.setItem('radarDay', 1);
       localStorage.setItem('kanaReadDay', 1);
       localStorage.setItem('kanaWriteDay', 1);
+      localStorage.setItem('readingDay', 1);
       localStorage.setItem('kanjiDay', 1);
     }
   };
@@ -87,6 +100,11 @@ function App() {
       if (day === kanaWriteDay && day < kanaTotalDays) setKanaWriteDay(prev => prev + 1);
     }
     setActiveView('kana-deck');
+  };
+
+  const handleFinishReading = (day) => {
+    if (day === readingDay && day < readingTotalDays) setReadingDay(prev => prev + 1);
+    setActiveView('reading-deck');
   };
 
   const handleFinishKanji = (day) => {
@@ -179,6 +197,7 @@ function App() {
           onSelectMode={(mode) => {
             if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
             if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
+            if (mode === 'reading') setActiveView('reading-deck');
             if (mode === 'radar') setActiveView('dashboard');
             if (mode === 'kanji') setActiveView('kanji');
           }} 
@@ -186,6 +205,7 @@ function App() {
           onGoToWelcome={() => setActiveView('welcome')}
           kanaReadDay={kanaReadDay}
           kanaWriteDay={kanaWriteDay}
+          readingDay={readingDay}
           radarDay={currentRadarDay}
           kanjiDay={currentKanjiDay}
           language={appLanguage}
@@ -208,6 +228,25 @@ function App() {
           day={learningKanaDay} 
           mode={kanaMode} 
           onBack={() => handleFinishKana(learningKanaDay)} 
+          language={appLanguage} 
+        />
+      )}
+
+      {/* NEU: READING DECK & CARD */}
+      {activeView === 'reading-deck' && (
+        <ReadingDeck 
+          currentDay={readingDay} 
+          totalDays={readingTotalDays} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
+          language={appLanguage} 
+        />
+      )}
+
+      {activeView === 'learning-reading' && (
+        <ReadingCard 
+          day={learningReadingDay} 
+          onBack={() => handleFinishReading(learningReadingDay)} 
           language={appLanguage} 
         />
       )}
