@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { radarData } from '../data/radarData';
 
-const Flashcard = ({ day, onBack, onNextDay }) => {
+// NEU: language als Prop hinzugefügt
+const Flashcard = ({ day, onBack, onNextDay, language }) => {
   const dayData = radarData[day] || { scenarios: [{ context: "Keine Daten", userTask: "Tag fehlt." }] };
   
   const [queue, setQueue] = useState([...dayData.scenarios]);
@@ -17,6 +18,9 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   const [speechResult, setSpeechResult] = useState(null); 
 
   const [wrongScans, setWrongScans] = useState([]); 
+
+  // Sprache absichern (Fallback auf Deutsch)
+  const currentLang = language || 'de';
 
   useEffect(() => {
     if (radarData[day]) {
@@ -132,17 +136,17 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setWrongScans([]); 
   };
 
-  // --- PARTIKEL SCANNER LOGIK (NEU) ---
+  // --- PARTIKEL SCANNER LOGIK (NEU MIT SPRACHWEICHE) ---
   const particleInfo = {
-    "は": "Thema ('Was ... angeht')",
-    "を": "Objekt (Ziel der Handlung)",
-    "に": "Ziel/Zeit (Wohin/Wann)",
-    "で": "Ort/Mittel (Wo/Womit)",
-    "が": "Subjekt (Wer/Was)",
-    "と": "Mit/Und (Zusammen mit)",
-    "へ": "Richtung (Nach/Zu)",
-    "から": "Start (Von/Aus/Ab)",
-    "まで": "Endpunkt (Bis)"
+    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
+    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
+    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)" },
+    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)" },
+    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)" },
+    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)" },
+    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)" },
+    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)" },
+    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
   };
   const particleRegex = /(から|まで|を|は(?![いじ])|が(?![っ])|に(?![くも])|で(?!す)|と(?!も)|へ)/g;
 
@@ -173,9 +177,11 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           return (
             <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-bold mx-[1px] transition-colors hover:text-orange-300">
               {sub}
-              <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-1 w-max bg-gray-900 text-gray-200 text-[10px] p-2 rounded border border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center block">
-                {particleInfo[sub]}
-                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-orange-500/50"></span>
+              {/* Tooltip im exakt selben Design wie in Phase 2 */}
+              <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-gray-200 text-xs sm:text-sm p-3 rounded-xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed font-sans font-normal whitespace-normal block">
+                <span className="block text-orange-400 font-bold mb-1 border-b border-gray-700 pb-1 text-lg leading-none">{sub}</span>
+                {particleInfo[sub][currentLang]}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-orange-500/50"></span>
               </span>
             </span>
           );
