@@ -4,7 +4,6 @@ import { supabase } from '../supabaseClient';
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showParticleModal, setShowParticleModal] = useState(false);
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
@@ -52,7 +51,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase3Title: "Phase 3: 21-Tage-Radar",
       phase3Desc: "Stresstest, Wortschatz und Reaktion für das Überleben im Alltag.",
       phase4Title: "Phase 4: Kanji N5",
-      phase4Desc: "Lerne Bedeutung, Lesung und Anwendung complexer Zeichen.",
+      phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
+      
+      // NEU: Texte für die Prüfung
+      examTitle: "Abschluss-Prüfung",
+      examDesc: "Der finale 30-Fragen Stresstest. Beweise, was du gelernt hast.",
+      
       groupTitle: "Live Dojo: Gruppen-Training",
       groupDesc: "Wende dein Wissen an! Melde dich hier für die interaktiven Live-Übungen an.",
       groupBtn: "Jetzt Registrieren",
@@ -67,13 +71,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW6Title: "Woche 6 bis 8: Der Feinschliff",
       modalW6Desc: "Phase 4 (Kanji). Jeden Tag ein neues Deck. Wiederhole nebenbei alte Radar-Einsätze, um deine Reaktionszeit zu pushen.",
       modalClose: "Verstanden",
-      particleModalTitle: "DER PARTIKEL-CODE",
-      particleModalQ1: "Woher kommt das & Warum gibt es das?",
-      particleModalA1: "Japanisch hat keine Leerzeichen. Partikel sind die unsichtbaren Verkehrsschilder im Text. Sie zeigen deinem Gehirn, wo ein Wort aufhört und welche Rolle es im Satz spielt.",
-      particleModalQ2: "Brauchen wir das?",
-      particleModalA2: "Es ist überlebenswichtig! Wenn du die Wörter 'Sushi' und 'Essen' kennst, ist das nett. Aber erst der unsichtbare Partikel dazwischen entscheidet, ob du das Sushi isst – oder ob das Sushi dich isst.",
-      particleModalQ3: "Wie lernen wir das?",
-      particleModalA3: "Wir büffeln keine Grammatik-Tabellen. Ab Phase 2 (Kana Flow) markieren wir die Partikel in deinen Texten farbig. Dein Auge lernt unterbewusst, in Blöcken zu lesen. In Phase 3 (Radar) kommt dann der Stresstest: Du musst unter Zeitdruck den richtigen Partikel feuern. Praxis pur.",
       regTitle: "Dojo Registrierung",
       regSubtitle: "Trage dich für das Live-Training ein.",
       fName: "Vorname",
@@ -103,6 +100,11 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase3Desc: "Stress test, vocabulary, and reaction for everyday survival.",
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Learn meaning, reading, and application of complex characters.",
+      
+      // NEU: Texte für die Prüfung
+      examTitle: "Final Exam",
+      examDesc: "The ultimate 30-question stress test. Prove your skills.",
+      
       groupTitle: "Live Dojo: Group Training",
       groupDesc: "Apply your knowledge! Register here for interactive live exercises.",
       groupBtn: "Register Now",
@@ -117,13 +119,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW6Title: "Week 6 to 8: The Polish",
       modalW6Desc: "Phase 4 (Kanji). One new deck every day. Repeat old Radar missions on the side to push your reaction time.",
       modalClose: "Got it",
-      particleModalTitle: "THE PARTICLE CODE",
-      particleModalQ1: "Where does it come from & Why does it exist?",
-      particleModalA1: "Japanese has no spaces. Particles are the invisible traffic signs in the text. They tell your brain where a word ends and what role it plays in the sentence.",
-      particleModalQ2: "Do we need this?",
-      particleModalA2: "It's crucial for survival! Knowing the words 'Sushi' and 'Eat' is nice. But only the invisible particle in between decides whether you eat the sushi – or if the sushi eats you.",
-      particleModalQ3: "How do we learn this?",
-      particleModalA3: "We don't cram grammar tables. From Phase 2 (Kana Flow) onwards, we highlight particles in your texts with color. Your eye subconsciously learns to read in blocks. In Phase 3 (Radar), the stress test begins: You have to fire the correct particle under time pressure. Pure practice.",
       regTitle: "Dojo Registration",
       regSubtitle: "Sign up for the live training.",
       fName: "First Name",
@@ -235,7 +230,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
 
-        <button onClick={() => setShowParticleModal(true)} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
+        {/* Partikel Crashkurs Button - Jetzt direkt ansteuerbar */}
+        <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
           <div>
             <h2 className="text-xl font-extrabold text-orange-400 tracking-wider uppercase mb-1 flex items-center gap-2">
@@ -279,7 +275,20 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
         </button>
 
-        <div className="py-4"><hr className="border-gray-700" /></div>
+        <div className="py-2">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent"></div>
+        </div>
+
+        {/* NEU: Der Abschluss-Test Button */}
+        <button onClick={() => onSelectMode('final-exam')} className="w-full bg-red-900/40 p-6 rounded-2xl border-2 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:border-red-400 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/30 transition-all"></div>
+          <h2 className="text-2xl font-extrabold text-red-400 tracking-widest uppercase mb-2 flex items-center gap-3">
+            <span>🎓</span> {t.examTitle}
+          </h2>
+          <p className="text-gray-300 text-sm italic">{t.examDesc}</p>
+        </button>
+
+        <div className="py-2"><hr className="border-gray-700" /></div>
 
         <div className="w-full bg-gradient-to-br from-pink-900/40 to-purple-900/40 p-6 rounded-2xl border-2 border-pink-500/50 shadow-lg shadow-pink-500/20 text-center relative overflow-hidden">
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl"></div>
@@ -307,41 +316,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
             <div className="p-4 bg-gray-900 border-t border-gray-700 shrink-0">
               <button onClick={() => setShowInfoModal(false)} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white tracking-widest uppercase transition-colors">{t.modalClose}</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showParticleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-gray-900 rounded-3xl border-2 border-orange-500/50 shadow-[0_0_40px_rgba(249,115,22,0.2)] overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-6 bg-black/50 border-b border-orange-500/30 flex justify-between items-center shrink-0">
-              <h2 className="text-xl font-bold tracking-widest uppercase text-orange-400 flex items-center gap-2">
-                <span>🔑</span> {t.particleModalTitle}
-              </h2>
-              <button onClick={() => setShowParticleModal(false)} className="text-gray-500 hover:text-white text-3xl leading-none transition-colors">&times;</button>
-            </div>
-            <div className="p-6 overflow-y-auto space-y-6">
-              <div>
-                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ1}</h3>
-                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA1}</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ2}</h3>
-                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA2}</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ3}</h3>
-                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA3}</p>
-              </div>
-            </div>
-            
-            {/* HIER IST DAS UPDATE MIT DEM EINZELNEN BUTTON */}
-            <div className="p-4 bg-black/50 border-t border-orange-500/30 shrink-0">
-              <button onClick={() => { setShowParticleModal(false); onSelectMode('particle-crashcourse'); }} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-lg shadow-orange-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95">
-                {language === 'en' ? 'Start Crash Course' : 'Crashkurs Starten'}
-              </button>
-            </div>
-            
           </div>
         </div>
       )}
