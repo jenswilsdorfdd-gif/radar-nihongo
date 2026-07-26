@@ -153,9 +153,9 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     }
 
     // 2. Platzhalter für die E-Mail-Automatisierung (Make.com - machen wir im nächsten Schritt)
-    const WEBHOOK_URL = "HIER_KOMMT_SPÄTER_DEINE_MAKE_COM_URL_REIN"; 
+    const WEBHOOK_URL = "https://hook.eu1.make.com/q25aley6dxip97l3xaqj498jme4jlsjr"; 
     
-    if (WEBHOOK_URL !== "HIER_KOMMT_SPÄTER_DEINE_MAKE_COM_URL_REIN") {
+    if (WEBHOOK_URL !== "https://hook.eu1.make.com/q25aley6dxip97l3xaqj498jme4jlsjr") {
       try {
         await fetch(WEBHOOK_URL, {
           method: 'POST',
