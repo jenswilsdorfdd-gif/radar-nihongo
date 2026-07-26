@@ -132,13 +132,32 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
     setWrongScans([]); 
   };
 
-  const renderTextWithFurigana = (text) => {
+  // --- PARTIKEL SCANNER LOGIK (NEU) ---
+  const particleInfo = {
+    "は": "Thema ('Was ... angeht')",
+    "を": "Objekt (Ziel der Handlung)",
+    "に": "Ziel/Zeit (Wohin/Wann)",
+    "で": "Ort/Mittel (Wo/Womit)",
+    "が": "Subjekt (Wer/Was)",
+    "と": "Mit/Und (Zusammen mit)",
+    "へ": "Richtung (Nach/Zu)",
+    "から": "Start (Von/Aus/Ab)",
+    "まで": "Endpunkt (Bis)"
+  };
+  const particleRegex = /(から|まで|を|は(?![いじ])|が(?![っ])|に(?![くも])|で(?!す)|と(?!も)|へ)/g;
+
+  // Diese Funktion verarbeitet jetzt Furigana UND scannt nach Partikeln
+  const renderTextWithFuriganaAndParticles = (text) => {
     if (!text) return null;
-    const parts = text.split(/([^\s]+{[^}]+})/g);
+    
+    // 1. Zuerst nach Furigana splitten
+    const parts = text.split(/([^\s、。！？「」]+{[^}]+})/g);
     
     return parts.map((part, i) => {
-      const match = part.match(/([^{]+){([^}]+)}/);
+      const match = part.match(/([^\s、。！？「」]+){([^}]+)}/);
+      
       if (match) {
+        // Normaler Furigana-Block (wird NICHT nach Partikeln gescannt)
         return (
           <ruby key={i} className="px-0.5">
             {match[1]}
@@ -146,12 +165,29 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
           </ruby>
         );
       }
-      return <span key={i}>{part}</span>;
+      
+      // 2. Normaler Textblock: Hier wird der Smart-Scanner auf Partikel losgelassen
+      const subParts = part.split(particleRegex);
+      return subParts.map((sub, j) => {
+        if (particleInfo[sub]) {
+          return (
+            <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-bold mx-[1px] transition-colors hover:text-orange-300">
+              {sub}
+              <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-1 w-max bg-gray-900 text-gray-200 text-[10px] p-2 rounded border border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center block">
+                {particleInfo[sub]}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-orange-500/50"></span>
+              </span>
+            </span>
+          );
+        }
+        return <span key={`${i}-${j}`}>{sub}</span>;
+      });
     });
   };
 
+  // Diese Funktion wird in Schritt 3 aufgerufen, um das Schlüsselwort hervorzuheben
   const renderHighlightedText = (text, keyword, isCorrect) => {
-    if (!text || !keyword) return renderTextWithFurigana(text);
+    if (!text || !keyword) return renderTextWithFuriganaAndParticles(text);
     
     const parts = text.split(keyword);
     const highlightColor = isCorrect ? 'text-green-400' : 'text-red-400';
@@ -160,10 +196,13 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
       <>
         {parts.map((part, index) => (
           <React.Fragment key={index}>
-            {renderTextWithFurigana(part)}
+            {/* Rendert den normalen Text (inkl. Furigana und Partikel) */}
+            {renderTextWithFuriganaAndParticles(part)}
+            
+            {/* Rendert das markierte Keyword in Grün oder Rot */}
             {index < parts.length - 1 && (
               <span className={`font-extrabold text-2xl px-1 ${highlightColor}`}>
-                {renderTextWithFurigana(keyword)}
+                {renderTextWithFuriganaAndParticles(keyword)}
               </span>
             )}
           </React.Fragment>
@@ -228,7 +267,6 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* HEADER FIX: left-1/2 -translate-x-1/2 zentriert perfekt, px-4 schützt den Rand */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 sm:px-6 flex justify-between items-center z-10">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">
           &larr; Radar-Deck
@@ -258,7 +296,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
             {currentScenario.vocabHint && (
               <div className="mt-3 inline-block bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-1.5">
                 <p className="text-xs text-yellow-400 font-bold tracking-wide uppercase">
-                  Vokabel: <span className="text-white ml-1 text-sm">{renderTextWithFurigana(currentScenario.vocabHint)}</span>
+                  Vokabel: <span className="text-white ml-1 text-sm">{renderTextWithFuriganaAndParticles(currentScenario.vocabHint)}</span>
                 </p>
               </div>
             )}
@@ -279,7 +317,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
                                 : 'bg-gray-700 text-gray-200 border border-gray-600 hover:bg-gray-600 active:scale-95'
                       }`}
                     >
-                      {chunk}
+                      {/* Hier scannt er auch die Chunks, falls Partikel drin sind */}
+                      {renderTextWithFuriganaAndParticles(chunk)}
                     </button>
                   );
                 })}
@@ -326,7 +365,7 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
                   )}
                   <div className="flex justify-between items-start">
                     <p className="text-xl font-bold text-white leading-relaxed">
-                      {renderTextWithFurigana(currentScenario.userSpeech)}
+                      {renderTextWithFuriganaAndParticles(currentScenario.userSpeech)}
                     </p>
                     <button onClick={() => playAudio(currentScenario.userSpeech)} className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0">🔊</button>
                   </div>
@@ -356,7 +395,8 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
                   onClick={() => handleOptionSelect(index)}
                   className="w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white text-left transition-colors"
                 >
-                  {renderTextWithFurigana(option)}
+                  {/* Auch in den Antworten werden Partikel nun gescannt und mit Tooltip versehen */}
+                  {renderTextWithFuriganaAndParticles(option)}
                 </button>
               ))}
             </div>
@@ -377,8 +417,11 @@ const Flashcard = ({ day, onBack, onNextDay }) => {
               )}
             </div>
 
-            <p className="text-xl text-white mb-4 leading-relaxed">
-              {isScanner ? currentScenario.npcReply : renderHighlightedText(currentScenario.npcReply, currentScenario.keyword, isAnswerCorrect)}
+            <p className="text-xl text-white mb-4 leading-relaxed" style={{ wordBreak: 'break-word' }}>
+              {isScanner 
+                ? renderTextWithFuriganaAndParticles(currentScenario.npcReply) 
+                : renderHighlightedText(currentScenario.npcReply, currentScenario.keyword, isAnswerCorrect)
+              }
             </p>
             
             <p className="text-sm text-gray-300 italic border-t border-gray-700/50 pt-3">
