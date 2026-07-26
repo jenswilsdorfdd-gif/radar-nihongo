@@ -9,6 +9,7 @@ import KanjiDeck from './components/KanjiDeck';
 import KanjiCard from './components/KanjiCard';
 import ReadingDeck from './components/ReadingDeck';
 import ReadingCard from './components/ReadingCard';
+import ParticleCrashcourse from './components/ParticleCrashcourse'; // NEU: Import des Crashkurses
 
 function App() {
   const [appLanguage, setAppLanguage] = useState(() => {
@@ -144,6 +145,7 @@ function App() {
             if (mode === 'reading') setActiveView('reading-deck');
             if (mode === 'radar') setActiveView('dashboard');
             if (mode === 'kanji') setActiveView('kanji');
+            if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse'); // NEU: Routing für den Crashkurs
           }} 
           onReset={handleReset} onGoToWelcome={() => setActiveView('welcome')} kanaReadDay={kanaReadDay} kanaWriteDay={kanaWriteDay} readingDay={readingDay} radarDay={currentRadarDay} kanjiDay={currentKanjiDay} language={appLanguage}
         />
@@ -156,6 +158,14 @@ function App() {
       {activeView === 'learning-radar' && <Flashcard day={learningRadarDay} onBack={() => handleFinishRadar(learningRadarDay)} language={appLanguage} />}
       {activeView === 'kanji' && <KanjiDeck currentDay={currentKanjiDay} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} language={appLanguage} />}
       {activeView === 'learning-kanji' && <KanjiCard day={learningKanjiDay} onBack={() => handleFinishKanji(learningKanjiDay)} language={appLanguage} />}
+      
+      {/* NEU: Rendering für den Partikel-Crashkurs */}
+      {activeView === 'particle-crashcourse' && (
+        <ParticleCrashcourse 
+          language={appLanguage} 
+          onBack={() => setActiveView('home')} 
+        />
+      )}
     </div>
   );
 }
