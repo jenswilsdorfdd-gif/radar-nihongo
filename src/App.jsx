@@ -45,7 +45,7 @@ function App() {
     return saved ? parseInt(saved, 10) : 1;
   });
   const [learningReadingDay, setLearningReadingDay] = useState(1);
-  const readingTotalDays = 21; // FIX: JETZT 21 TAGE!
+  const readingTotalDays = 21; // HIER IST DER FIX: 21 TAGE!
 
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
     const saved = localStorage.getItem('kanjiDay');
