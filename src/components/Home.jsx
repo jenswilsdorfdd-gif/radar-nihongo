@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabaseClient'; // <-- Unsere neue Brücke!
+import { supabase } from '../supabaseClient'; 
 
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   
-  // NEU: REGISTRIERUNG & LIVE-COUNTER
+  // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [dojoCount, setDojoCount] = useState(7); // Basis-Wert
@@ -16,7 +16,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
-  // NEU: Beim Laden der Seite die Teilnehmerzahl aus Supabase holen
+  // Beim Laden der Seite die Teilnehmerzahl aus Supabase holen
   useEffect(() => {
     window.scrollTo(0, 0);
     if (containerRef.current) {
@@ -130,7 +130,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     });
   };
 
-  // NEU: DAS FORMULAR SENDET DATEN AN SUPABASE
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     
@@ -152,19 +151,17 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       return; // Bricht ab, falls etwas schiefgeht
     }
 
-    // 2. Platzhalter für die E-Mail-Automatisierung (Make.com - machen wir im nächsten Schritt)
-    const WEBHOOK_URL = "https://hook.eu1.make.com/q25aley6dxip97l3xaqj498jme4jlsjr"; 
+    // 2. Daten an den Make.com Webhook senden (Repariert!)
+    const WEBHOOK_URL = "https://hook.eu1.make.com/q25aley6dxip9713xaqj498jme4jlsjr"; 
     
-    if (WEBHOOK_URL !== "https://hook.eu1.make.com/q25aley6dxip97l3xaqj498jme4jlsjr") {
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-      } catch (webhookError) {
-        console.error("Webhook Error:", webhookError);
-      }
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    } catch (webhookError) {
+      console.error("Webhook Error:", webhookError);
     }
 
     // 3. Wenn alles klappt: Counter hochzählen und Erfolgsmeldung zeigen
@@ -287,7 +284,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
                 <h2 className="text-xl font-bold tracking-widest uppercase text-pink-400">{t.regTitle}</h2>
                 <p className="text-gray-400 text-xs mt-1">{t.regSubtitle}</p>
                 
-                {/* NEU: DER LIVE COUNTER */}
                 <div className="mt-3 inline-block bg-pink-900/40 border border-pink-500/30 text-pink-300 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm">
                   🔥 Bereits {dojoCount} {t.counterText}!
                 </div>
