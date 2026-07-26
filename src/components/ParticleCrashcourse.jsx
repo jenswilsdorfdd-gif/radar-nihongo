@@ -23,6 +23,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       startExerciseBtn: "Verstanden -> Übung starten",
       correctText: "Richtig! 🎯",
       wrongText: "Leider falsch! Richtig wäre:",
+      whyText: "Warum?",
       successTitle: "Crashkurs abgeschlossen",
       successQuote: "Dein Ergebnis:",
       btnRetry: "Nochmal üben",
@@ -38,6 +39,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       startExerciseBtn: "Got it -> Start Exercise",
       correctText: "Correct! 🎯",
       wrongText: "Incorrect! Correct would be:",
+      whyText: "Why?",
       successTitle: "Crash Course Completed",
       successQuote: "Your Score:",
       btnRetry: "Practice Again",
@@ -229,7 +231,9 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     
     setCurrentPhase('feedback');
 
-    // 3.5 Sekunden Zeit, um die Übersetzung in Ruhe zu lesen
+    // Dynamische Zeit: 3 Sek wenn richtig (schneller Flow), 6 Sek wenn falsch (Zeit zum Lesen der Erklärung)
+    const delay = isCorrect ? 3000 : 6000;
+
     setTimeout(() => {
       setFeedback(null);
       
@@ -247,7 +251,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
           setCurrentPhase('result');
         }
       }
-    }, 3500); 
+    }, delay); 
   };
 
   const resetCourse = () => {
@@ -333,6 +337,14 @@ const ParticleCrashcourse = ({ onBack, language }) => {
                     {currentExercise[language] || currentExercise.de}
                   </p>
                 </div>
+
+                {/* NEU: Erklärung wird eingeblendet, wenn die Antwort falsch war */}
+                {!feedback.correct && (
+                  <div className="mt-4 p-3 bg-red-900/20 rounded-lg border border-red-500/30 text-left animate-fade-in">
+                    <strong className="text-red-400 text-xs uppercase tracking-wider block mb-1">{t.whyText}</strong>
+                    <p className="text-gray-300 text-sm leading-relaxed">{currentLessonData.explanation}</p>
+                  </div>
+                )}
               </div>
             ) : (
               <>
