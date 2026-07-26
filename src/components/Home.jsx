@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showParticleModal, setShowParticleModal] = useState(false); // NEU: State für das Partikel-Pop-up
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
@@ -45,6 +46,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
       phase1WriteTitle: "Phase 1: Kana (Schreiben)",
       phase1WriteDesc: "Die Meisterklasse. Präge dir die exakte Linienführung ein.",
+      particleTitle: "Der Partikel-Code",
+      particleDesc: "Entschlüssele die Matrix.",
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Brücken-Training zum Radar: Trainiere das flüssige Lesen in 3 Stufen (Alltag, Texte, Dialoge).",
       phase3Title: "Phase 3: 21-Tage-Radar",
@@ -65,6 +68,13 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW6Title: "Woche 6 bis 8: Der Feinschliff",
       modalW6Desc: "Phase 4 (Kanji). Jeden Tag ein neues Deck. Wiederhole nebenbei alte Radar-Einsätze, um deine Reaktionszeit zu pushen.",
       modalClose: "Verstanden",
+      particleModalTitle: "DER PARTIKEL-CODE",
+      particleModalQ1: "Woher kommt das & Warum gibt es das?",
+      particleModalA1: "Japanisch hat keine Leerzeichen. Partikel sind die unsichtbaren Verkehrsschilder im Text. Sie zeigen deinem Gehirn, wo ein Wort aufhört und welche Rolle es im Satz spielt.",
+      particleModalQ2: "Brauchen wir das?",
+      particleModalA2: "Es ist überlebenswichtig! Wenn du die Wörter 'Sushi' und 'Essen' kennst, ist das nett. Aber erst der unsichtbare Partikel dazwischen entscheidet, ob du das Sushi isst – oder ob das Sushi dich isst.",
+      particleModalQ3: "Wie lernen wir das?",
+      particleModalA3: "Wir büffeln keine Grammatik-Tabellen. Ab Phase 2 (Kana Flow) markieren wir die Partikel in deinen Texten farbig. Dein Auge lernt unterbewusst, in Blöcken zu lesen. In Phase 3 (Radar) kommt dann der Stresstest: Du musst unter Zeitdruck den richtigen Partikel feuern. Praxis pur.",
       regTitle: "Dojo Registrierung",
       regSubtitle: "Trage dich für das Live-Training ein.",
       fName: "Vorname",
@@ -86,6 +96,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
       phase1WriteTitle: "Phase 1: Kana (Write)",
       phase1WriteDesc: "The masterclass. Memorize the exact stroke order.",
+      particleTitle: "The Particle Code",
+      particleDesc: "Decode the Matrix.",
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Radar Bridge Training: Practice fluent reading in 3 levels (Daily, Texts, Dialogues).",
       phase3Title: "Phase 3: 21-Day Radar",
@@ -106,6 +118,13 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW6Title: "Week 6 to 8: The Polish",
       modalW6Desc: "Phase 4 (Kanji). One new deck every day. Repeat old Radar missions on the side to push your reaction time.",
       modalClose: "Got it",
+      particleModalTitle: "THE PARTICLE CODE",
+      particleModalQ1: "Where does it come from & Why does it exist?",
+      particleModalA1: "Japanese has no spaces. Particles are the invisible traffic signs in the text. They tell your brain where a word ends and what role it plays in the sentence.",
+      particleModalQ2: "Do we need this?",
+      particleModalA2: "It's crucial for survival! Knowing the words 'Sushi' and 'Eat' is nice. But only the invisible particle in between decides whether you eat the sushi – or if the sushi eats you.",
+      particleModalQ3: "How do we learn this?",
+      particleModalA3: "We don't cram grammar tables. From Phase 2 (Kana Flow) onwards, we highlight particles in your texts with color. Your eye subconsciously learns to read in blocks. In Phase 3 (Radar), the stress test begins: You have to fire the correct particle under time pressure. Pure practice.",
       regTitle: "Dojo Registration",
       regSubtitle: "Sign up for the live training.",
       fName: "First Name",
@@ -148,10 +167,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     if (error) {
       console.error("Datenbank-Fehler:", error);
       alert("Es gab ein Problem bei der Übertragung. Bitte versuche es noch einmal.");
-      return; // Bricht ab, falls etwas schiefgeht
+      return; 
     }
 
-    // 2. Daten an den Make.com Webhook senden (Repariert!)
+    // 2. Daten an den Make.com Webhook senden
     const WEBHOOK_URL = "https://hook.eu1.make.com/wmaxaao1iy2shoyk09mx6r2nyrv6awwt"; 
     
     try {
@@ -216,6 +235,29 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div></div>
         </button>
 
+        {/* --- NEUER BEREICH: PARTIKEL-CODE TRENNER --- */}
+        <div className="py-2">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
+        </div>
+
+        <button onClick={() => setShowParticleModal(true)} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
+          <div>
+            <h2 className="text-xl font-extrabold text-orange-400 tracking-wider uppercase mb-1 flex items-center gap-2">
+              <span>🔑</span> {t.particleTitle}
+            </h2>
+            <p className="text-gray-400 text-sm italic">{t.particleDesc}</p>
+          </div>
+          <div className="text-orange-500/50 group-hover:text-orange-400 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+        </button>
+
+        <div className="py-2">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
+        </div>
+        {/* --- ENDE PARTIKEL-CODE TRENNER --- */}
+
         <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase2FlowTitle}</h2>
@@ -255,6 +297,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </div>
       </div>
 
+      {/* MODAL: INFO / FAHRPLAN */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
@@ -275,6 +318,38 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </div>
       )}
 
+      {/* NEUES MODAL: DER PARTIKEL-CODE */}
+      {showParticleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-gray-900 rounded-3xl border-2 border-orange-500/50 shadow-[0_0_40px_rgba(249,115,22,0.2)] overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-6 bg-black/50 border-b border-orange-500/30 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-bold tracking-widest uppercase text-orange-400 flex items-center gap-2">
+                <span>🔑</span> {t.particleModalTitle}
+              </h2>
+              <button onClick={() => setShowParticleModal(false)} className="text-gray-500 hover:text-white text-3xl leading-none transition-colors">&times;</button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-6">
+              <div>
+                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ1}</h3>
+                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA1}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ2}</h3>
+                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA2}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-orange-300 mb-1">{t.particleModalQ3}</h3>
+                <p className="text-gray-300 text-sm leading-relaxed border-l-2 border-orange-500/30 pl-3">{t.particleModalA3}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-black/50 border-t border-orange-500/30 shrink-0">
+              <button onClick={() => setShowParticleModal(false)} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-lg shadow-orange-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95">{t.modalClose}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REGISTRIERUNG */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
