@@ -24,6 +24,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       correctText: "Richtig! 🎯",
       wrongText: "Leider falsch! Richtig wäre:",
       whyText: "Warum?",
+      btnNext: "Verstanden -> Weiter",
       successTitle: "Crashkurs abgeschlossen",
       successQuote: "Dein Ergebnis:",
       btnRetry: "Nochmal üben",
@@ -40,6 +41,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       correctText: "Correct! 🎯",
       wrongText: "Incorrect! Correct would be:",
       whyText: "Why?",
+      btnNext: "Got it -> Next",
       successTitle: "Crash Course Completed",
       successQuote: "Your Score:",
       btnRetry: "Practice Again",
@@ -220,6 +222,25 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     }
   ];
 
+  const advanceToNext = () => {
+    setFeedback(null);
+    
+    if (currentExerciseIndex < 2) {
+      // Nächster Übungssatz des gleichen Partikels
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
+      setCurrentPhase('drill');
+    } else {
+      // Nächster Partikel (Briefing) oder Endergebnis
+      if (currentLessonIndex < lessons.length - 1) {
+        setCurrentLessonIndex(currentLessonIndex + 1);
+        setCurrentExerciseIndex(0);
+        setCurrentPhase('briefing'); 
+      } else {
+        setCurrentPhase('result');
+      }
+    }
+  };
+
   const handleAnswer = (selected) => {
     const isCorrect = selected === lessons[currentLessonIndex].correct;
     if (isCorrect) setScore(score + 1);
@@ -231,27 +252,12 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     
     setCurrentPhase('feedback');
 
-    // Dynamische Zeit: 3 Sek wenn richtig (schneller Flow), 6 Sek wenn falsch (Zeit zum Lesen der Erklärung)
-    const delay = isCorrect ? 3000 : 6000;
-
-    setTimeout(() => {
-      setFeedback(null);
-      
-      if (currentExerciseIndex < 2) {
-        // Nächster Übungssatz des gleichen Partikels
-        setCurrentExerciseIndex(currentExerciseIndex + 1);
-        setCurrentPhase('drill');
-      } else {
-        // Nächster Partikel (Briefing) oder Endergebnis
-        if (currentLessonIndex < lessons.length - 1) {
-          setCurrentLessonIndex(currentLessonIndex + 1);
-          setCurrentExerciseIndex(0);
-          setCurrentPhase('briefing'); 
-        } else {
-          setCurrentPhase('result');
-        }
-      }
-    }, delay); 
+    // Automatisches Weitergehen NUR bei richtiger Antwort
+    if (isCorrect) {
+      setTimeout(() => {
+        advanceToNext();
+      }, 3000); 
+    }
   };
 
   const resetCourse = () => {
@@ -338,11 +344,15 @@ const ParticleCrashcourse = ({ onBack, language }) => {
                   </p>
                 </div>
 
-                {/* NEU: Erklärung wird eingeblendet, wenn die Antwort falsch war */}
+                {/* Erklärung und manueller Button, wenn die Antwort falsch war */}
                 {!feedback.correct && (
-                  <div className="mt-4 p-3 bg-red-900/20 rounded-lg border border-red-500/30 text-left animate-fade-in">
-                    <strong className="text-red-400 text-xs uppercase tracking-wider block mb-1">{t.whyText}</strong>
-                    <p className="text-gray-300 text-sm leading-relaxed">{currentLessonData.explanation}</p>
+                  <div className="mt-4 p-4 bg-red-900/20 rounded-xl border border-red-500/30 text-left animate-fade-in">
+                    <strong className="text-red-400 text-xs uppercase tracking-wider block mb-2">{t.whyText}</strong>
+                    <p className="text-gray-300 text-sm leading-relaxed mb-6">{currentLessonData.explanation}</p>
+                    
+                    <button onClick={advanceToNext} className="w-full py-4 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-white tracking-widest uppercase transition-colors active:scale-95 shadow-lg shadow-red-900/50">
+                      {t.btnNext}
+                    </button>
                   </div>
                 )}
               </div>
