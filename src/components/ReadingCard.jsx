@@ -29,6 +29,23 @@ const ReadingCard = ({ day, onBack, language }) => {
 
   const t = texts[language] || texts.de;
 
+  // Das Lexikon für den Smart-Scanner (Tooltips)
+  const particleInfo = {
+    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
+    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
+    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)" },
+    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)" },
+    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)" },
+    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)" },
+    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)" },
+    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)" },
+    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
+  };
+
+  // Smarter Regex-Scanner: Findet Partikel, aber ignoriert häufige Wort-Fallen 
+  // (z.B. ignoriert er "で", wenn ein "す" folgt -> "です" / ignoriert "と", wenn "も" folgt -> "ともだち")
+  const particleRegex = /(から|まで|を|は(?![いじ])|が(?![っ])|に(?![くも])|で(?!す)|と(?!も)|へ)/g;
+
   if (!deckInfo) {
     return <div className="text-white text-center mt-20">{t.error}</div>;
   }
@@ -65,14 +82,18 @@ const ReadingCard = ({ day, onBack, language }) => {
     }
   };
 
-  // FURIGANA FIX: Ignoriert japanische Satzzeichen wie 、 und 。
+  // FURIGANA & PARTIKEL RENDERER
   const renderTextWithFurigana = (text) => {
     if (!text) return null;
+    
+    // 1. Zuerst nach Furigana splitten, damit wir Wörter in {} nicht zerstören
     const parts = text.split(/([^\s、。！？「」]+{[^}]+})/g);
     
     return parts.map((part, i) => {
       const match = part.match(/([^\s、。！？「」]+){([^}]+)}/);
+      
       if (match) {
+        // Normaler Furigana-Block (wird NICHT nach Partikeln gescannt)
         return (
           <ruby key={i} className="px-1">
             {match[1]}
@@ -80,7 +101,28 @@ const ReadingCard = ({ day, onBack, language }) => {
           </ruby>
         );
       }
-      return <span key={i}>{part}</span>;
+      
+      // 2. Normaler Textblock: Hier wird der Smart-Scanner auf Partikel losgelassen
+      const subParts = part.split(particleRegex);
+      return subParts.map((sub, j) => {
+        if (particleInfo[sub]) {
+          return (
+            <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-extrabold mx-[2px] transition-colors hover:text-orange-300">
+              {sub}
+              
+              {/* TOOLTIP BOX */}
+              <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-gray-200 text-xs sm:text-sm p-3 rounded-xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed font-sans font-normal whitespace-normal block">
+                <span className="block text-orange-400 font-bold mb-1 border-b border-gray-700 pb-1 text-lg leading-none">{sub}</span>
+                {particleInfo[sub][language]}
+                
+                {/* Kleiner Pfeil nach unten am Tooltip */}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-orange-500/50"></span>
+              </span>
+            </span>
+          );
+        }
+        return <span key={`${i}-${j}`}>{sub}</span>;
+      });
     });
   };
 
@@ -114,7 +156,9 @@ const ReadingCard = ({ day, onBack, language }) => {
         <div className="w-full bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl flex flex-col items-center justify-center min-h-[350px] relative">
           
           <div className="text-center w-full flex-1 flex flex-col items-center justify-center">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-loose tracking-wide mb-8">
+            
+            {/* Hier wird die neue render-Funktion aufgerufen */}
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-loose tracking-wide mb-8" style={{ wordBreak: 'break-word' }}>
               {renderTextWithFurigana(currentSentence.text)}
             </h2>
             
