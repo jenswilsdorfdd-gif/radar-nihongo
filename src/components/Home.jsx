@@ -67,6 +67,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       groupBtn: "Jetzt Registrieren",
       day: "Tag",
       scenario: "Text",
+      
+      // FAHRPLAN MODAL TEXTE
       modalTitle: "Der 8-Wochen-Fahrplan",
       modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
       modalW1Title: "Woche 1 & 2: Das Fundament",
@@ -75,7 +77,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW3Desc: "Jetzt laufen Phase 2 (Flow) und Phase 3 (Radar) parallel! Starte mit einem Text zum Aufwärmen und absolviere danach den Radar-Einsatz des Tages.",
       modalW6Title: "Woche 6 bis 8: Der Feinschliff",
       modalW6Desc: "Phase 4 (Kanji). Jeden Tag ein neues Deck. Wiederhole nebenbei alte Radar-Einsätze, um deine Reaktionszeit zu pushen.",
+      modalCtaTitle: "Ab Woche 8: Das Live Dojo",
+      modalCtaDesc: "Wissen allein reicht nicht – du musst es anwenden! Melde dich für unser interaktives Gruppentraining an und trainiere deine Reflexe in echten Gesprächen.",
+      modalCtaBtn: "Jetzt fürs Dojo registrieren",
       modalClose: "Verstanden",
+      
+      // REGISTRIERUNG MODAL TEXTE
       regTitle: "Dojo Registrierung",
       regSubtitle: "Trage dich für das Live-Training ein.",
       fName: "Vorname",
@@ -117,6 +124,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       groupBtn: "Register Now",
       day: "Day",
       scenario: "Text",
+      
+      // ROADMAP MODAL TEXTS
       modalTitle: "The 8-Week Roadmap",
       modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life in Japan. Practice over theory!",
       modalW1Title: "Week 1 & 2: The Foundation",
@@ -125,7 +134,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalW3Desc: "Now Phase 2 (Flow) and Phase 3 (Radar) run in parallel! Start with a text to warm up and then complete the Radar mission of the day.",
       modalW6Title: "Week 6 to 8: The Polish",
       modalW6Desc: "Phase 4 (Kanji). One new deck every day. Repeat old Radar missions on the side to push your reaction time.",
+      modalCtaTitle: "Week 8+: The Live Dojo",
+      modalCtaDesc: "Knowledge alone isn't enough – you have to apply it! Sign up for our interactive group training and test your reflexes in real conversations.",
+      modalCtaBtn: "Register for the Dojo now",
       modalClose: "Got it",
+      
+      // REGISTRATION MODAL TEXTS
       regTitle: "Dojo Registration",
       regSubtitle: "Sign up for the live training.",
       fName: "First Name",
@@ -322,14 +336,35 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
               <h2 className="text-xl font-bold tracking-widest uppercase text-cyan-400">{t.modalTitle}</h2>
               <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
+            
+            {/* FAHRPLAN CONTENT */}
             <div className="p-6 overflow-y-auto space-y-6">
               <p className="text-gray-300 text-sm leading-relaxed italic border-l-4 border-cyan-500 pl-3">{t.modalIntro}</p>
               <div><h3 className="font-bold text-green-400 mb-1">{t.modalW1Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW1Desc}</p></div>
               <div><h3 className="font-bold text-yellow-400 mb-1">{t.modalW3Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW3Desc}</p></div>
               <div><h3 className="font-bold text-purple-400 mb-1">{t.modalW6Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW6Desc}</p></div>
+              
+              {/* NEUER CTA BEREICH FÜR DAS DOJO */}
+              <div className="mt-4 p-5 bg-pink-900/20 border border-pink-500/30 rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 blur-xl rounded-full"></div>
+                <h3 className="font-bold text-pink-400 mb-2 flex items-center gap-2">
+                  <span>🔥</span> {t.modalCtaTitle}
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4 relative z-10">{t.modalCtaDesc}</p>
+                <button
+                  onClick={() => {
+                    setShowInfoModal(false);
+                    setTimeout(() => setShowRegModal(true), 200); // Sanfter Übergang zum Registrierungs-Modal
+                  }}
+                  className="w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all relative z-10"
+                >
+                  {t.modalCtaBtn}
+                </button>
+              </div>
             </div>
+            
             <div className="p-4 bg-gray-900 border-t border-gray-700 shrink-0">
-              <button onClick={() => setShowInfoModal(false)} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white tracking-widest uppercase transition-colors">{t.modalClose}</button>
+              <button onClick={() => setShowInfoModal(false)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors">{t.modalClose}</button>
             </div>
           </div>
         </div>
