@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const FinalExam = ({ onBack, language }) => {
-  const [examState, setExamState] = useState('intro'); 
+  const [examState, setExamState] = useState('intro'); // intro, exam, result
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -25,7 +25,7 @@ const FinalExam = ({ onBack, language }) => {
       back: "Zurück",
       introTitle: "Die Abschluss-Prüfung",
       introSub: "Der ultimative Stresstest",
-      introDesc: "30 zufällige Fragen quer durch alle Phasen. Komplexe Laute, Kanjis, Partikel und Hörverstehen (Audio). Mach dich bereit für den echten Einsatz.",
+      introDesc: "30 zufällige Fragen aus einem riesigen Pool. Komplexe Laute, N5-Kanjis, Partikel-Matrix und vor allem pures Audio-Hörverstehen (Radar). Kein Romaji. Fast kein Deutsch. Überlebe!",
       startBtn: "Prüfung Starten",
       question: "Frage",
       btnNext: "Weiter",
@@ -40,10 +40,10 @@ const FinalExam = ({ onBack, language }) => {
       correctAnswer: "Korrekt wäre:",
       btnHome: "Zurück zum Dashboard",
       btnRetry: "Prüfung wiederholen",
-      catKana: "Phase 1 (Erweiterte Kana)",
-      catKanji: "Phase 4 (Kanji)",
+      catKana: "Kana-Matrix (Erweitert)",
+      catKanji: "N5 Kanji (Bedeutung & Lesung)",
       catParticle: "Partikel-Code",
-      catRadar: "Phase 2 & 3 (Hören & Sprechen)",
+      catRadar: "Radar (Audio & Dialoge)",
       evalPerfect: "Hervorragend! Dieses Gebiet sitzt blind im Langzeitgedächtnis.",
       evalGood: "Solide Leistung, aber im Ernstfall noch etwas langsam. Dranbleiben!",
       evalCritical: "Kritisch! Du bist hier ein leichtes Ziel. Unbedingt diese Phase wiederholen!"
@@ -52,7 +52,7 @@ const FinalExam = ({ onBack, language }) => {
       back: "Back",
       introTitle: "Final Exam",
       introSub: "The Ultimate Stress Test",
-      introDesc: "30 random questions across all phases. Complex sounds, Kanjis, Particles, and Listening Comprehension (Audio). Get ready for real deployment.",
+      introDesc: "30 random questions from a massive pool. Complex sounds, N5 Kanjis, Particle Matrix and pure audio listening comprehension (Radar). No Romaji. Survive!",
       startBtn: "Start Exam",
       question: "Question",
       btnNext: "Next",
@@ -67,10 +67,10 @@ const FinalExam = ({ onBack, language }) => {
       correctAnswer: "Correct was:",
       btnHome: "Back to Dashboard",
       btnRetry: "Retry Exam",
-      catKana: "Phase 1 (Advanced Kana)",
-      catKanji: "Phase 4 (Kanji)",
+      catKana: "Kana Matrix (Advanced)",
+      catKanji: "N5 Kanji (Meaning & Reading)",
       catParticle: "Particle Code",
-      catRadar: "Phase 2 & 3 (Listen & Speak)",
+      catRadar: "Radar (Audio & Dialogues)",
       evalPerfect: "Excellent! This area is completely locked in your long-term memory.",
       evalGood: "Solid performance, but might be too slow in real situations. Keep practicing!",
       evalCritical: "Critical! You are an easy target here. You must repeat this phase!"
@@ -82,7 +82,6 @@ const FinalExam = ({ onBack, language }) => {
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      // Säubere Furigana-Klammern falls vorhanden
       const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ja-JP';
@@ -91,59 +90,104 @@ const FinalExam = ({ onBack, language }) => {
     }
   };
 
-  // Der Master-Pool für die Prüfung (Komplett ohne Romaji, Fokus auf Audio & Redewendungen)
+  // MONSTER-POOL: ~100 Fragen, Fokus auf Japanisch und Audio!
   const masterPool = [
-    // KANA (Nur die schweren Fälle: Dakuten, Handakuten, Kombos)
-    { category: 'kana', q: { de: "Welches Wort bedeutet 'Heute'?", en: "Which word means 'Today'?" }, options: ["きょう", "きよう", "ぎょう", "ぎよう"], correct: 0 },
-    { category: 'kana', q: { de: "Was bedeutet das Wort: ぎゅうにゅう", en: "What does the word: ぎゅうにゅう mean?" }, options: ["Kuhmilch", "Krankenhaus", "Rindfleisch", "Zwiebel"], correct: 0 },
-    { category: 'kana', q: { de: "Achtung, Verwechslungsgefahr! Welches Wort ist 'Krankenhaus'?", en: "Careful! Which word is 'Hospital'?" }, options: ["びょういん", "びよういん", "ぴょういん", "ひょういん"], correct: 0 },
-    { category: 'kana', q: { de: "Finde das Katakana 'pa':", en: "Find the Katakana 'pa':" }, options: ["パ", "バ", "ハ", "ダ"], correct: 0 },
-    { category: 'kana', q: { de: "Lies: じゅぎょう", en: "Read: じゅぎょう" }, options: ["Unterricht", "Mitarbeiter", "Krankenhaus", "Firma"], correct: 0 },
+    // --- KANA (Fiese Laute & Verlängerungen) ---
+    { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びょういん", en: "Hospital or Hairdresser? Read: びょういん" }, options: ["Krankenhaus", "Friseur", "Arzt", "Schönheit"], correct: 0 },
+    { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びよういん", en: "Hospital or Hairdresser? Read: びよういん" }, options: ["Friseur", "Krankenhaus", "Firma", "Schule"], correct: 0 },
+    { category: 'kana', q: { de: "Oma oder Tante? Lies: おばあさん", en: "Grandma or Aunt? Read: おばあさん" }, options: ["Oma / Ältere Frau", "Tante", "Mutter", "Schwester"], correct: 0 },
+    { category: 'kana', q: { de: "Lies das Katakana-Wort: コンピューター", en: "Read the Katakana: コンピューター" }, options: ["Computer", "Kamera", "Kaffee", "Konzert"], correct: 0 },
+    { category: 'kana', q: { de: "Was bedeutet: ぎゅうにゅう", en: "What means: ぎゅうにゅう" }, options: ["Kuhmilch", "Rindfleisch", "Schwein", "Zwiebel"], correct: 0 },
+    { category: 'kana', q: { de: "Lies: じゅぎょう", en: "Read: じゅぎょう" }, options: ["Unterricht", "Firma", "Mitarbeiter", "Schüler"], correct: 0 },
+    { category: 'kana', q: { de: "Finde: 'pya'", en: "Find: 'pya'" }, options: ["ぴゃ", "びゃ", "ひゃ", "ぱや"], correct: 0 },
+    { category: 'kana', q: { de: "Lies: きょう", en: "Read: きょう" }, options: ["Heute", "Morgen", "Gestern", "Kaiser"], correct: 0 },
+    { category: 'kana', q: { de: "Finde das Katakana 'shi':", en: "Find Katakana 'shi':" }, options: ["シ", "ツ", "ソ", "ン"], correct: 0 },
+    { category: 'kana', q: { de: "Lies: がっこう", en: "Read: がっこう" }, options: ["Schule", "Schüler", "Lehrer", "Firma"], correct: 0 },
+    { category: 'kana', q: { de: "Lies: しゅくだい", en: "Read: しゅくだい" }, options: ["Hausaufgaben", "Unterricht", "Prüfung", "Lehrer"], correct: 0 },
+    { category: 'kana', q: { de: "Lies das Katakana: コーヒー", en: "Read Katakana: コーヒー" }, options: ["Kaffee", "Kola", "Kuchen", "Kopie"], correct: 0 },
+    { category: 'kana', q: { de: "Was bedeutet: ちょっと", en: "What means: ちょっと" }, options: ["Ein bisschen", "Viel", "Warte", "Schnell"], correct: 0 },
+    { category: 'kana', q: { de: "Finde: 'gyo'", en: "Find: 'gyo'" }, options: ["ぎょ", "ぎゅ", "きゃ", "きょ"], correct: 0 },
 
-    // KANJI
-    { category: 'kanji', q: { de: "Was bedeutet das Kanji 水 ?", en: "What does the Kanji 水 mean?" }, options: ["Feuer", "Wasser", "Baum", "Erde"], correct: 1 },
-    { category: 'kanji', q: { de: "Was bedeutet das Kanji 木 ?", en: "What does the Kanji 木 mean?" }, options: ["Mensch", "Buch", "Baum/Holz", "Mond"], correct: 2 },
-    { category: 'kanji', q: { de: "Finde das Kanji für 'Mensch / Person'", en: "Find the Kanji for 'Person'" }, options: ["入", "人", "八", "大"], correct: 1 },
-    { category: 'kanji', q: { de: "Welches Kanji bedeutet 'groß'?", en: "Which Kanji means 'big'?" }, options: ["大", "小", "中", "太"], correct: 0 },
-    { category: 'kanji', q: { de: "Welches Kana steht für 日 (Sonne/Tag)?", en: "Which Kana stands for 日 (Sun/Day)?" }, options: ["つき", "にち / ひ", "みず", "き"], correct: 1 },
-    { category: 'kanji', q: { de: "Was bedeutet 一 ?", en: "What does 一 mean?" }, options: ["Zwei", "Drei", "Eins", "Zehn"], correct: 2 },
-    { category: 'kanji', q: { de: "Welches Kanji steht für 'Mund'?", en: "Which Kanji stands for 'Mouth'?" }, options: ["目", "口", "耳", "手"], correct: 1 },
-    { category: 'kanji', q: { de: "Bedeutung von 山 ?", en: "Meaning of 山 ?" }, options: ["Fluss", "Berg", "Himmel", "Regen"], correct: 1 },
+    // --- KANJI (N5) ---
+    { category: 'kanji', q: { de: "Lies: 今日", en: "Read: 今日" }, options: ["きょう", "まいにち", "あした", "きのう"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 毎日", en: "Read: 毎日" }, options: ["まいにち", "きょう", "いつか", "にちようび"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 日本", en: "What means: 日本" }, options: ["Japan", "Sonntag", "Buch", "Heute"], correct: 0 },
+    { category: 'kanji', q: { de: "Finde das Kanji für 'Mensch/Person':", en: "Find Kanji for 'Person':" }, options: ["人", "入", "八", "大"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 水曜日", en: "Read: 水曜日" }, options: ["すいようび (Mittwoch)", "かようび (Dienstag)", "もくようび (Donnerstag)", "きんようび (Freitag)"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 休み", en: "What means: 休み" }, options: ["Pause / Ruhen", "Baum", "Buch", "Körper"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 月", en: "Read: 月" }, options: ["つき / げつ", "ひ / にち", "き", "みず"], correct: 0 },
+    { category: 'kanji', q: { de: "Finde das Kanji für 'Baum/Holz':", en: "Find Kanji for 'Tree':" }, options: ["木", "本", "休", "体"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 男の人", en: "What means: 男の人" }, options: ["Mann", "Frau", "Kind", "Mädchen"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 山川さん", en: "What means: 山川さん" }, options: ["Yamakawa-san (Name)", "Fluss und Berg", "Herr Berg", "Frau Fluss"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 食べます", en: "Read: 食べます" }, options: ["たべます", "のみます", "みます", "いきます"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 飲みます", en: "Read: 飲みます" }, options: ["のみます", "たべます", "よみます", "かきます"], correct: 0 },
+    { category: 'kanji', q: { de: "Finde das Kanji für 'Groß':", en: "Find Kanji for 'Big':" }, options: ["大", "小", "中", "太"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 行きます", en: "Read: 行きます" }, options: ["いきます", "きます", "みます", "します"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 百", en: "What means: 百" }, options: ["Hundert", "Tausend", "Zehntausend", "Weiß"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 千円", en: "What means: 千円" }, options: ["1000 Yen", "100 Yen", "10000 Yen", "Yen"], correct: 0 },
+    { category: 'kanji', q: { de: "Finde das Kanji für 'Auge':", en: "Find Kanji for 'Eye':" }, options: ["目", "日", "口", "耳"], correct: 0 },
+    { category: 'kanji', q: { de: "Was bedeutet: 天気", en: "What means: 天気" }, options: ["Wetter", "Himmel", "Luft", "Geist"], correct: 0 },
+    { category: 'kanji', q: { de: "Finde: 車", en: "Find: 車" }, options: ["くるま (Auto)", "でんしゃ (Zug)", "じてんしゃ (Fahrrad)", "えき (Bahnhof)"], correct: 0 },
+    { category: 'kanji', q: { de: "Lies: 見ます", en: "Read: 見ます" }, options: ["みます", "ききます", "はなします", "かきます"], correct: 0 },
 
-    // PARTICLE (Kontext-Sätze)
+    // --- PARTICLE MATRIX ---
     { category: 'particle', q: { de: "わたし [ ? ] ドイツじんです。", en: "わたし [ ? ] ドイツじんです。" }, options: ["は", "を", "で", "に"], correct: 0 },
-    { category: 'particle', q: { de: "レストラン [ ? ] すしを たべる。(Im Restaurant)", en: "レストラン [ ? ] すしを たべる。(At the restaurant)" }, options: ["で", "に", "は", "が"], correct: 0 },
-    { category: 'particle', q: { de: "あした、とうきょう [ ? ] いきます。", en: "あした、とうきょう [ ? ] いきます。" }, options: ["を", "に", "で", "が"], correct: 1 },
-    { category: 'particle', q: { de: "あめ [ ? ] ふっています。 (Fokus auf das Subjekt: Regen)", en: "あめ [ ? ] ふっています。 (Focus on the subject: rain)" }, options: ["は", "を", "で", "が"], correct: 3 },
-    { category: 'particle', q: { de: "ともだち [ ? ] あそぶ。 (Mit einem Freund)", en: "ともだち [ ? ] あそぶ。 (With a friend)" }, options: ["から", "まで", "と", "に"], correct: 2 },
-    { category: 'particle', q: { de: "えき [ ? ] きました。 (Vom Bahnhof)", en: "えき [ ? ] きました。 (From the station)" }, options: ["から", "まで", "に", "で"], correct: 0 },
-    { category: 'particle', q: { de: "ホテル [ ? ] おねがいします。(Bis zum Hotel, im Taxi)", en: "ホテル [ ? ] おねがいします。(Up to the hotel, in a taxi)" }, options: ["から", "を", "まで", "は"], correct: 2 },
-    { category: 'particle', q: { de: "コーヒー [ ? ] のむ。", en: "コーヒー [ ? ] のむ。" }, options: ["が", "を", "に", "で"], correct: 1 },
-    
-    // RADAR (FLOW & REDEWENDUNGEN - Nur Text)
-    { category: 'radar', q: { de: "Wie fragst du, wo die Toilette ist?", en: "How do you ask where the toilet is?" }, options: ["トイレは どこですか。", "トイレは いつですか。", "トイレは なんですか。", "トイレは いくらですか。"], correct: 0 },
-    { category: 'radar', q: { de: "Du möchtest im Laden etwas kaufen. Du zeigst darauf und sagst:", en: "You want to buy something. You point at it and say:" }, options: ["これを ください。", "ありがとう。", "わかりません。", "それです。"], correct: 0 },
-    { category: 'radar', q: { de: "Jemand redet viel zu schnell. Was sagst du?", en: "Someone is speaking too fast. What do you say?" }, options: ["わかりません。", "わかります。", "しりません。", "ちがいます。"], correct: 0 },
-    { category: 'radar', q: { de: "Du verlässt morgens das Haus deiner Gastfamilie:", en: "You leave your host family's house in the morning:" }, options: ["ただいま。", "いってきます。", "おかえり。", "おやすみ。"], correct: 1 },
-    { category: 'radar', q: { de: "Du kaufst ein Ticket. Was fragst du den Verkäufer?", en: "You buy a ticket. What do you ask the seller?" }, options: ["いくらですか。", "どこですか。", "なんですか。", "だれですか。"], correct: 0 },
+    { category: 'particle', q: { de: "みず [ ? ] のみます。", en: "みず [ ? ] のみます。" }, options: ["を", "は", "に", "が"], correct: 0 },
+    { category: 'particle', q: { de: "あした、とうきょう [ ? ] いきます。", en: "あした、とうきょう [ ? ] いきます。" }, options: ["へ / に", "を", "で", "が"], correct: 0 },
+    { category: 'particle', q: { de: "レストラン [ ? ] すしを たべる。", en: "レストラン [ ? ] すしを たべる。" }, options: ["で", "に", "は", "が"], correct: 0 },
+    { category: 'particle', q: { de: "タクシー [ ? ] かえります。", en: "タクシー [ ? ] かえります。" }, options: ["で", "に", "を", "は"], correct: 0 },
+    { category: 'particle', q: { de: "あめ [ ? ] ふっています。(Fokus!)", en: "あめ [ ? ] ふっています。(Focus!)" }, options: ["が", "を", "で", "は"], correct: 0 },
+    { category: 'particle', q: { de: "ともだち [ ? ] えいがを みます。", en: "ともだち [ ? ] えいがを みます。" }, options: ["と", "から", "まで", "に"], correct: 0 },
+    { category: 'particle', q: { de: "あさ、９じ [ ? ] おきます。", en: "あさ、９じ [ ? ] おきます。" }, options: ["に", "で", "を", "は"], correct: 0 },
+    { category: 'particle', q: { de: "えき [ ? ] きました。(Startpunkt)", en: "えき [ ? ] きました。(Start point)" }, options: ["から", "まで", "に", "で"], correct: 0 },
+    { category: 'particle', q: { de: "ホテル [ ? ] おねがいします。(Endpunkt)", en: "ホテル [ ? ] おねがいします。(End point)" }, options: ["まで", "を", "から", "は"], correct: 0 },
+    { category: 'particle', q: { de: "ほん [ ? ] ノートを かいます。(Und)", en: "ほん [ ? ] ノートを かいます。(And)" }, options: ["と", "に", "で", "が"], correct: 0 },
+    { category: 'particle', q: { de: "だれ [ ? ] きますか。(Fokus/Subjekt)", en: "だれ [ ? ] きますか。(Focus/Subject)" }, options: ["が", "は", "を", "で"], correct: 0 },
+    { category: 'particle', q: { de: "にほんご [ ? ] はなします。", en: "にほんご [ ? ] はなします。" }, options: ["を / で", "に", "が", "から"], correct: 0 },
+    { category: 'particle', q: { de: "スマホ [ ? ] しゃしんを とる。(Mittel)", en: "スマホ [ ? ] しゃしんを とる。(Means)" }, options: ["で", "に", "を", "は"], correct: 0 },
+    { category: 'particle', q: { de: "ドイツ [ ? ] 日本まで。", en: "ドイツ [ ? ] 日本まで。" }, options: ["から", "に", "を", "が"], correct: 0 },
 
-    // RADAR (HÖRVERSTEHEN - Audio!)
-    { category: 'radar', audioText: "おなまえは なんですか。", q: { de: "Höre dir das Audio an. Wie antwortest du richtig?", en: "Listen to the audio. How do you reply correctly?" }, options: ["わたしは じぇんす です。", "ドイツから きました。", "はい、そうです。", "ありがとう。"], correct: 0 },
-    { category: 'radar', audioText: "どこから きましたか。", q: { de: "Audio abspielen: Was sagst du auf diese Frage?", en: "Play audio: What do you say to this question?" }, options: ["ドイツから きました。", "ベルリンに いきます。", "はい、ドイツです。", "ちがいます。"], correct: 0 },
-    { category: 'radar', audioText: "いただきます", q: { de: "Audio abspielen: In welcher Situation sagt man das?", en: "Play audio: In which situation do you say this?" }, options: ["Vor dem Essen.", "Nach dem Essen.", "Beim Betreten eines Ladens.", "Beim Bezahlen."], correct: 0 },
-    { category: 'radar', audioText: "ごちそうさまでした", q: { de: "Audio abspielen: In welcher Situation sagt man das?", en: "Play audio: In which situation do you say this?" }, options: ["Nach dem Essen.", "Vor dem Essen.", "Beim Vorstellen.", "Zur Verabschiedung für immer."], correct: 0 },
-    { category: 'radar', audioText: "すみません、えきは どこですか。", q: { de: "Audio abspielen: Was möchte diese Person wissen?", en: "Play audio: What does this person want to know?" }, options: ["Sie sucht den Bahnhof.", "Sie sucht die Toilette.", "Sie fragt nach dem Preis.", "Sie fragt nach der Uhrzeit."], correct: 0 },
-    { category: 'radar', audioText: "いってらっしゃい", q: { de: "Audio abspielen: Wer sagt das?", en: "Play audio: Who says this?" }, options: ["Jemand, der zu Hause bleibt, wenn ich gehe.", "Ich selbst, wenn ich gehe.", "Ich selbst, wenn ich nach Hause komme.", "Jemand, der mich zu Hause empfängt."], correct: 0 },
-    { category: 'radar', audioText: "おかえりなさい", q: { de: "Audio abspielen: Wer sagt das?", en: "Play audio: Who says this?" }, options: ["Jemand, der mich zu Hause empfängt.", "Ich selbst, wenn ich nach Hause komme.", "Ich selbst, wenn ich gehe.", "Jemand, der zu Hause bleibt."], correct: 0 },
-    { category: 'radar', audioText: "これ、いくらですか。", q: { de: "Audio abspielen: Was fragt die Person?", en: "Play audio: What is the person asking?" }, options: ["Wie viel das kostet.", "Wo das ist.", "Was das ist.", "Wem das gehört."], correct: 0 },
-    { category: 'radar', audioText: "ありがとうございます", q: { de: "Audio abspielen: Wie reagierst du darauf?", en: "Play audio: How do you react to this?" }, options: ["どういたしまして。", "いただきます。", "ごめんなさい。", "ただいま。"], correct: 0 }
+    // --- RADAR: PURES AUDIO & SITUATIONEN ---
+    { category: 'radar', audioText: "おなまえは なんですか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["じぇんす です。", "ドイツから きました。", "はい、そうです。", "ありがとう。"], correct: 0 },
+    { category: 'radar', audioText: "どこから きましたか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["ドイツから きました。", "ベルリンに いきます。", "はい、ドイツです。", "ちがいます。"], correct: 0 },
+    { category: 'radar', audioText: "いただきます", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Vor dem Essen / Before eating", "Nach dem Essen / After eating", "Beim Betreten eines Ladens / Entering a store", "Beim Bezahlen / Paying"], correct: 0 },
+    { category: 'radar', audioText: "ごちそうさまでした", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Nach dem Essen / After eating", "Vor dem Essen / Before eating", "Beim Vorstellen / Introducing", "Zur Verabschiedung / Farewell"], correct: 0 },
+    { category: 'radar', audioText: "すみません、えきは どこですか。", q: { de: "🎧 Was will der NPC?", en: "🎧 What does the NPC want?" }, options: ["Sucht den Bahnhof / Looks for station", "Sucht die Toilette / Looks for toilet", "Fragt nach dem Preis / Asks for price", "Fragt nach der Zeit / Asks for time"], correct: 0 },
+    { category: 'radar', audioText: "いらっしゃいませ", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: ["Verkäufer/Personal / Shop staff", "Ich selbst / Myself", "Gastfamilie / Host family", "Passant / Stranger"], correct: 0 },
+    { category: 'radar', audioText: "これ、いくらですか。", q: { de: "🎧 Was fragt die Person?", en: "🎧 What is asked?" }, options: ["Wie viel das kostet / How much", "Wo das ist / Where it is", "Was das ist / What it is", "Wem das gehört / Whose it is"], correct: 0 },
+    { category: 'radar', audioText: "これを おねがいします。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Man möchte etwas kaufen/bestellen / Buying/Ordering", "Man fragt nach dem Weg / Asking directions", "Man verabschiedet sich / Saying goodbye", "Man entschuldigt sich / Apologizing"], correct: 0 },
+    { category: 'radar', audioText: "ありがとうございます", q: { de: "🎧 Deine Antwort?", en: "🎧 Your reply?" }, options: ["どういたしまして。", "いただきます。", "ごめんなさい。", "ただいま。"], correct: 0 },
+    { category: 'radar', audioText: "おかいけい、おねがいします。", q: { de: "🎧 Was will der NPC?", en: "🎧 What does the NPC want?" }, options: ["Die Rechnung bitte / The bill please", "Speisekarte bitte / Menu please", "Wasser bitte / Water please", "Wo ist die Kasse? / Where is the register?"], correct: 0 },
+    { category: 'radar', audioText: "ちょっと まってください。", q: { de: "🎧 Was passiert?", en: "🎧 What is happening?" }, options: ["Du sollst kurz warten / Wait a moment", "Jemand geht weg / Someone is leaving", "Jemand redet zu schnell / Speaking too fast", "Der Preis ist zu hoch / Price is too high"], correct: 0 },
+    { category: 'radar', audioText: "いってきます", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: ["Die Person, die das Haus verlässt / Person leaving", "Die Person, die zu Hause bleibt / Person staying", "Die Person, die nach Hause kommt / Person arriving", "Der Verkäufer im Laden / Shop staff"], correct: 0 },
+    { category: 'radar', audioText: "いってらっしゃい", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: ["Die Person, die zu Hause bleibt / Person staying", "Die Person, die das Haus verlässt / Person leaving", "Die Person, die nach Hause kommt / Person arriving", "Der Verkäufer im Laden / Shop staff"], correct: 0 },
+    { category: 'radar', audioText: "ただいま", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: ["Die Person, die nach Hause kommt / Person arriving", "Die Person, die zu Hause bleibt / Person staying", "Die Person, die das Haus verlässt / Person leaving", "Der Verkäufer im Laden / Shop staff"], correct: 0 },
+    { category: 'radar', audioText: "おかえりなさい", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: ["Die Person, die zu Hause bleibt (als Antwort) / Person staying (reply)", "Die Person, die nach Hause kommt / Person arriving", "Die Person, die das Haus verlässt / Person leaving", "Der Verkäufer im Laden / Shop staff"], correct: 0 },
+    { category: 'radar', audioText: "もういちど おねがいします。", q: { de: "🎧 Was will der NPC?", en: "🎧 What does the NPC want?" }, options: ["Bitte wiederholen Sie das / Please repeat", "Bitte warten Sie / Please wait", "Bitte sprechen Sie langsamer / Please speak slower", "Ich verstehe nicht / I don't understand"], correct: 0 },
+    { category: 'radar', audioText: "ゆっくり はなして ください。", q: { de: "🎧 Was will der NPC?", en: "🎧 What does the NPC want?" }, options: ["Bitte sprechen Sie langsamer / Please speak slower", "Bitte wiederholen Sie das / Please repeat", "Bitte warten Sie / Please wait", "Ich verstehe nicht / I don't understand"], correct: 0 },
+    { category: 'radar', audioText: "えいごを はなしますか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["はい、はなします。", "えいごです。", "わかりません。", "ちがいます。"], correct: 0 },
+    { category: 'radar', audioText: "トイレは どこですか。", q: { de: "🎧 Was fragt der NPC?", en: "🎧 What does the NPC ask?" }, options: ["Wo die Toilette ist / Where the toilet is", "Ob es eine Toilette gibt / If there is a toilet", "Wie viel es kostet / How much it costs", "Wer auf der Toilette ist / Who is in the toilet"], correct: 0 },
+    { category: 'radar', audioText: "あした、なにを しますか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["とうきょうへ いきます。", "きのうです。", "にほんじんです。", "はい、そうです。"], correct: 0 },
+    { category: 'radar', audioText: "これは なんですか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["それは ほんです。", "そこは ほんです。", "あそこです。", "ちがいます。"], correct: 0 },
+    { category: 'radar', audioText: "カードで いいですか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Bezahlen (Kartenzahlung ok?) / Paying (Card ok?)", "Nach dem Namen fragen / Asking for name", "Ticketkontrolle im Zug / Ticket check", "Einen Brief einwerfen / Mailing a letter"], correct: 0 },
+    { category: 'radar', audioText: "ふくろは いりますか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["An der Kasse (Tüte gefällig?) / Register (Need a bag?)", "Im Restaurant (Getränke?) / Restaurant (Drinks?)", "Auf der Straße (Hilfe?) / Street (Help?)", "Im Hotel (Schlüssel?) / Hotel (Key?)"], correct: 0 },
+    { category: 'radar', audioText: "ちがいます。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: ["Das ist falsch / Das stimmt nicht / That's wrong", "Ich weiß nicht / I don't know", "Ich verstehe nicht / I don't understand", "Es tut mir leid / I'm sorry"], correct: 0 },
+    { category: 'radar', audioText: "わかりません。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: ["Ich verstehe nicht / I don't understand", "Ich weiß nicht / I don't know", "Das ist falsch / That's wrong", "Es tut mir leid / I'm sorry"], correct: 0 },
+    { category: 'radar', audioText: "えきまで おねがいします。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: ["Im Taxi / In a taxi", "Im Restaurant / In a restaurant", "Im Supermarkt / In a supermarket", "Auf der Post / At the post office"], correct: 0 },
+    { category: 'radar', audioText: "ごめんください", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Man betritt das Haus von jemandem / Entering someone's house", "Man entschuldigt sich für einen Fehler / Apologizing for a mistake", "Man verlässt ein Geschäft / Leaving a store", "Man geht ans Telefon / Answering the phone"], correct: 0 },
+    { category: 'radar', audioText: "もしもし", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: ["Am Telefon / On the phone", "Beim Anklopfen / Knocking on a door", "Jemanden auf der Straße rufen / Calling someone on the street", "Im Restaurant / In a restaurant"], correct: 0 },
+    { category: 'radar', audioText: "なんめいさま ですか。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: ["Empfang im Restaurant (Wie viele Personen?) / Restaurant reception", "Am Bahnhof (Welcher Zug?) / Station", "Im Taxi (Wohin?) / Taxi", "Im Konbini (Tüte?) / Convenience store"], correct: 0 },
+    { category: 'radar', audioText: "ふたりです。", q: { de: "🎧 Auf welche Frage antwortest du?", en: "🎧 Which question are you answering?" }, options: ["なんめいさま ですか。", "おなまえは なんですか。", "いくつですか。", "いくらですか。"], correct: 0 },
+    { category: 'radar', audioText: "だいじょうぶ ですか。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: ["Ist alles in Ordnung? / Is everything ok?", "Wie spät ist es? / What time is it?", "Wer ist das? / Who is that?", "Wo ist das? / Where is that?"], correct: 0 },
+    { category: 'radar', audioText: "はい、だいじょうぶ です。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: ["Ja, alles in Ordnung. / Yes, everything is ok.", "Ja, bitte. / Yes, please.", "Nein, danke. / No, thank you.", "Das ist falsch. / That's wrong."], correct: 0 },
+    { category: 'radar', audioText: "いいえ、けっこうです。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: ["Nein, danke (ich brauche nichts). / No thank you.", "Das ist falsch. / That's wrong.", "Ich verstehe nicht. / I don't understand.", "Entschuldigung. / Excuse me."], correct: 0 }
   ];
 
   const startExam = () => {
-    // 1. Array komplett mischen
+    // 1. Master Pool durchmischen
     const shuffledPool = [...masterPool].sort(() => 0.5 - Math.random());
     
-    // 2. 30 Fragen auswählen und dabei die Antwort-Optionen mischen!
+    // 2. Genau 30 Fragen picken und deren Optionen shuffeln
     const selected = shuffledPool.slice(0, 30).map(q => {
       const correctText = q.options[q.correct];
       const shuffledOptions = [...q.options].sort(() => 0.5 - Math.random());
@@ -184,8 +228,13 @@ const FinalExam = ({ onBack, language }) => {
       setScore(prev => prev + 1);
     } else {
       // FEHLER PROTOKOLLIEREN
+      // Wenn es eine Audio-Frage ist, speichern wir den Audio-Text als Kontext
+      const questionPrompt = currentQ.audioText 
+        ? `🎧 (Audio: ${currentQ.audioText})` 
+        : (currentQ.q[language] || currentQ.q.de);
+
       setWrongAnswers(prev => [...prev, {
-        questionText: currentQ.q[language] || currentQ.q.de,
+        questionText: questionPrompt,
         userChoice: currentQ.options[selectedAnswer],
         correctChoice: currentQ.options[currentQ.correct]
       }]);
@@ -254,7 +303,6 @@ const FinalExam = ({ onBack, language }) => {
     const q = questions[currentIndex];
     const isLastQuestion = currentIndex === questions.length - 1;
     
-    // Kategorie-Farben
     const catColors = {
       kana: "text-blue-400 border-blue-500/50 bg-blue-900/20",
       kanji: "text-purple-400 border-purple-500/50 bg-purple-900/20",
@@ -285,7 +333,6 @@ const FinalExam = ({ onBack, language }) => {
 
         <div className="w-full max-w-sm flex flex-col animate-fade-in flex-1">
           
-          {/* Kategorie-Badge */}
           <div className="flex justify-center mb-6">
             <span className={`text-xs font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full border ${catColors[q.category]}`}>
               {catLabels[q.category]}
@@ -294,7 +341,6 @@ const FinalExam = ({ onBack, language }) => {
 
           <div className="bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl mb-8 min-h-[160px] flex flex-col items-center justify-center text-center">
             
-            {/* NEU: AUDIO-BUTTON wenn audioText vorhanden ist */}
             {q.audioText && (
               <button 
                 onClick={() => playAudio(q.audioText)}
@@ -304,7 +350,7 @@ const FinalExam = ({ onBack, language }) => {
               </button>
             )}
 
-            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-bold text-white leading-relaxed">
               {q.q[language] || q.q.de}
             </h2>
           </div>
@@ -357,7 +403,6 @@ const FinalExam = ({ onBack, language }) => {
         <div className="mt-8 mb-8 flex flex-col items-center w-full max-w-md text-center animate-fade-in">
           <h1 className="text-2xl font-bold text-gray-400 uppercase tracking-widest mb-6">{t.resultsTitle}</h1>
           
-          {/* Main Score Card */}
           <div className="w-full bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative overflow-hidden mb-8">
             <div className={`absolute top-0 left-0 w-full h-2 ${percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
             
@@ -373,7 +418,6 @@ const FinalExam = ({ onBack, language }) => {
             </div>
           </div>
 
-          {/* Detaillierte Analyse */}
           <div className="w-full text-left">
             <h3 className="text-lg font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
               <span>📊</span> {t.recommendations}
