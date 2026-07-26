@@ -123,7 +123,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
             <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{t.phase3Title}</h2>
             <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{t.phase2Desc}</p>
+          <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
             <div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div>
           </div>
@@ -138,7 +138,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
             <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.phase4Title}</h2>
             <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
+          <p className="text-gray-400 text-sm mb-4">{t.phase4Desc}</p>
           <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
             <div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div>
           </div>
