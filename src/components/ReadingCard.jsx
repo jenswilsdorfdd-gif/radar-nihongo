@@ -9,7 +9,7 @@ const ReadingCard = ({ day, onBack, language }) => {
       back: "Flow-Deck",
       remaining: "Übrig:",
       revealTrans: "Übersetzung aufdecken",
-      next: "Nächster Funkspruch",
+      next: "Nächster Text",
       finishTitle: "Szenario abgeschlossen",
       finishSub: "Hervorragend gelesen!",
       backToMenu: "Zurück zum Deck",
@@ -19,7 +19,7 @@ const ReadingCard = ({ day, onBack, language }) => {
       back: "Flow Deck",
       remaining: "Remaining:",
       revealTrans: "Reveal translation",
-      next: "Next Message",
+      next: "Next Text",
       finishTitle: "Scenario completed",
       finishSub: "Excellent reading!",
       backToMenu: "Back to Deck",
@@ -65,12 +65,13 @@ const ReadingCard = ({ day, onBack, language }) => {
     }
   };
 
+  // FURIGANA FIX: Ignoriert japanische Satzzeichen wie 、 und 。
   const renderTextWithFurigana = (text) => {
     if (!text) return null;
-    const parts = text.split(/([^\s]+{[^}]+})/g);
+    const parts = text.split(/([^\s、。！？「」]+{[^}]+})/g);
     
     return parts.map((part, i) => {
-      const match = part.match(/([^{]+){([^}]+)}/);
+      const match = part.match(/([^\s、。！？「」]+){([^}]+)}/);
       if (match) {
         return (
           <ruby key={i} className="px-1">
@@ -110,16 +111,13 @@ const ReadingCard = ({ day, onBack, language }) => {
 
       <div className="w-full max-w-sm mx-auto mt-12 flex flex-col items-center">
         
-        {/* TELEPROMPTER BOX */}
         <div className="w-full bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl flex flex-col items-center justify-center min-h-[350px] relative">
           
           <div className="text-center w-full flex-1 flex flex-col items-center justify-center">
-            {/* Der japanische Text mit Lesehilfen (Furigana) */}
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-loose tracking-wide mb-8">
               {renderTextWithFurigana(currentSentence.text)}
             </h2>
             
-            {/* AUDIO BUTTON */}
             <button 
               onClick={() => playAudio(currentSentence.text)}
               className="w-16 h-16 bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 rounded-full flex items-center justify-center text-3xl transition-all shadow-lg active:scale-90 border border-cyan-500/30 mb-8"
@@ -127,7 +125,6 @@ const ReadingCard = ({ day, onBack, language }) => {
               🔊
             </button>
 
-            {/* ÜBERSETZUNG (ON DEMAND) */}
             <div className="w-full min-h-[40px] flex items-center justify-center">
               {!showTranslation ? (
                 <button 
@@ -145,7 +142,6 @@ const ReadingCard = ({ day, onBack, language }) => {
           </div>
         </div>
 
-        {/* WEITER BUTTON */}
         <button 
           onClick={handleNext} 
           className="w-full mt-8 py-5 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-cyan-500/20 active:scale-95 transition-transform"
