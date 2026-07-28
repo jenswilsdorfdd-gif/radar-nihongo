@@ -16,7 +16,8 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
-  // LOCK MECHANISMUS: Alle Phasen müssen auf dem Maximum sein!
+  // LOCK MECHANISMUS
+  const isParticleUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14;
   const isExamUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14 && readingDay >= 21 && radarDay >= 21 && kanjiDay >= 21;
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1WriteDesc: "Die Meisterklasse. Präge dir die exakte Linienführung ein.",
       particleTitle: "Der Partikel-Code",
       particleDesc: "Entschlüssele die Matrix.",
+      particleLockedDesc: "Schließe Phase 1 komplett ab, um den Partikel-Code freizuschalten.",
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Brücken-Training zum Radar: Trainiere das flüssige Lesen in 3 Stufen (Alltag, Texte, Dialoge).",
       phase3Title: "Phase 3: 21-Tage-Radar",
@@ -106,6 +108,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase1WriteDesc: "The masterclass. Memorize the exact stroke order.",
       particleTitle: "The Particle Code",
       particleDesc: "Decode the Matrix.",
+      particleLockedDesc: "Complete Phase 1 entirely to unlock the Particle Code.",
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Radar Bridge Training: Practice fluent reading in 3 levels (Daily, Texts, Dialogues).",
       phase3Title: "Phase 3: 21-Day Radar",
@@ -251,18 +254,28 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
 
-        <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
-          <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
-          <div>
-            <h2 className="text-xl font-extrabold text-orange-400 tracking-wider uppercase mb-1 flex items-center gap-2">
-              <span>🔑</span> {t.particleTitle}
+        {/* PARTIKEL CRASHKURS BUTTON - Mit Sperr-Logik */}
+        {isParticleUnlocked ? (
+          <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
+            <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
+            <div>
+              <h2 className="text-xl font-extrabold text-orange-400 tracking-wider uppercase mb-1 flex items-center gap-2">
+                <span>🔑</span> {t.particleTitle}
+              </h2>
+              <p className="text-gray-400 text-sm italic">{t.particleDesc}</p>
+            </div>
+            <div className="text-orange-500/50 group-hover:text-orange-400 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+          </button>
+        ) : (
+          <div className="w-full bg-gray-900/50 p-5 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+            <h2 className="text-xl font-extrabold text-gray-500 tracking-wider uppercase mb-1 flex items-center gap-2">
+              <span>🔒</span> {t.particleTitle}
             </h2>
-            <p className="text-gray-400 text-sm italic">{t.particleDesc}</p>
+            <p className="text-gray-500 text-sm italic">{t.particleLockedDesc}</p>
           </div>
-          <div className="text-orange-500/50 group-hover:text-orange-400 transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </div>
-        </button>
+        )}
 
         <div className="py-2">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
@@ -337,14 +350,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
               <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
             
-            {/* FAHRPLAN CONTENT */}
             <div className="p-6 overflow-y-auto space-y-6">
               <p className="text-gray-300 text-sm leading-relaxed italic border-l-4 border-cyan-500 pl-3">{t.modalIntro}</p>
               <div><h3 className="font-bold text-green-400 mb-1">{t.modalW1Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW1Desc}</p></div>
               <div><h3 className="font-bold text-yellow-400 mb-1">{t.modalW3Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW3Desc}</p></div>
               <div><h3 className="font-bold text-purple-400 mb-1">{t.modalW6Title}</h3><p className="text-gray-400 text-sm leading-relaxed">{t.modalW6Desc}</p></div>
               
-              {/* NEUER CTA BEREICH FÜR DAS DOJO */}
               <div className="mt-4 p-5 bg-pink-900/20 border border-pink-500/30 rounded-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 blur-xl rounded-full"></div>
                 <h3 className="font-bold text-pink-400 mb-2 flex items-center gap-2">
@@ -354,7 +365,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
                 <button
                   onClick={() => {
                     setShowInfoModal(false);
-                    setTimeout(() => setShowRegModal(true), 200); // Sanfter Übergang zum Registrierungs-Modal
+                    setTimeout(() => setShowRegModal(true), 200); 
                   }}
                   className="w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all relative z-10"
                 >
