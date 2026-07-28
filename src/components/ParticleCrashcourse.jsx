@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 const ParticleCrashcourse = ({ onBack, language }) => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  // Phasen: 'briefing' (Erklärung) -> 'drill' (Übung) -> 'feedback' (Auswertung) -> 'result' (Endstand)
-  const [currentPhase, setCurrentPhase] = useState('briefing'); 
+  // Phasen: 'intro' (Allgemein) -> 'briefing' (Detail) -> 'drill' (Übung) -> 'feedback' (Auswertung) -> 'result' (Endstand)
+  const [currentPhase, setCurrentPhase] = useState('intro'); 
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
 
@@ -17,6 +17,15 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       back: "Zurück",
       title: "Die Partikel",
       subtitle: "Grundlagen Crashkurs",
+      
+      // NEU: Intro Texte
+      introTitle: "Was sind Partikel?",
+      introP1: "Im Japanischen steht das Verb immer am Ende. Aber woher wissen wir, wer was mit wem macht? Dafür gibt es Partikel!",
+      introP2: "Sie sind der 'Kleber' des Satzes. Ein Partikel wird immer direkt HINTER ein Wort gehängt und bestimmt dessen grammatikalische Funktion (Subjekt, Objekt, Ort, Zeit).",
+      introP3: "Stell sie dir wie kleine Verkehrsschilder vor, die dem japanischen Gehirn sagen: 'Achtung, das Wort davor ist ein Ort!'",
+      introWarning: "Wichtig: Ein Partikel steht niemals am Anfang eines Satzes!",
+      btnStartCourse: "Verstanden -> Crashkurs starten",
+
       lesson: "Lektion",
       exercise: "Übung",
       exampleLabel: "Beispiel:",
@@ -34,6 +43,15 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       back: "Back",
       title: "The Particles",
       subtitle: "Basics Crash Course",
+      
+      // NEW: Intro Texts
+      introTitle: "What are Particles?",
+      introP1: "In Japanese, the verb is always at the end. But how do we know who is doing what to whom? That's what particles are for!",
+      introP2: "They are the 'glue' of the sentence. A particle is always attached directly AFTER a word and determines its grammatical function (subject, object, location, time).",
+      introP3: "Think of them like tiny traffic signs telling the Japanese brain: 'Attention, the word before me is a location!'",
+      introWarning: "Important: A particle is never placed at the beginning of a sentence!",
+      btnStartCourse: "Got it -> Start Crash Course",
+
       lesson: "Lesson",
       exercise: "Exercise",
       exampleLabel: "Example:",
@@ -226,11 +244,9 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     setFeedback(null);
     
     if (currentExerciseIndex < 2) {
-      // Nächster Übungssatz des gleichen Partikels
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setCurrentPhase('drill');
     } else {
-      // Nächster Partikel (Briefing) oder Endergebnis
       if (currentLessonIndex < lessons.length - 1) {
         setCurrentLessonIndex(currentLessonIndex + 1);
         setCurrentExerciseIndex(0);
@@ -252,7 +268,6 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     
     setCurrentPhase('feedback');
 
-    // Automatisches Weitergehen NUR bei richtiger Antwort
     if (isCorrect) {
       setTimeout(() => {
         advanceToNext();
@@ -264,19 +279,17 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     setCurrentLessonIndex(0);
     setCurrentExerciseIndex(0);
     setScore(0);
-    setCurrentPhase('briefing');
+    setCurrentPhase('intro'); // Nach Reset wieder aufs Intro
   };
 
   const currentLesson = lessons[currentLessonIndex];
   const currentLessonData = currentLesson[language] || currentLesson.de;
   const currentExercise = currentLesson.exercises[currentExerciseIndex];
   
-  // Löst den Satz für die Anzeige auf: "わたし [ ? ] ..." -> "わたし は ..."
   const getSolvedSentence = () => {
     return currentExercise.sentence.replace("[ ? ]", `<span class="text-orange-400 font-extrabold mx-1">${currentLesson.correct}</span>`);
   };
 
-  // Hilfsfunktion: Markiert den Ziel-Partikel im Text farbig
   const renderHighlightedText = (text, particle) => {
     if (!text) return null;
     const parts = text.split(particle);
@@ -306,6 +319,26 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         <h1 className="text-3xl font-extrabold tracking-widest text-orange-400 uppercase text-center">{t.title}</h1>
         <p className="text-gray-400 text-xs tracking-widest uppercase mt-2">{t.subtitle}</p>
       </div>
+
+      {/* NEU: INTRO PHASE */}
+      {currentPhase === 'intro' && (
+        <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
+          <div className="w-full bg-gray-800 rounded-3xl p-6 border border-orange-500/50 shadow-2xl relative mt-4">
+            <h2 className="text-2xl font-extrabold text-orange-400 mt-2 mb-4 border-b border-gray-700 pb-2">{t.introTitle}</h2>
+            
+            <div className="space-y-4 text-gray-300 text-sm leading-relaxed mb-8">
+              <p>{t.introP1}</p>
+              <p className="p-3 bg-gray-900 rounded-xl border border-gray-700">{t.introP2}</p>
+              <p>{t.introP3}</p>
+              <p className="text-red-400 font-bold border-l-2 border-red-500 pl-3">{t.introWarning}</p>
+            </div>
+
+            <button onClick={() => setCurrentPhase('briefing')} className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl font-bold text-white tracking-widest uppercase shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+              {t.btnStartCourse}
+            </button>
+          </div>
+        </div>
+      )}
 
       {currentPhase === 'briefing' && (
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
@@ -360,7 +393,6 @@ const ParticleCrashcourse = ({ onBack, language }) => {
                   </p>
                 </div>
 
-                {/* Erklärung und manueller Button, wenn die Antwort falsch war */}
                 {!feedback.correct && (
                   <div className="mt-4 p-4 bg-red-900/20 rounded-xl border border-red-500/30 text-left animate-fade-in">
                     <strong className="text-red-400 text-xs uppercase tracking-wider block mb-2">{t.whyText}</strong>
