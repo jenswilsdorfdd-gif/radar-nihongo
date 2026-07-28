@@ -136,7 +136,7 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
     setWrongScans([]); 
   };
 
-  // --- PARTIKEL SCANNER LOGIK (NEU MIT SPRACHWEICHE) ---
+  // --- PARTIKEL SCANNER LOGIK (MIT SPRACHWEICHE UND N5 AUSNAHMEN) ---
   const particleInfo = {
     "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
     "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
@@ -148,7 +148,9 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
     "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)" },
     "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
   };
-  const particleRegex = /(から|まで|を|は(?![いじ])|が(?![っ])|に(?![くも])|で(?!す)|と(?!も)|へ)/g;
+  
+  // Smarter Regex-Scanner (Geupdatet für N5-Ausnahmen wie asagohan, totemo, densha etc.)
+  const particleRegex = /(から|まで|を|は(?![いじんらかきし])|が(?![っつお])|に(?![くもちほんぎ])|で(?![すしんき])|と(?![もてけきこ])|へ)/g;
 
   // Diese Funktion verarbeitet jetzt Furigana UND scannt nach Partikeln
   const renderTextWithFuriganaAndParticles = (text) => {
@@ -161,11 +163,11 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
       const match = part.match(/([^\s、。！？「」]+){([^}]+)}/);
       
       if (match) {
-        // Normaler Furigana-Block (wird NICHT nach Partikeln gescannt)
+        // Normaler Furigana-Block (Zentriert und Padding repariert)
         return (
-          <ruby key={i} className="px-0.5">
+          <ruby key={i} className="mx-1" style={{ rubyAlign: 'center', textAlign: 'center' }}>
             {match[1]}
-            <rt className="text-[0.6em] text-gray-400">{match[2]}</rt>
+            <rt className="text-[0.55em] text-gray-400 text-center leading-none tracking-tighter">{match[2]}</rt>
           </ruby>
         );
       }
@@ -175,7 +177,7 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
       return subParts.map((sub, j) => {
         if (particleInfo[sub]) {
           return (
-            <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-bold mx-[1px] transition-colors hover:text-orange-300">
+            <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-bold mx-[2px] transition-colors hover:text-orange-300">
               {sub}
               {/* Tooltip im exakt selben Design wie in Phase 2 */}
               <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-gray-200 text-xs sm:text-sm p-3 rounded-xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed font-sans font-normal whitespace-normal block">
