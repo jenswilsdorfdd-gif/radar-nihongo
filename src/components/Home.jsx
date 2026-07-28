@@ -38,6 +38,13 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     setTimeout(() => setClickCount(0), 2000);
   };
 
+  // Optische Überschreibung der Tage für den Dev Mode
+  const displayKanaRead = devMode ? 14 : kanaReadDay;
+  const displayKanaWrite = devMode ? 14 : kanaWriteDay;
+  const displayReading = devMode ? 21 : readingDay;
+  const displayRadar = devMode ? 21 : radarDay;
+  const displayKanji = devMode ? 21 : kanjiDay;
+
   // LOCK MECHANISMUS (Berücksichtigt jetzt den Dev Mode!)
   const isParticleUnlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14);
   const isPhase2Unlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14); 
@@ -296,7 +303,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       </div>
 
       <div className="mt-16 mb-10 flex flex-col items-center">
-        {/* Ich habe den Tor-Button und den RADAR-Text getrennt, damit du das Secret besser klicken kannst */}
         <button onClick={onGoToWelcome} className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors cursor-pointer active:scale-95 focus:outline-none">
           <span className="text-5xl">⛩️</span>
         </button>
@@ -310,7 +316,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </h1>
         <p className="text-gray-400 text-xs tracking-widest uppercase">{t.subtitle}</p>
         
-        {/* Anzeige, falls God-Mode an ist */}
         {devMode && (
           <span className="text-pink-500 text-[10px] font-bold tracking-widest uppercase mt-2 animate-pulse bg-pink-500/10 px-2 py-1 rounded">
             Dev Mode Aktiv
@@ -323,19 +328,19 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         <button onClick={() => onSelectMode('kana-read')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">{t.phase1ReadTitle}</h2>
-            <span className="text-green-500 text-sm font-bold">{t.day} {kanaReadDay}/14</span>
+            <span className="text-green-500 text-sm font-bold">{t.day} {displayKanaRead}/14</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">{t.phase1ReadDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${(kanaReadDay / 14) * 100}%` }}></div></div>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${(displayKanaRead / 14) * 100}%` }}></div></div>
         </button>
 
         <button onClick={() => onSelectMode('kana-write')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-blue-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{t.phase1WriteTitle}</h2>
-            <span className="text-blue-500 text-sm font-bold">{t.day} {kanaWriteDay}/14</span>
+            <span className="text-blue-500 text-sm font-bold">{t.day} {displayKanaWrite}/14</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">{t.phase1WriteDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div></div>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(displayKanaWrite / 14) * 100}%` }}></div></div>
         </button>
 
         <div className="py-2">
@@ -374,10 +379,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase2FlowTitle}</h2>
-              <span className="text-cyan-500 text-sm font-bold">{t.scenario} {readingDay}/21</span>
+              <span className="text-cyan-500 text-sm font-bold">{t.scenario} {displayReading}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase2FlowDesc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(displayReading / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
@@ -396,10 +401,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('radar')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{t.phase3Title}</h2>
-              <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
+              <span className="text-yellow-500 text-sm font-bold">{t.day} {displayRadar}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(displayRadar / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
@@ -418,10 +423,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('kanji')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.phase4Title}</h2>
-              <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
+              <span className="text-purple-500 text-sm font-bold">{t.day} {displayKanji}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase4Desc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(displayKanji / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
