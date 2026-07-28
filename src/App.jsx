@@ -10,7 +10,7 @@ import KanjiCard from './components/KanjiCard';
 import ReadingDeck from './components/ReadingDeck';
 import ReadingCard from './components/ReadingCard';
 import ParticleCrashcourse from './components/ParticleCrashcourse';
-import FinalExam from './components/FinalExam'; // NEU: Der Import für die Prüfung
+import FinalExam from './components/FinalExam'; 
 
 function App() {
   const [appLanguage, setAppLanguage] = useState(() => {
@@ -147,9 +147,21 @@ function App() {
             if (mode === 'radar') setActiveView('dashboard');
             if (mode === 'kanji') setActiveView('kanji');
             if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
-            if (mode === 'final-exam') setActiveView('final-exam'); // NEU: Routing zur Prüfung
+            if (mode === 'final-exam') setActiveView('final-exam');
           }} 
-          onReset={handleReset} onGoToWelcome={() => setActiveView('welcome')} kanaReadDay={kanaReadDay} kanaWriteDay={kanaWriteDay} readingDay={readingDay} radarDay={currentRadarDay} kanjiDay={currentKanjiDay} language={appLanguage}
+          onReset={handleReset} 
+          onGoToWelcome={() => setActiveView('welcome')} 
+          kanaReadDay={kanaReadDay} 
+          setKanaReadDay={setKanaReadDay}
+          kanaWriteDay={kanaWriteDay} 
+          setKanaWriteDay={setKanaWriteDay}
+          readingDay={readingDay} 
+          setReadingDay={setReadingDay}
+          radarDay={currentRadarDay} 
+          setRadarDay={setCurrentRadarDay}
+          kanjiDay={currentKanjiDay} 
+          setKanjiDay={setCurrentKanjiDay}
+          language={appLanguage}
         />
       )}
       {activeView === 'kana-deck' && <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} language={appLanguage} />}
@@ -165,7 +177,6 @@ function App() {
         <ParticleCrashcourse language={appLanguage} onBack={() => setActiveView('home')} />
       )}
 
-      {/* NEU: Rendering für die Abschlussprüfung */}
       {activeView === 'final-exam' && (
         <FinalExam language={appLanguage} onBack={() => setActiveView('home')} />
       )}
