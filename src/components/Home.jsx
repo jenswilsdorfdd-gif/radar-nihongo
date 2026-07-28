@@ -16,9 +16,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
-  // LOCK MECHANISMUS
+  // LOCK MECHANISMUS (Chronologische Freischaltung)
   const isParticleUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14;
-  const isExamUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14 && readingDay >= 21 && radarDay >= 21 && kanjiDay >= 21;
+  const isPhase2Unlocked = kanaReadDay >= 14 && kanaWriteDay >= 14; 
+  const isPhase3Unlocked = isPhase2Unlocked && readingDay >= 21;
+  const isPhase4Unlocked = isPhase3Unlocked && radarDay >= 21;
+  const isExamUnlocked = isPhase4Unlocked && kanjiDay >= 21;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -51,12 +54,18 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       particleTitle: "Der Partikel-Code",
       particleDesc: "Entschlüssele die Matrix.",
       particleLockedDesc: "Schließe Phase 1 komplett ab, um den Partikel-Code freizuschalten.",
+      
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Brücken-Training zum Radar: Trainiere das flüssige Lesen in 3 Stufen (Alltag, Texte, Dialoge).",
+      phase2LockedDesc: "Schließe Phase 1 ab, um diese Mission freizuschalten.",
+      
       phase3Title: "Phase 3: 21-Tage-Radar",
       phase3Desc: "Stresstest, Wortschatz und Reaktion für das Überleben im Alltag.",
+      phase3LockedDesc: "Schließe Phase 2 (Kana Flow) ab, um das Radar freizuschalten.",
+      
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
+      phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Kanji-Training freizuschalten.",
       
       // PRÜFUNG TEXTE
       examTitle: "Abschluss-Prüfung",
@@ -70,7 +79,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       day: "Tag",
       scenario: "Text",
       
-      // SOCIAL MEDIA TEXTE - Mit Zeilenumbruch
+      // SOCIAL MEDIA TEXTE
       socialTitle: "Tägliche Japan-Hacks",
       socialDesc: (
         <>
@@ -118,12 +127,18 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       particleTitle: "The Particle Code",
       particleDesc: "Decode the Matrix.",
       particleLockedDesc: "Complete Phase 1 entirely to unlock the Particle Code.",
+      
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Radar Bridge Training: Practice fluent reading in 3 levels (Daily, Texts, Dialogues).",
+      phase2LockedDesc: "Complete Phase 1 to unlock this mission.",
+      
       phase3Title: "Phase 3: 21-Day Radar",
       phase3Desc: "Stress test, vocabulary, and reaction for everyday survival.",
+      phase3LockedDesc: "Complete Phase 2 (Kana Flow) to unlock the Radar.",
+      
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Learn meaning, reading, and application of complex characters.",
+      phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Kanji training.",
       
       // EXAM TEXTS
       examTitle: "Final Exam",
@@ -250,6 +265,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       </button>
 
       <div className="w-full max-w-sm space-y-4 pb-12">
+        {/* PHASE 1 (Immer frei) */}
         <button onClick={() => onSelectMode('kana-read')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">{t.phase1ReadTitle}</h2>
@@ -299,32 +315,71 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
 
-        <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
-          <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase2FlowTitle}</h2>
-            <span className="text-cyan-500 text-sm font-bold">{t.scenario} {readingDay}/21</span>
+        {/* PHASE 2 */}
+        {isPhase2Unlocked ? (
+          <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase2FlowTitle}</h2>
+              <span className="text-cyan-500 text-sm font-bold">{t.scenario} {readingDay}/21</span>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">{t.phase2FlowDesc}</p>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div></div>
+          </button>
+        ) : (
+          <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
+                <span>🔒</span> {t.phase2FlowTitle}
+              </h2>
+            </div>
+            <p className="text-gray-500 text-sm italic mb-4">{t.phase2LockedDesc}</p>
+            <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{t.phase2FlowDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div></div>
-        </button>
+        )}
 
-        <button onClick={() => onSelectMode('radar')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all group text-left relative overflow-hidden">
-          <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{t.phase3Title}</h2>
-            <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
+        {/* PHASE 3 */}
+        {isPhase3Unlocked ? (
+          <button onClick={() => onSelectMode('radar')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all group text-left relative overflow-hidden">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{t.phase3Title}</h2>
+              <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div></div>
+          </button>
+        ) : (
+          <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
+                <span>🔒</span> {t.phase3Title}
+              </h2>
+            </div>
+            <p className="text-gray-500 text-sm italic mb-4">{t.phase3LockedDesc}</p>
+            <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div></div>
-        </button>
+        )}
 
-        <button onClick={() => onSelectMode('kanji')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all group text-left relative overflow-hidden">
-          <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.phase4Title}</h2>
-            <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
+        {/* PHASE 4 */}
+        {isPhase4Unlocked ? (
+          <button onClick={() => onSelectMode('kanji')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all group text-left relative overflow-hidden">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.phase4Title}</h2>
+              <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">{t.phase4Desc}</p>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
+          </button>
+        ) : (
+          <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
+                <span>🔒</span> {t.phase4Title}
+              </h2>
+            </div>
+            <p className="text-gray-500 text-sm italic mb-4">{t.phase4LockedDesc}</p>
+            <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{t.phase4Desc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
-        </button>
+        )}
 
         <div className="py-2">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent"></div>
