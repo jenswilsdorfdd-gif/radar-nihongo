@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showSurvivalModal, setShowSurvivalModal] = useState(false); // NEU: Survival Modal
+  const [showSurvivalModal, setShowSurvivalModal] = useState(false); 
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
@@ -17,12 +17,33 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     email: ''
   });
 
-  // LOCK MECHANISMUS (Chronologische Freischaltung)
-  const isParticleUnlocked = kanaReadDay >= 14 && kanaWriteDay >= 14;
-  const isPhase2Unlocked = kanaReadDay >= 14 && kanaWriteDay >= 14; 
-  const isPhase3Unlocked = isPhase2Unlocked && readingDay >= 21;
-  const isPhase4Unlocked = isPhase3Unlocked && radarDay >= 21;
-  const isExamUnlocked = isPhase4Unlocked && kanjiDay >= 21;
+  // --- GOD MODE / DEV MODE ---
+  const [devMode, setDevMode] = useState(() => {
+    return localStorage.getItem('radarDevMode') === 'true';
+  });
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleSecretClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    
+    if (newCount === 5) {
+      const newDevMode = !devMode;
+      setDevMode(newDevMode);
+      localStorage.setItem('radarDevMode', newDevMode);
+      setClickCount(0);
+    }
+    
+    // Reset click count after 2 seconds if not completed
+    setTimeout(() => setClickCount(0), 2000);
+  };
+
+  // LOCK MECHANISMUS (Berücksichtigt jetzt den Dev Mode!)
+  const isParticleUnlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14);
+  const isPhase2Unlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14); 
+  const isPhase3Unlocked = devMode || (isPhase2Unlocked && readingDay >= 21);
+  const isPhase4Unlocked = devMode || (isPhase3Unlocked && radarDay >= 21);
+  const isExamUnlocked = devMode || (isPhase4Unlocked && kanjiDay >= 21);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -47,7 +68,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     de: {
       reset: "Reset",
       info: "Fahrplan",
-      survivalBtn: "Survival", // NEUER BUTTON
+      survivalBtn: "Survival",
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
@@ -88,7 +109,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </>
       ),
 
-      // NEU: SURVIVAL MODAL TEXTE
       survModalTitle: "Japan Survival-Kit",
       survModalIntro: "Sprache ist nur die halbe Miete. Wer das Mindset und die Kultur versteht, gewinnt auf der Straße.",
       survSec1Title: "📺 Filme & Serien",
@@ -128,7 +148,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     en: {
       reset: "Reset",
       info: "Roadmap",
-      survivalBtn: "Survival", // NEW
+      survivalBtn: "Survival", 
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
@@ -264,7 +284,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     <div ref={containerRef} className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
       <div className="absolute top-6 right-6 z-10 flex gap-3 items-center">
-        {/* NEU: SURVIVAL BUTTON */}
         <button onClick={() => setShowSurvivalModal(true)} className="text-pink-400 hover:text-pink-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-pink-900/30 px-3 py-1.5 rounded-full border border-pink-500/50 transition-all active:scale-95">
           <span>🎒</span> {t.survivalBtn}
         </button>
@@ -276,13 +295,28 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </button>
       </div>
 
-      <button onClick={onGoToWelcome} className="mt-16 mb-10 flex flex-col items-center group cursor-pointer transition-transform active:scale-95 focus:outline-none">
-        <div className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 group-hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors">
+      <div className="mt-16 mb-10 flex flex-col items-center">
+        {/* Ich habe den Tor-Button und den RADAR-Text getrennt, damit du das Secret besser klicken kannst */}
+        <button onClick={onGoToWelcome} className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors cursor-pointer active:scale-95 focus:outline-none">
           <span className="text-5xl">⛩️</span>
-        </div>
-        <h1 className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">RADAR</h1>
-        <p className="text-gray-400 text-xs tracking-widest uppercase group-hover:text-gray-300 transition-colors">{t.subtitle}</p>
-      </button>
+        </button>
+        
+        {/* Der Secret Dev-Mode Trigger */}
+        <h1 
+          onClick={handleSecretClick} 
+          className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2 cursor-pointer select-none"
+        >
+          RADAR
+        </h1>
+        <p className="text-gray-400 text-xs tracking-widest uppercase">{t.subtitle}</p>
+        
+        {/* Anzeige, falls God-Mode an ist */}
+        {devMode && (
+          <span className="text-pink-500 text-[10px] font-bold tracking-widest uppercase mt-2 animate-pulse bg-pink-500/10 px-2 py-1 rounded">
+            Dev Mode Aktiv
+          </span>
+        )}
+      </div>
 
       <div className="w-full max-w-sm space-y-4 pb-12">
         {/* PHASE 1 (Immer frei) */}
