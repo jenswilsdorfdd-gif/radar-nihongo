@@ -276,6 +276,18 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     return currentExercise.sentence.replace("[ ? ]", `<span class="text-orange-400 font-extrabold mx-1">${currentLesson.correct}</span>`);
   };
 
+  // Hilfsfunktion: Markiert den Ziel-Partikel im Text farbig
+  const renderHighlightedText = (text, particle) => {
+    if (!text) return null;
+    const parts = text.split(particle);
+    return parts.map((part, i) => (
+      <React.Fragment key={i}>
+        {part}
+        {i < parts.length - 1 && <span className="text-orange-400 font-extrabold">{particle}</span>}
+      </React.Fragment>
+    ));
+  };
+
   const totalExercises = lessons.length * 3;
 
   return (
@@ -302,12 +314,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
               {t.lesson} {currentLessonIndex + 1} / {lessons.length}
             </div>
             
-            <h2 className="text-xl font-bold text-white mt-4 mb-3 border-b border-gray-700 pb-2">{currentLessonData.title}</h2>
+            <h2 className="text-xl font-bold text-white mt-4 mb-3 border-b border-gray-700 pb-2">
+              {renderHighlightedText(currentLessonData.title, currentLesson.correct)}
+            </h2>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">{currentLessonData.explanation}</p>
             
             <div className="bg-gray-900 p-4 rounded-xl border border-gray-700 mb-6">
               <span className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2 block">{t.exampleLabel}</span>
-              <p className="text-2xl font-bold text-white mb-1">{currentLessonData.exampleSentence}</p>
+              <p className="text-2xl font-bold text-white mb-1">
+                {renderHighlightedText(currentLessonData.exampleSentence, currentLesson.correct)}
+              </p>
               <p className="text-gray-400 text-xs italic">{currentLessonData.exampleTrans}</p>
             </div>
 
