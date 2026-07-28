@@ -24,7 +24,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
 
   const currentLang = language || 'de';
 
-  // Texte für die Sprachweiche & Tägliche Motivationen
   const texts = {
     de: {
       back: "Deck",
@@ -47,21 +46,18 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       finishTitle: "Mission Abgeschlossen",
       finishSub: "Tagesziel erreicht!",
       
-      // Meilenstein Tag 14 (Lesen)
       finishFinalReadTitle: "Kana Lesen Komplett!",
       finishFinalReadSub: "Wahnsinn! 🏆 14 Tage eisern geblieben.",
-      finishFinalReadDesc: "Dein Auge ist geschärft. Du kannst jederzeit hierher zurückkehren und alte Decks wiederholen, falls du merkst, dass du etwas hängst. Steht dir völlig frei. Auf zur Schreib-Mission!",
+      finishFinalReadDesc: "Dein Auge ist geschärft. Du kannst jederzeit alte Decks wiederholen, falls du merkst, dass du etwas hängst. Und vergiss nicht: Hol dir auf TikTok oder Insta deine tägliche Dosis Tokio-Vibes ab! Auf zur Schreib-Mission!",
       finishFinalReadNext: "Weiter zu Phase 1 (Schreiben) →",
       
-      // Meilenstein Tag 14 (Schreiben)
       finishFinalWriteTitle: "Kana Schreiben Komplett!",
       finishFinalWriteSub: "Phase 1: ABGESCHLOSSEN! 🎖️",
-      finishFinalWriteDesc: "Fundament gegossen! Das war der anstrengendste Teil. Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Weiter geht's zum Partikel-Code!",
+      finishFinalWriteDesc: "Fundament gegossen! Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Folge uns auf Insta für den täglichen Boost und dann ab in den Partikel-Code!",
       finishFinalWriteNext: "Weiter zum Partikel-Code 🔑",
       
       backToMenu: "Zurück zum Deck",
 
-      // 13 Individuelle Sprüche für die Tage davor
       motivations: {
         1: "Tag 1 im Kasten! ⛩️ Ein starker Anfang. Dein Gehirn verknüpft gerade völlig neue Muster. Ruh dich kurz aus oder zieh dir direkt die nächste Einheit rein!",
         2: "Saubere Arbeit an Tag 2! 🔥 Die Zeichen werden langsam vertrauter. Du bist auf dem absolut richtigen Weg. Dranbleiben!",
@@ -69,7 +65,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
         4: "Tag 4 im Sack! ⚡️ Du baust dir gerade ein solides Fundament auf. Gönn dir eine kurze Pause oder starte direkt die nächste Runde!",
         5: "Fünf Tage durchgezogen! 🏆 Respekt! Merkst du, wie es langsam 'Klick' macht? Dein Auge wird von Tag zu Tag schneller.",
         6: "Tag 6 gemeistert! 🥋 Sehr stark! Japanisch lernen ist ein Marathon, kein Sprint. Du zeigst genau die richtige Disziplin.",
-        7: "Halbzeit der Phase 1! 🎌 Tag 7 ist durch. Feier diesen kleinen Meilenstein. Ab jetzt geht es steil bergauf!",
+        7: "Halbzeit der Phase 1! 🎌 Tag 7 ist durch. Feier diesen kleinen Meilenstein! Schau auf unserem Instagram oder TikTok vorbei, um dir zur Belohnung echte Japan-Vibes zu holen!",
         8: "Tag 8 erledigt! 🔋 Katakana können fies sein, aber du beißt dich super durch. Zieh dir direkt die nächste Einheit rein, wenn du noch Fokus hast!",
         9: "Tag 9 im Kasten! 🚀 Dein Gehirn gewöhnt sich an die kantigen Katakana-Formen. Mach weiter so, du bist voll im Flow!",
         10: "Zweistellig! Tag 10! 🎉 Darauf kannst du stolz sein. Die meisten geben vorher auf. Du gehörst nicht zu den meisten.",
@@ -101,12 +97,12 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       
       finishFinalReadTitle: "Kana Reading Complete!",
       finishFinalReadSub: "Amazing! 🏆 14 days going strong.",
-      finishFinalReadDesc: "Your eyes are sharp. You can always return here to repeat old decks if you feel stuck. It's completely up to you. Onwards to the writing mission!",
+      finishFinalReadDesc: "Your eyes are sharp. You can always repeat old decks if you feel stuck. And don't forget: Get your daily dose of Tokyo vibes on TikTok or Insta! Onwards to the writing mission!",
       finishFinalReadNext: "Continue to Phase 1 (Write) →",
       
       finishFinalWriteTitle: "Kana Writing Complete!",
       finishFinalWriteSub: "Phase 1: COMPLETED! 🎖️",
-      finishFinalWriteDesc: "Foundation built! That was the toughest part. You know the characters blindly now. Come back anytime for a warm-up. Ready for the real deal? Let's move to the Particle Code!",
+      finishFinalWriteDesc: "Foundation built! You know the characters blindly now. Come back anytime for a warm-up. Ready for the real deal? Follow us on Insta for a daily boost, then onto the Particle Code!",
       finishFinalWriteNext: "Continue to Particle Code 🔑",
       
       backToMenu: "Back to Deck",
@@ -118,7 +114,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
         4: "Day 4 in the bag! ⚡️ You're building a solid foundation right now. Take a short break or start the next round right away!",
         5: "Five days straight! 🏆 Respect! Notice how it's starting to click? Your eyes are getting faster every day.",
         6: "Day 6 mastered! 🥋 Very strong! Learning Japanese is a marathon, not a sprint. You're showing exactly the right discipline.",
-        7: "Halfway through Phase 1! 🎌 Day 7 is done. Celebrate this small milestone. From now on, it's a steep climb up!",
+        7: "Halfway through Phase 1! 🎌 Day 7 is done. Celebrate this small milestone! Check out our Instagram or TikTok to get real Japan vibes as a reward!",
         8: "Day 8 done! 🔋 Katakana can be tricky, but you're pushing through perfectly. Jump into the next session if you still have focus!",
         9: "Day 9 in the box! 🚀 Your brain is getting used to the angular Katakana shapes. Keep it up, you're totally in the flow!",
         10: "Double digits! Day 10! 🎉 You can be proud of that. Most people quit before this. You are not most people.",
@@ -229,7 +225,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       }
     }
 
-    // Normaler End-Screen (Tage 1-13) mit dynamischer Tages-Motivation
     const dailyMotivation = t.motivations[day] || t.motivations[1];
 
     return (
