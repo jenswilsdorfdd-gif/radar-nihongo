@@ -70,9 +70,14 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       day: "Tag",
       scenario: "Text",
       
-      // SOCIAL MEDIA TEXTE
+      // SOCIAL MEDIA TEXTE - Mit Zeilenumbruch
       socialTitle: "Tägliche Japan-Hacks",
-      socialDesc: "Hol dir Tipps, Vokabeln & Motivation direkt auf dein Handy. Bleib bei der Stange!",
+      socialDesc: (
+        <>
+          Hol dir Tipps, Vokabeln & Motivation direkt auf dein Handy.<br />
+          Bleib bei der Stange!
+        </>
+      ),
       
       // FAHRPLAN MODAL TEXTE
       modalTitle: "Der 8-Wochen-Fahrplan",
@@ -134,7 +139,12 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
 
       // SOCIAL MEDIA TEXTS
       socialTitle: "Daily Japan Hacks",
-      socialDesc: "Get tips, vocabulary & motivation straight to your phone. Stay focused!",
+      socialDesc: (
+        <>
+          Get tips, vocabulary & motivation straight to your phone.<br />
+          Stay focused!
+        </>
+      ),
       
       // ROADMAP MODAL TEXTS
       modalTitle: "The 8-Week Roadmap",
@@ -349,23 +359,17 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           </button>
         </div>
 
-        {/* NEU: SOCIAL MEDIA FOOTER */}
+        {/* SOCIAL MEDIA FOOTER */}
         <div className="mt-8 pt-8 border-t border-gray-800 text-center pb-6">
           <h3 className="text-gray-400 font-bold uppercase tracking-widest mb-3 text-sm">{t.socialTitle}</h3>
-          <p className="text-gray-500 text-xs mb-6 px-4">{t.socialDesc}</p>
+          <p className="text-gray-500 text-xs mb-6 px-4 leading-relaxed">{t.socialDesc}</p>
           
           <div className="flex justify-center gap-4">
-            {/* TikTok Icon Button */}
             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 text-white">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-              </svg>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
             </a>
-            {/* Instagram Icon Button */}
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 text-white">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85s.01-3.58.07-4.85c.15-3.23 1.66-4.77 4.92-4.92 1.27-.06 1.64-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07c-4.27.2-5.78 1.71-5.98 5.98C1.01 8.33 1 8.74 1 12s.01 3.67.07 4.95c.2 4.27 1.71 5.78 5.98 5.98 1.28.06 1.69.07 4.95.07s3.67-.01 4.95-.07c4.27-.2 5.78-1.71 5.98-5.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.2-4.27-1.71-5.78-5.98-5.98C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.4-9.44a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"/>
-              </svg>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85s.01-3.58.07-4.85c.15-3.23 1.66-4.77 4.92-4.92 1.27-.06 1.64-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07c-4.27.2-5.78 1.71-5.98 5.98C1.01 8.33 1 8.74 1 12s.01 3.67.07 4.95c.2 4.27 1.71 5.78 5.98 5.98 1.28.06 1.69.07 4.95.07s3.67-.01 4.95-.07c4.27-.2 5.78-1.71 5.98-5.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.2-4.27-1.71-5.78-5.98-5.98C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.4-9.44a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"/></svg>
             </a>
           </div>
         </div>
