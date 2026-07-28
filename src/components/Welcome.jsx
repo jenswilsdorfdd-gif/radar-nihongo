@@ -41,7 +41,13 @@ const Welcome = ({ onStart, language }) => {
       dojoTitle: "Das Ziel: Das Live Dojo!",
       dojoText: "Trainiere hier in der App deine Reflexe. Sobald die Basics sitzen, wartet der ultimative Stresstest auf dich: Trage dich für unser Live Dojo (Gruppen-Training) ein! In interaktiven Videocalls wenden wir das Erlernte live an.",
       dojoBtn: "Jetzt fürs Live Dojo eintragen",
-      outro: "Mach dich bereit, bleib eisern und vertrau dem Prozess.<br />Viel Erfolg! Dein Jens",
+      // JSX mit Umbruch für sauberes Layout
+      outro: (
+        <>
+          Mach dich bereit, bleib eisern und vertrau dem Prozess.<br />
+          Viel Erfolg! Dein Jens
+        </>
+      ),
       startBtn: "⛩️ ZUM HAUPTMENÜ",
 
       // Modal Texte
@@ -70,7 +76,13 @@ const Welcome = ({ onStart, language }) => {
       dojoTitle: "The Goal: The Live Dojo!",
       dojoText: "Train your reflexes here in the app. Once you have the basics down, the ultimate stress test awaits you: Sign up for our Live Dojo (group training)! In interactive video calls, we apply what we've learned live.",
       dojoBtn: "Register for Live Dojo now",
-      outro: "Get ready, stay disciplined, and trust the process. Good luck! Yours, Jens",
+      // JSX mit Umbruch für sauberes Layout
+      outro: (
+        <>
+          Get ready, stay disciplined, and trust the process.<br />
+          Good luck! Yours, Jens
+        </>
+      ),
       startBtn: "⛩️ TO MAIN MENU",
 
       // Modal Texts
