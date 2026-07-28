@@ -26,13 +26,11 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
       perfect: "Tagesziel erreicht!",
       finishTitle: "Deck Abgeschlossen",
       
-      // Meilenstein Tag 21 (Abschluss Phase 4)
       finishFinalTitle: "Phase 4 Komplett!",
       finishFinalSub: "Meisterklasse BESTANDEN! 🏯",
-      finishFinalDesc: "Du hast alle 21 Tage Kanji-Training durchgezogen. Das ist der Moment, an dem 95% aller Lernenden scheitern. Du nicht! Du hast dir ein massives Arsenal an Wissen aufgebaut. Ruh dich aus, feier dich selbst und dann... auf zur finalen Prüfung!",
+      finishFinalDesc: "Du hast alle 21 Tage Kanji-Training durchgezogen. Das ist der Moment, an dem 95% aller Lernenden scheitern. Du nicht! Du hast dir ein massives Arsenal an Wissen aufgebaut. Ruh dich aus, feier dich selbst, bleib über Social Media mit uns connectet und dann... auf zur finalen Prüfung!",
       finishFinalNext: "Zur Abschluss-Prüfung 🎓",
 
-      // Tägliche Motivationen (1-20)
       motivations: {
         1: "Erstes Kanji-Deck gemeistert! 🏯 Du steigst jetzt in die echte japanische Schrift ein. Respekt für diesen Schritt!",
         2: "Tag 2 im Kasten! 🖌️ Jedes Zeichen, das du heute gelernt hast, wirst du in Japan auf Straßenschildern sehen. Mach weiter so!",
@@ -40,14 +38,14 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
         4: "Tag 4 abgehakt! ⚡️ Du ziehst das härteste Training der App durch. Das erfordert massive Disziplin. Stark!",
         5: "Fünf Tage Kanji-Drill! 🔥 Du baust dir gerade ein unglaubliches Vokabular auf. Ruh deinen Kopf jetzt ein wenig aus.",
         6: "Tag 6 gemeistert! 🥋 Wenn ein Zeichen mal absolut nicht in den Kopf will: Nutz die Eselsbrücken! Die helfen extrem.",
-        7: "Woche 1 in Phase 4 geschafft! 🎉 Schau dir an, wie viele komplexe Zeichen du schon lesen kannst. Purer Wahnsinn!",
+        7: "Woche 1 in Phase 4 geschafft! 🎉 Schau dir an, wie viele komplexe Zeichen du schon lesen kannst. Purer Wahnsinn! Feier das mit einem kurzen Trip auf unseren TikTok-Kanal.",
         8: "Tag 8 erledigt! 🔋 Du bist voll im Kanji-Flow. Dein Gehirn gewöhnt sich an die vielen Striche und Muster.",
         9: "Neun Tage durchgezogen! 🚀 Verzweifle nicht an ähnlichen Zeichen. Das Auge lernt die winzigen Unterschiede mit der Zeit.",
         10: "Zweistellig! Tag 10! 🏆 Halbzeit in der Königsdisziplin. Du beweist gerade, dass du es absolut ernst meinst mit Japanisch!",
         11: "Tag 11 ist Geschichte! ⚔️ Du machst das hervorragend. Ein Kanji pro Tag mehr, ist ein Straßenschild in Tokio weniger, das dich verwirrt.",
         12: "Zwölf Tage im Kasten! 🛡️ Du fängst an, die Bedeutung von Wörtern am Zeichen zu erraten, oder? Das ist der Kanji-Effekt!",
         13: "Tag 13 geschafft! ⏳ Halte den Fokus aufrecht. Es ist anstrengend, aber der Payoff am Ende ist gewaltig.",
-        14: "Zwei Wochen Kanji-Training! 🎉 Du hast dir ein enormes Arsenal an Zeichen erarbeitet. Gönn dir heute ein kleines Stück Schokolade!",
+        14: "Zwei Wochen Kanji-Training! 🎉 Du hast dir ein enormes Arsenal erarbeitet. Gönn dir ein Stück Schokolade und ein bisschen Tokio-Luft auf unserem Insta-Account!",
         15: "Tag 15 abgehakt! 🌟 Das Ende ist in Sicht. Jetzt bloß nicht nachlassen, du bist auf der Zielgeraden!",
         16: "Tag 16 erledigt! 🔥 Dein Auge scannt die Striche mittlerweile automatisch. Die harte Arbeit zahlt sich aus.",
         17: "Einsatz 17 im Kasten! 🎯 Erinnere dich daran, wie Kanjis vor ein paar Wochen noch wie unlesbare Kunstwerke aussahen. Jetzt liest du sie!",
@@ -78,7 +76,7 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
       
       finishFinalTitle: "Phase 4 Complete!",
       finishFinalSub: "Masterclass PASSED! 🏯",
-      finishFinalDesc: "You completed all 21 days of Kanji training. This is the point where 95% of all learners fail. Not you! You have built a massive arsenal of knowledge. Rest up, celebrate yourself, and then... on to the final exam!",
+      finishFinalDesc: "You completed all 21 days of Kanji training. This is the point where 95% of all learners fail. Not you! You have built a massive arsenal of knowledge. Rest up, celebrate yourself, stay connected via Social Media, and then... on to the final exam!",
       finishFinalNext: "To the Final Exam 🎓",
 
       motivations: {
@@ -88,14 +86,14 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
         4: "Day 4 checked off! ⚡️ You are pushing through the hardest training in the app. That requires massive discipline. Strong!",
         5: "Five days of Kanji drill! 🔥 You are building an incredible vocabulary right now. Rest your head a bit.",
         6: "Day 6 mastered! 🥋 If a character absolutely won't stick in your head: Use the mnemonics! They help tremendously.",
-        7: "Week 1 in Phase 4 done! 🎉 Look at how many complex characters you can already read. Pure madness!",
+        7: "Week 1 in Phase 4 done! 🎉 Look at how many complex characters you can already read. Pure madness! Celebrate with a quick trip to our TikTok channel.",
         8: "Day 8 done! 🔋 You are fully in the Kanji flow. Your brain is getting used to the many strokes and patterns.",
         9: "Nine days straight! 🚀 Don't despair over similar characters. The eye learns the tiny differences over time.",
         10: "Double digits! Day 10! 🏆 Halfway through the masterclass. You are proving that you are absolutely serious about Japanese!",
         11: "Day 11 is history! ⚔️ You are doing great. One more Kanji a day is one less street sign in Tokyo that confuses you.",
         12: "Twelve days in the box! 🛡️ You're starting to guess the meaning of words from the character, right? That's the Kanji effect!",
         13: "Day 13 done! ⏳ Keep up the focus. It's exhausting, but the payoff at the end is massive.",
-        14: "Two weeks of Kanji training! 🎉 You've built an enormous arsenal of characters. Treat yourself to a piece of chocolate today!",
+        14: "Two weeks of Kanji training! 🎉 You've built an enormous arsenal. Treat yourself to a piece of chocolate and some Tokyo air on our Insta account!",
         15: "Day 15 checked off! 🌟 The end is in sight. Don't let up now, you're on the home stretch!",
         16: "Day 16 done! 🔥 Your eye scans the strokes automatically by now. The hard work is paying off.",
         17: "Mission 17 in the bag! 🎯 Remember how Kanji looked like unreadable artwork a few weeks ago. Now you read them!",
@@ -287,7 +285,6 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* HEADER FIX: left-1/2 -translate-x-1/2 zentriert perfekt, px-4 schützt den Rand */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 sm:px-6 flex justify-between items-center z-10">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">&larr; {t.backDeck}</button>
         <span className="text-purple-400 text-xs sm:text-sm font-bold">{t.day} {day} | {t.remaining} {queue.length}</span>
@@ -334,7 +331,6 @@ const KanjiCard = ({ day, mode = 'read', onBack, language }) => {
               {!isRevealed ? (
                 <div className="w-full flex flex-col items-center relative">
                   
-                  {/* Das japanische Schreib-Raster hinter dem Canvas */}
                   <div className="absolute inset-0 pointer-events-none opacity-20 z-0 top-0 left-1/2 -translate-x-1/2 w-[220px] h-[220px] rounded-2xl overflow-hidden">
                     <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                       <line x1="50%" y1="0" x2="50%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
