@@ -65,11 +65,14 @@ const DrawCanvas = ({ character, onResult }) => {
     setIsRevealed(true);
   };
 
-  // Dynamische Textgröße abhängig von der Zeichenlänge (für kawa, kya etc.)
+  // Dynamische Textgröße extrem erweitert, damit auch sehr lange Wörter reinpassen
   const getTextSizeClass = (charLength) => {
     if (charLength === 1) return 'text-[10rem]';
-    if (charLength === 2) return 'text-[7rem]';
-    return 'text-[4.5rem]';
+    if (charLength === 2) return 'text-[6.5rem]';
+    if (charLength === 3) return 'text-[4.5rem]';
+    if (charLength === 4) return 'text-[3.5rem]';
+    if (charLength === 5) return 'text-[2.8rem]';
+    return 'text-[2.2rem]'; // Für 6 oder mehr Zeichen (wie chokoreeto)
   };
 
   return (
@@ -77,7 +80,7 @@ const DrawCanvas = ({ character, onResult }) => {
       
       <div className="relative w-full max-w-[18rem] aspect-square bg-gray-800 rounded-2xl shadow-inner border-2 border-gray-700 overflow-hidden mb-6 touch-none flex items-center justify-center">
         
-        {/* NEU: Das japanische Schreib-Raster (Kreuz-Muster) */}
+        {/* Das japanische Schreib-Raster */}
         <div className="absolute inset-0 pointer-events-none opacity-20 z-0">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <line x1="50%" y1="0" x2="50%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
@@ -85,9 +88,9 @@ const DrawCanvas = ({ character, onResult }) => {
           </svg>
         </div>
 
-        {/* Hologramm/Materialisierungs-Animation mit dynamischer Größe und ohne Zeilenumbruch */}
+        {/* Hologramm/Materialisierungs-Animation mit dynamischer Größe */}
         <div 
-          className={`absolute flex items-center justify-center font-bold text-green-500/60 select-none z-10 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)] whitespace-nowrap
+          className={`absolute flex items-center justify-center font-bold text-green-500/60 select-none z-10 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)] whitespace-nowrap px-2
             ${isRevealed ? 'opacity-100 scale-100 blur-none' : 'opacity-0 scale-50 blur-xl'}
             ${getTextSizeClass(character ? character.length : 1)}
           `}
