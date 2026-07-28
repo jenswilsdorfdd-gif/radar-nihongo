@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 
-const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
+const Home = ({ 
+  onSelectMode, 
+  onReset, 
+  onGoToWelcome, 
+  kanaReadDay, setKanaReadDay, 
+  kanaWriteDay, setKanaWriteDay, 
+  readingDay, setReadingDay, 
+  radarDay, setRadarDay, 
+  kanjiDay, setKanjiDay, 
+  language 
+}) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showSurvivalModal, setShowSurvivalModal] = useState(false); 
@@ -34,18 +44,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       setClickCount(0);
     }
     
-    // Reset click count after 2 seconds if not completed
     setTimeout(() => setClickCount(0), 2000);
   };
 
-  // Optische Überschreibung der Tage für den Dev Mode
-  const displayKanaRead = devMode ? 14 : kanaReadDay;
-  const displayKanaWrite = devMode ? 14 : kanaWriteDay;
-  const displayReading = devMode ? 21 : readingDay;
-  const displayRadar = devMode ? 21 : radarDay;
-  const displayKanji = devMode ? 21 : kanjiDay;
-
-  // LOCK MECHANISMUS (Berücksichtigt jetzt den Dev Mode!)
+  // LOCK MECHANISMUS (Berücksichtigt den Dev Mode)
   const isParticleUnlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14);
   const isPhase2Unlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14); 
   const isPhase3Unlocked = devMode || (isPhase2Unlocked && readingDay >= 21);
@@ -84,30 +86,24 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       particleTitle: "Der Partikel-Code",
       particleDesc: "Entschlüssele die Matrix.",
       particleLockedDesc: "Schließe Phase 1 komplett ab, um den Partikel-Code freizuschalten.",
-      
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Brücken-Training zum Radar: Trainiere das flüssige Lesen in 3 Stufen (Alltag, Texte, Dialoge).",
       phase2LockedDesc: "Schließe Phase 1 ab, um diese Mission freizuschalten.",
-      
       phase3Title: "Phase 3: 21-Tage-Radar",
       phase3Desc: "Stresstest, Wortschatz und Reaktion für das Überleben im Alltag.",
       phase3LockedDesc: "Schließe Phase 2 (Kana Flow) ab, um das Radar freizuschalten.",
-      
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
       phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Kanji-Training freizuschalten.",
-      
       examTitle: "Abschluss-Prüfung",
       examDesc: "Der finale 30-Fragen Stresstest. Beweise, was du gelernt hast.",
       examLockedTitle: "Prüfung Gesperrt",
       examLockedDesc: "Schließe alle Phasen komplett ab, um den finalen Test freizuschalten.",
-      
       groupTitle: "Live Dojo: Gruppen-Training",
       groupDesc: "Wende dein Wissen an! Melde dich hier für die interaktiven Live-Übungen an.",
       groupBtn: "Jetzt Registrieren",
       day: "Tag",
       scenario: "Text",
-      
       socialTitle: "Tägliche Japan-Hacks",
       socialDesc: (
         <>
@@ -115,7 +111,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           Bleib bei der Stange!
         </>
       ),
-
       survModalTitle: "Japan Survival-Kit",
       survModalIntro: "Sprache ist nur die halbe Miete. Wer das Mindset und die Kultur versteht, gewinnt auf der Straße.",
       survSec1Title: "📺 Filme & Serien",
@@ -125,7 +120,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       survSec3Title: "🙇‍♂️ Der Straßen-Knigge",
       survSec3Desc: "Regel Nr. 1: In der Bahn wird nicht telefoniert. Regel Nr. 2: Steck deine Essstäbchen niemals aufrecht in den Reis (Todes-Symbolik). Beobachte die Locals und pass dich an!",
       survModalClose: "Alles klar!",
-      
       modalTitle: "Der 8-Wochen-Fahrplan",
       modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
       modalW1Title: "Woche 1 & 2: Das Fundament",
@@ -138,7 +132,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalCtaDesc: "Wissen allein reicht nicht – du musst es anwenden! Melde dich für unser interaktives Gruppentraining an und trainiere deine Reflexe in echten Gesprächen.",
       modalCtaBtn: "Jetzt fürs Dojo registrieren",
       modalClose: "Verstanden",
-      
       regTitle: "Dojo Registrierung",
       regSubtitle: "Trage dich für das Live-Training ein.",
       fName: "Vorname",
@@ -164,30 +157,24 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       particleTitle: "The Particle Code",
       particleDesc: "Decode the Matrix.",
       particleLockedDesc: "Complete Phase 1 entirely to unlock the Particle Code.",
-      
       phase2FlowTitle: "Phase 2: Kana Flow",
       phase2FlowDesc: "Radar Bridge Training: Practice fluent reading in 3 levels (Daily, Texts, Dialogues).",
       phase2LockedDesc: "Complete Phase 1 to unlock this mission.",
-      
       phase3Title: "Phase 3: 21-Day Radar",
       phase3Desc: "Stress test, vocabulary, and reaction for everyday survival.",
       phase3LockedDesc: "Complete Phase 2 (Kana Flow) to unlock the Radar.",
-      
       phase4Title: "Phase 4: Kanji N5",
       phase4Desc: "Learn meaning, reading, and application of complex characters.",
       phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Kanji training.",
-      
       examTitle: "Final Exam",
       examDesc: "The ultimate 30-question stress test. Prove your skills.",
       examLockedTitle: "Exam Locked",
       examLockedDesc: "Complete all phases entirely to unlock the final test.",
-      
       groupTitle: "Live Dojo: Group Training",
       groupDesc: "Apply your knowledge! Register here for interactive live exercises.",
       groupBtn: "Register Now",
       day: "Day",
       scenario: "Text",
-
       socialTitle: "Daily Japan Hacks",
       socialDesc: (
         <>
@@ -195,7 +182,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           Stay focused!
         </>
       ),
-
       survModalTitle: "Japan Survival Kit",
       survModalIntro: "Language is only half the battle. If you understand the mindset and culture, you win on the street.",
       survSec1Title: "📺 Movies & Series",
@@ -205,7 +191,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       survSec3Title: "🙇‍♂️ Street Etiquette",
       survSec3Desc: "Rule No. 1: No phone calls on the train. Rule No. 2: Never stick your chopsticks upright in the rice (death symbolism). Observe the locals and adapt!",
       survModalClose: "Got it!",
-      
       modalTitle: "The 8-Week Roadmap",
       modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life in Japan. Practice over theory!",
       modalW1Title: "Week 1 & 2: The Foundation",
@@ -218,7 +203,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalCtaDesc: "Knowledge alone isn't enough – you have to apply it! Sign up for our interactive group training and test your reflexes in real conversations.",
       modalCtaBtn: "Register for the Dojo now",
       modalClose: "Got it",
-      
       regTitle: "Dojo Registration",
       regSubtitle: "Sign up for the live training.",
       fName: "First Name",
@@ -307,7 +291,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <span className="text-5xl">⛩️</span>
         </button>
         
-        {/* Der Secret Dev-Mode Trigger */}
         <h1 
           onClick={handleSecretClick} 
           className="text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2 cursor-pointer select-none"
@@ -324,23 +307,56 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       </div>
 
       <div className="w-full max-w-sm space-y-4 pb-12">
+        
+        {/* DEV TOOLS ADMIN PANEL */}
+        {devMode && (
+          <div className="w-full bg-black/60 border-2 border-pink-500/50 rounded-2xl p-4 mb-6 shadow-[0_0_20px_rgba(236,72,153,0.15)]">
+            <h3 className="text-pink-400 font-bold text-xs tracking-widest uppercase mb-4 text-center flex items-center justify-center gap-2">
+              <span>🛠</span> Level Selector
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-green-400 font-bold uppercase tracking-wider">Kana Read</label>
+                <input type="number" min="1" max="14" value={kanaReadDay} onChange={(e) => setKanaReadDay && setKanaReadDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-blue-400 font-bold uppercase tracking-wider">Kana Write</label>
+                <input type="number" min="1" max="14" value={kanaWriteDay} onChange={(e) => setKanaWriteDay && setKanaWriteDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-cyan-400 font-bold uppercase tracking-wider">Kana Flow</label>
+                <input type="number" min="1" max="21" value={readingDay} onChange={(e) => setReadingDay && setReadingDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-yellow-400 font-bold uppercase tracking-wider">Radar</label>
+                <input type="number" min="1" max="21" value={radarDay} onChange={(e) => setRadarDay && setRadarDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-purple-400 font-bold uppercase tracking-wider">Kanji N5</label>
+                <input type="number" min="1" max="21" value={kanjiDay} onChange={(e) => setKanjiDay && setKanjiDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+            </div>
+            <p className="text-gray-500 text-[10px] mt-3 text-center uppercase tracking-widest">Die Änderungen sind sofort live.</p>
+          </div>
+        )}
+
         {/* PHASE 1 (Immer frei) */}
         <button onClick={() => onSelectMode('kana-read')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">{t.phase1ReadTitle}</h2>
-            <span className="text-green-500 text-sm font-bold">{t.day} {displayKanaRead}/14</span>
+            <span className="text-green-500 text-sm font-bold">{t.day} {kanaReadDay}/14</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">{t.phase1ReadDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${(displayKanaRead / 14) * 100}%` }}></div></div>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${(kanaReadDay / 14) * 100}%` }}></div></div>
         </button>
 
         <button onClick={() => onSelectMode('kana-write')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-blue-500/50 transition-all group text-left relative overflow-hidden">
           <div className="flex justify-between items-end mb-2">
             <h2 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{t.phase1WriteTitle}</h2>
-            <span className="text-blue-500 text-sm font-bold">{t.day} {displayKanaWrite}/14</span>
+            <span className="text-blue-500 text-sm font-bold">{t.day} {kanaWriteDay}/14</span>
           </div>
           <p className="text-gray-400 text-sm mb-4">{t.phase1WriteDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(displayKanaWrite / 14) * 100}%` }}></div></div>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div></div>
         </button>
 
         <div className="py-2">
@@ -379,10 +395,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.phase2FlowTitle}</h2>
-              <span className="text-cyan-500 text-sm font-bold">{t.scenario} {displayReading}/21</span>
+              <span className="text-cyan-500 text-sm font-bold">{t.scenario} {readingDay}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase2FlowDesc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(displayReading / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
@@ -401,10 +417,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('radar')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{t.phase3Title}</h2>
-              <span className="text-yellow-500 text-sm font-bold">{t.day} {displayRadar}/21</span>
+              <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase3Desc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(displayRadar / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
@@ -423,10 +439,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <button onClick={() => onSelectMode('kanji')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all group text-left relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.phase4Title}</h2>
-              <span className="text-purple-500 text-sm font-bold">{t.day} {displayKanji}/21</span>
+              <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">{t.phase4Desc}</p>
-            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(displayKanji / 21) * 100}%` }}></div></div>
+            <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
           </button>
         ) : (
           <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
