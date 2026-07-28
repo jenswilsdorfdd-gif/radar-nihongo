@@ -49,13 +49,11 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
       backToMenu: "Zurück zum Deck",
       errorMsg: "Noch keine Missionen für Tag",
       
-      // Meilenstein Tag 21
       finishFinalTitle: "Phase 3 Komplett!",
       finishFinalSub: "Stresstest ÜBERLEBT! 🥋",
-      finishFinalDesc: "Wahnsinn! Du hast dein Gehör an das echte Japan-Tempo gewöhnt. Wenn du jetzt in Tokio an der Kasse stehst, bist du kein hilfloser Tourist mehr. Halte deine Reflexe scharf und wiederhole Missionen, wann immer du willst! Bereit für den Feinschliff?",
+      finishFinalDesc: "Wahnsinn! Du hast dein Gehör an das echte Japan-Tempo gewöhnt. Wenn du jetzt in Tokio an der Kasse stehst, bist du kein hilfloser Tourist mehr. Halte deine Reflexe scharf und wiederhole Missionen, wann immer du willst! Für tägliche Japan-Hacks sehen wir uns auf Insta. Bereit für den Feinschliff?",
       finishFinalNext: "Weiter zu Phase 4 (Kanji) 🏯",
 
-      // Tägliche Motivationen (1-20)
       motivations: {
         1: "Willkommen im Radar! 📡 Das echte Japanisch ist schnell. Keine Panik, wenn du nicht sofort alles verstehst. Wir trainieren jetzt deine Ohren!",
         2: "Einsatz 2 überlebt! 🎧 Dein Gehirn filtert langsam die Füllwörter heraus. Fokussiere dich auf die Keywords, das reicht oft schon.",
@@ -63,14 +61,14 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
         4: "Tag 4 im Kasten! 🎯 Sprechen und Hören gleichzeitig strengt an, aber genau das löst die Sprachblockade in deinem Kopf.",
         5: "Einsatz 5 erledigt! 🔥 Du fängst an, instinktiv zu antworten, ohne den deutschen Satz im Kopf erst mühsam zu übersetzen. Weiter so!",
         6: "Sechs Tage Radar-Training! ⚡️ Du hast heute wieder Nerven aus Stahl bewiesen. Lass dich von hohem Tempo nicht einschüchtern.",
-        7: "Woche 1 im Stresstest geschafft! 🎉 Das war intensiv. Stell dir vor, du stehst im Konbini – du würdest jetzt schon durchkommen!",
+        7: "Woche 1 im Stresstest geschafft! 🎉 Das war intensiv. Stell dir vor, du stehst im Konbini – du würdest jetzt schon durchkommen! Zur Entspannung gibt's auf Insta echtes Tokio-Feeling.",
         8: "Tag 8 abgehakt! 🔋 Die Sätze werden komplexer, aber du scannst die wichtigen Infos blitzschnell. Genau so macht man das.",
         9: "Einsatz 9 gemeistert! 🥋 Wenn das Sprechen mal hakt, einfach tief durchatmen. Fehler sind hier im Dojo erlaubt, auf der Straße musst du funktionieren.",
         10: "Zweistellig! Tag 10! 🏆 Halbzeit im Radar-Deck. Du kannst verdammt stolz auf deine Disziplin sein!",
         11: "Tag 11 im Sack! 🛡️ Du erkennst Partikel jetzt oft schon am Klang. Das ist ein massives Level-Up für dein Gehirn.",
         12: "Zwölf Tage Radar! 🎌 Echtes Verstehen heißt, Lücken im Satz mental aufzufüllen. Du machst das hervorragend.",
         13: "Einsatz 13 geschafft! ⏳ Du bist extrem fokussiert geblieben. Gönn deinen Ohren jetzt eine kurze Pause.",
-        14: "Zwei Wochen Stresstest! 🎉 Dein Sprachzentrum wird gerade komplett neu verdrahtet. Ruh dich kurz aus, dann geht's weiter!",
+        14: "Zwei Wochen Stresstest! 🎉 Dein Sprachzentrum wird gerade komplett neu verdrahtet. Ruh dich kurz aus und hol dir auf TikTok deinen Motivations-Boost!",
         15: "Tag 15 abgehakt! 🚀 Hast du gemerkt, dass dir die Antworten immer schneller auf der Zunge liegen? Das ist der Radar-Effekt.",
         16: "Tag 16 erledigt! 🔥 Wir nähern uns dem Finale. Deine Frustrationstoleranz für schnelle Dialoge ist extrem gestiegen.",
         17: "Einsatz 17 im Kasten! 🎯 Wenn du jetzt nach Japan fliegst, bringt dich so schnell nichts mehr aus der Ruhe.",
@@ -109,7 +107,7 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
       
       finishFinalTitle: "Phase 3 Complete!",
       finishFinalSub: "Stress Test SURVIVED! 🥋",
-      finishFinalDesc: "Amazing! You've tuned your ears to the real Japanese speed. When you stand at a cash register in Tokyo now, you're no helpless tourist anymore. Keep your reflexes sharp and repeat missions whenever you want! Ready for the finishing touches?",
+      finishFinalDesc: "Amazing! You've tuned your ears to the real Japanese speed. When you stand at a cash register in Tokyo now, you're no helpless tourist anymore. Keep your reflexes sharp and repeat missions whenever you want! Check out our Insta for daily Japan hacks. Ready for the finishing touches?",
       finishFinalNext: "Continue to Phase 4 (Kanji) 🏯",
 
       motivations: {
@@ -119,14 +117,14 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
         4: "Day 4 in the bag! 🎯 Speaking and listening simultaneously is exhausting, but that's exactly what breaks the language block in your head.",
         5: "Mission 5 done! 🔥 You're starting to answer instinctively without laboriously translating the English sentence in your head first. Keep it up!",
         6: "Six days of Radar training! ⚡️ You've shown nerves of steel today. Don't be intimidated by high speeds.",
-        7: "Week 1 of the stress test completed! 🎉 That was intense. Imagine standing in a convenience store – you'd survive right now!",
+        7: "Week 1 of the stress test completed! 🎉 That was intense. Imagine standing in a convenience store – you'd survive right now! Relax with some real Tokyo vibes on our Insta.",
         8: "Day 8 checked off! 🔋 The sentences are getting more complex, but you scan the important info in a flash. That's how it's done.",
         9: "Mission 9 mastered! 🥋 If speaking gets stuck, just take a deep breath. Errors are allowed here in the Dojo, on the street you must function.",
         10: "Double digits! Day 10! 🏆 Halfway through the Radar deck. You can be damn proud of your discipline!",
         11: "Day 11 in the bag! 🛡️ You can often recognize particles just by their sound now. That's a massive level-up for your brain.",
         12: "Twelve days of Radar! 🎌 Real understanding means mentally filling gaps in a sentence. You're doing excellently.",
         13: "Mission 13 done! ⏳ You stayed extremely focused. Give your ears a short break now.",
-        14: "Two weeks of stress testing! 🎉 Your language center is being completely rewired. Rest briefly, then keep going!",
+        14: "Two weeks of stress testing! 🎉 Your language center is being completely rewired. Rest briefly and grab your motivational boost on TikTok!",
         15: "Day 15 checked off! 🚀 Have you noticed that the answers are on the tip of your tongue much faster? That's the Radar effect.",
         16: "Day 16 done! 🔥 We are approaching the finale. Your frustration tolerance for fast dialogues has increased immensely.",
         17: "Mission 17 in the box! 🎯 If you fly to Japan right now, nothing will shake you easily anymore.",
@@ -253,7 +251,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
     setWrongScans([]); 
   };
 
-  // --- PARTIKEL SCANNER LOGIK ---
   const particleInfo = {
     "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
     "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
@@ -344,7 +341,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
     return cleanTranscript.includes(expectedKanji) || cleanTranscript.includes(expectedKana);
   };
 
-  // --- END SCREENS ---
   if (isFinished) {
     if (day === 21) {
       return (
@@ -416,7 +412,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
 
       <div className="w-full max-w-[22rem] sm:max-w-sm mx-auto mt-12 flex flex-col items-center">
         
-        {/* PHASE 1 */}
         <div className="w-full bg-gray-800 rounded-2xl p-6 border-l-4 border-yellow-500 shadow-lg mb-4">
           <p className="text-yellow-500 text-xs font-bold tracking-widest uppercase mb-2">{t.scenario}</p>
           <p className="text-gray-300 text-sm mb-4">{currentScenario.context}</p>
@@ -512,7 +507,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
           )}
         </div>
 
-        {/* PHASE 2 */}
         {step === 2 && !isScanner && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-4 animate-fade-in text-center">
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">{t.npcReplies}</p>
@@ -539,7 +533,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
           </div>
         )}
 
-        {/* PHASE 3 */}
         {step === 3 && (
           <div className={`w-full rounded-2xl p-6 border mb-4 animate-fade-in relative overflow-hidden ${isAnswerCorrect ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
             <div className={`absolute top-0 left-0 w-1 h-full ${isAnswerCorrect ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -568,7 +561,6 @@ const Flashcard = ({ day, onBack, onNextDay, language }) => {
 
       </div>
 
-      {/* STEUERUNG BOTTOM */}
       <div className="w-full max-w-[22rem] sm:max-w-sm mt-4 mx-auto pb-8">
         
         {step === 1 && !isScanner && (
