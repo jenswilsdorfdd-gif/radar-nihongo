@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay, readingDay, radarDay, kanjiDay, language }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showSurvivalModal, setShowSurvivalModal] = useState(false); // NEU: Survival Modal
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
@@ -46,6 +47,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     de: {
       reset: "Reset",
       info: "Fahrplan",
+      survivalBtn: "Survival", // NEUER BUTTON
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
@@ -67,7 +69,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase4Desc: "Lerne Bedeutung, Lesung und Anwendung komplexer Zeichen.",
       phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Kanji-Training freizuschalten.",
       
-      // PRÜFUNG TEXTE
       examTitle: "Abschluss-Prüfung",
       examDesc: "Der finale 30-Fragen Stresstest. Beweise, was du gelernt hast.",
       examLockedTitle: "Prüfung Gesperrt",
@@ -79,7 +80,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       day: "Tag",
       scenario: "Text",
       
-      // SOCIAL MEDIA TEXTE
       socialTitle: "Tägliche Japan-Hacks",
       socialDesc: (
         <>
@@ -87,8 +87,18 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           Bleib bei der Stange!
         </>
       ),
+
+      // NEU: SURVIVAL MODAL TEXTE
+      survModalTitle: "Japan Survival-Kit",
+      survModalIntro: "Sprache ist nur die halbe Miete. Wer das Mindset und die Kultur versteht, gewinnt auf der Straße.",
+      survSec1Title: "📺 Filme & Serien",
+      survSec1Desc: "Schau dir Serien wie 'Midnight Diner: Tokyo Stories' (Netflix) an. Dort hörst du echtes Kneipen-Japanisch, abseits vom sterilen Lehrbuch-Slang.",
+      survSec2Title: "🎧 Dokus & Vibes",
+      survSec2Desc: "Such auf YouTube nach 'Tokyo Walking Tours' oder 'Japan Street Food'. Das hilft deinem Gehirn, sich an die akustische Kulisse und die visuelle Reizüberflutung zu gewöhnen.",
+      survSec3Title: "🙇‍♂️ Der Straßen-Knigge",
+      survSec3Desc: "Regel Nr. 1: In der Bahn wird nicht telefoniert. Regel Nr. 2: Steck deine Essstäbchen niemals aufrecht in den Reis (Todes-Symbolik). Beobachte die Locals und pass dich an!",
+      survModalClose: "Alles klar!",
       
-      // FAHRPLAN MODAL TEXTE
       modalTitle: "Der 8-Wochen-Fahrplan",
       modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
       modalW1Title: "Woche 1 & 2: Das Fundament",
@@ -102,7 +112,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalCtaBtn: "Jetzt fürs Dojo registrieren",
       modalClose: "Verstanden",
       
-      // REGISTRIERUNG MODAL TEXTE
       regTitle: "Dojo Registrierung",
       regSubtitle: "Trage dich für das Live-Training ein.",
       fName: "Vorname",
@@ -119,6 +128,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
     en: {
       reset: "Reset",
       info: "Roadmap",
+      survivalBtn: "Survival", // NEW
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
@@ -140,7 +150,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       phase4Desc: "Learn meaning, reading, and application of complex characters.",
       phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Kanji training.",
       
-      // EXAM TEXTS
       examTitle: "Final Exam",
       examDesc: "The ultimate 30-question stress test. Prove your skills.",
       examLockedTitle: "Exam Locked",
@@ -152,7 +161,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       day: "Day",
       scenario: "Text",
 
-      // SOCIAL MEDIA TEXTS
       socialTitle: "Daily Japan Hacks",
       socialDesc: (
         <>
@@ -160,8 +168,17 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           Stay focused!
         </>
       ),
+
+      survModalTitle: "Japan Survival Kit",
+      survModalIntro: "Language is only half the battle. If you understand the mindset and culture, you win on the street.",
+      survSec1Title: "📺 Movies & Series",
+      survSec1Desc: "Watch series like 'Midnight Diner: Tokyo Stories' (Netflix). You'll hear real pub Japanese, away from the sterile textbook slang.",
+      survSec2Title: "🎧 Documentaries & Vibes",
+      survSec2Desc: "Search YouTube for 'Tokyo Walking Tours' or 'Japan Street Food'. This helps your brain get used to the acoustic background and visual overload.",
+      survSec3Title: "🙇‍♂️ Street Etiquette",
+      survSec3Desc: "Rule No. 1: No phone calls on the train. Rule No. 2: Never stick your chopsticks upright in the rice (death symbolism). Observe the locals and adapt!",
+      survModalClose: "Got it!",
       
-      // ROADMAP MODAL TEXTS
       modalTitle: "The 8-Week Roadmap",
       modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life in Japan. Practice over theory!",
       modalW1Title: "Week 1 & 2: The Foundation",
@@ -175,7 +192,6 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       modalCtaBtn: "Register for the Dojo now",
       modalClose: "Got it",
       
-      // REGISTRATION MODAL TEXTS
       regTitle: "Dojo Registration",
       regSubtitle: "Sign up for the live training.",
       fName: "First Name",
@@ -247,11 +263,15 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
   return (
     <div ref={containerRef} className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
-      <div className="absolute top-6 right-6 z-10 flex gap-4 items-center">
+      <div className="absolute top-6 right-6 z-10 flex gap-3 items-center">
+        {/* NEU: SURVIVAL BUTTON */}
+        <button onClick={() => setShowSurvivalModal(true)} className="text-pink-400 hover:text-pink-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-pink-900/30 px-3 py-1.5 rounded-full border border-pink-500/50 transition-all active:scale-95">
+          <span>🎒</span> {t.survivalBtn}
+        </button>
         <button onClick={() => setShowInfoModal(true)} className="text-cyan-400 hover:text-cyan-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-cyan-900/30 px-3 py-1.5 rounded-full border border-cyan-500/50 transition-all active:scale-95">
           <span>ℹ️</span> {t.info}
         </button>
-        <button onClick={onReset} className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest uppercase">
+        <button onClick={onReset} className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest uppercase ml-1">
           {t.reset}
         </button>
       </div>
@@ -431,7 +451,40 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
 
       </div>
 
-      {/* MODALS */}
+      {/* SURVIVAL MODAL */}
+      {showSurvivalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-6 bg-gray-900 border-b border-gray-700 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-bold tracking-widest uppercase text-pink-400">{t.survModalTitle}</h2>
+              <button onClick={() => setShowSurvivalModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-6">
+              <p className="text-gray-300 text-sm leading-relaxed italic border-l-4 border-pink-500 pl-3">{t.survModalIntro}</p>
+              
+              <div>
+                <h3 className="font-bold text-white mb-1">{t.survSec1Title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec1Desc}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1">{t.survSec2Title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec2Desc}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1">{t.survSec3Title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec3Desc}</p>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-gray-900 border-t border-gray-700 shrink-0">
+              <button onClick={() => setShowSurvivalModal(false)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors">{t.survModalClose}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAHRPLAN MODAL */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
@@ -471,6 +524,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
         </div>
       )}
 
+      {/* REGISTRATION MODAL */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
