@@ -77,9 +77,17 @@ const DrawCanvas = ({ character, onResult }) => {
       
       <div className="relative w-full max-w-[18rem] aspect-square bg-gray-800 rounded-2xl shadow-inner border-2 border-gray-700 overflow-hidden mb-6 touch-none flex items-center justify-center">
         
+        {/* NEU: Das japanische Schreib-Raster (Kreuz-Muster) */}
+        <div className="absolute inset-0 pointer-events-none opacity-20 z-0">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <line x1="50%" y1="0" x2="50%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
+            <line x1="0" y1="50%" x2="100%" y2="50%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
+          </svg>
+        </div>
+
         {/* Hologramm/Materialisierungs-Animation mit dynamischer Größe und ohne Zeilenumbruch */}
         <div 
-          className={`absolute flex items-center justify-center font-bold text-green-500/60 select-none z-0 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)] whitespace-nowrap
+          className={`absolute flex items-center justify-center font-bold text-green-500/60 select-none z-10 transition-all duration-700 ease-out drop-shadow-[0_0_15px_rgba(34,197,94,0.4)] whitespace-nowrap
             ${isRevealed ? 'opacity-100 scale-100 blur-none' : 'opacity-0 scale-50 blur-xl'}
             ${getTextSizeClass(character ? character.length : 1)}
           `}
@@ -87,9 +95,10 @@ const DrawCanvas = ({ character, onResult }) => {
           {character}
         </div>
 
+        {/* Die eigentliche Zeichenfläche */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full z-10 cursor-crosshair"
+          className="absolute inset-0 w-full h-full z-20 cursor-crosshair bg-transparent"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
