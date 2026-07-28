@@ -70,6 +70,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       day: "Tag",
       scenario: "Text",
       
+      // SOCIAL MEDIA TEXTE
+      socialTitle: "Tägliche Japan-Hacks",
+      socialDesc: "Hol dir Tipps, Vokabeln & Motivation direkt auf dein Handy. Bleib bei der Stange!",
+      
       // FAHRPLAN MODAL TEXTE
       modalTitle: "Der 8-Wochen-Fahrplan",
       modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
@@ -127,6 +131,10 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
       groupBtn: "Register Now",
       day: "Day",
       scenario: "Text",
+
+      // SOCIAL MEDIA TEXTS
+      socialTitle: "Daily Japan Hacks",
+      socialDesc: "Get tips, vocabulary & motivation straight to your phone. Stay focused!",
       
       // ROADMAP MODAL TEXTS
       modalTitle: "The 8-Week Roadmap",
@@ -254,7 +262,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
         </div>
 
-        {/* PARTIKEL CRASHKURS BUTTON - Mit Sperr-Logik */}
+        {/* PARTIKEL CRASHKURS BUTTON */}
         {isParticleUnlocked ? (
           <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
             <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
@@ -312,7 +320,7 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
           <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent"></div>
         </div>
 
-        {/* PRÜFUNGS BUTTON - Mit Sperr-Logik */}
+        {/* PRÜFUNGS BUTTON */}
         {isExamUnlocked ? (
           <button onClick={() => onSelectMode('final-exam')} className="w-full bg-red-900/40 p-6 rounded-2xl border-2 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:border-red-400 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95">
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/30 transition-all"></div>
@@ -340,8 +348,31 @@ const Home = ({ onSelectMode, onReset, onGoToWelcome, kanaReadDay, kanaWriteDay,
             {t.groupBtn}
           </button>
         </div>
+
+        {/* NEU: SOCIAL MEDIA FOOTER */}
+        <div className="mt-8 pt-8 border-t border-gray-800 text-center pb-6">
+          <h3 className="text-gray-400 font-bold uppercase tracking-widest mb-3 text-sm">{t.socialTitle}</h3>
+          <p className="text-gray-500 text-xs mb-6 px-4">{t.socialDesc}</p>
+          
+          <div className="flex justify-center gap-4">
+            {/* TikTok Icon Button */}
+            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 text-white">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              </svg>
+            </a>
+            {/* Instagram Icon Button */}
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 text-white">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85s.01-3.58.07-4.85c.15-3.23 1.66-4.77 4.92-4.92 1.27-.06 1.64-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07c-4.27.2-5.78 1.71-5.98 5.98C1.01 8.33 1 8.74 1 12s.01 3.67.07 4.95c.2 4.27 1.71 5.78 5.98 5.98 1.28.06 1.69.07 4.95.07s3.67-.01 4.95-.07c4.27-.2 5.78-1.71 5.98-5.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.2-4.27-1.71-5.78-5.98-5.98C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.4-9.44a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
       </div>
 
+      {/* MODALS */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
