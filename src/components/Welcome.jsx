@@ -41,7 +41,7 @@ const Welcome = ({ onStart, language }) => {
       dojoTitle: "Das Ziel: Das Live Dojo!",
       dojoText: "Trainiere hier in der App deine Reflexe. Sobald die Basics sitzen, wartet der ultimative Stresstest auf dich: Trage dich für unser Live Dojo (Gruppen-Training) ein! In interaktiven Videocalls wenden wir das Erlernte live an.",
       dojoBtn: "Jetzt fürs Live Dojo eintragen",
-      outro: "Mach dich bereit, bleib eisern und vertrau dem Prozess. Viel Erfolg! Dein Jens",
+      outro: "Mach dich bereit, bleib eisern und vertrau dem Prozess.<br />Viel Erfolg! Dein Jens",
       startBtn: "⛩️ ZUM HAUPTMENÜ",
 
       // Modal Texte
