@@ -31,8 +31,9 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       day: "Tag",
       remaining: "Übrig:",
       noteLabel: "Trainer-Notiz:",
-      drawPrompt: "Zeichne dieses Kana:",
-      tip: "Tipp:",
+      drawPrompt: "Audio abspielen & Zeichnen:",
+      listenAction: "Wort anhören",
+      tip: "Bedeutung:",
       clickToReveal: "Klicken zum Aufdecken",
       mnemonicLabel: "Eselsbrücke",
       placeholder: "Deine eigene, verrückte Idee...",
@@ -41,7 +42,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       again: "Nochmal",
       gotIt: "Sitzt",
       errorMsg: "Keine Daten gefunden.",
-      // End-Screen Texte
       finishTitle: "Mission Abgeschlossen",
       finishSub: "Hervorragende Arbeit!",
       finishFinalReadTitle: "Kana Lesen Komplett!",
@@ -59,8 +59,9 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       day: "Day",
       remaining: "Remaining:",
       noteLabel: "Trainer Note:",
-      drawPrompt: "Draw this Kana:",
-      tip: "Hint:",
+      drawPrompt: "Play audio & draw:",
+      listenAction: "Listen to word",
+      tip: "Meaning:",
       clickToReveal: "Click to reveal",
       mnemonicLabel: "Mnemonic",
       placeholder: "Your own crazy idea...",
@@ -69,7 +70,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       again: "Again",
       gotIt: "Got it",
       errorMsg: "No data found.",
-      // End-Screen Texts
       finishTitle: "Mission Completed",
       finishSub: "Excellent work!",
       finishFinalReadTitle: "Kana Reading Complete!",
@@ -133,7 +133,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
     setIsEditing(false); 
     if (success) {
       if (queue.length <= 1) {
-        setIsFinished(true); // Schaltet auf den End-Screen um
+        setIsFinished(true); 
       } else {
         setQueue(prev => prev.slice(1));
         setIsFlipped(false);
@@ -144,12 +144,9 @@ const KanaCard = ({ day, mode, onBack, language }) => {
     }
   };
 
-  // --- END SCREENS ---
   if (isFinished) {
-    // Wenn es der letzte Tag (14) ist
     if (day === 14) {
       if (!isWriteMode) {
-        // Tag 14 LESEN abgeschlossen
         return (
           <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center animate-fade-in">
             <div className="w-24 h-24 bg-green-900/30 border-4 border-green-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(34,197,94,0.4)]">👁️</div>
@@ -163,7 +160,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
           </div>
         );
       } else {
-        // Tag 14 SCHREIBEN abgeschlossen
         return (
           <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center animate-fade-in">
             <div className="w-24 h-24 bg-blue-900/30 border-4 border-blue-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(59,130,246,0.4)]">✍️</div>
@@ -179,7 +175,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       }
     }
 
-    // Normaler End-Screen (Tage 1-13)
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center animate-fade-in">
         <div className="w-20 h-20 bg-green-900/30 border-2 border-green-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]">✓</div>
@@ -199,7 +194,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* HEADER */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 sm:px-6 flex justify-between items-center z-10">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs sm:text-sm uppercase tracking-widest font-bold">
           &larr; {t.back}
@@ -223,11 +217,23 @@ const KanaCard = ({ day, mode, onBack, language }) => {
 
       {isWriteMode ? (
         <div className="w-full max-w-[20rem] sm:max-w-sm mx-auto flex flex-col items-center">
-          <div className="text-center mb-6">
-            <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">{t.drawPrompt}</p>
-            <h2 className="text-5xl font-bold text-white tracking-widest mb-1">{currentCharacter.romaji}</h2>
+          <div className="text-center mb-6 w-full">
+            <p className="text-gray-400 text-sm uppercase tracking-widest mb-4">{t.drawPrompt}</p>
+            
+            {/* NEU: Audio-Button statt Romaji */}
+            <div className="flex flex-col items-center justify-center gap-3 mb-2">
+              <button 
+                onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.kana); }}
+                className="w-20 h-20 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 rounded-full flex items-center justify-center text-4xl transition-all shadow-lg active:scale-90 border border-blue-500/30"
+              >
+                🔊
+              </button>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t.listenAction}</p>
+            </div>
+
+            {/* Vokabel-Hinweis bleibt (falls vorhanden) */}
             {currentCharacter.vocab && (
-              <p className="text-blue-400 text-sm font-medium">{t.tip} {currentCharacter.vocabMeaning}</p>
+              <p className="text-blue-400 text-sm font-medium mt-4">{t.tip} {currentCharacter.vocabMeaning}</p>
             )}
           </div>
           
@@ -298,7 +304,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
                 {currentCharacter.vocab && (
                   <div className="w-full border-t border-gray-700 pt-4 mt-2">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      {/* WHITESPACE-NOWRAP FIX für Vokabeln */}
                       <p className="text-xl font-bold text-white whitespace-nowrap">{currentCharacter.vocab}</p>
                       <button onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.vocab); }} className="text-blue-400 hover:text-blue-300 bg-blue-500/10 p-2 rounded-full active:scale-90 transition-transform">🔊</button>
                     </div>
@@ -310,7 +315,6 @@ const KanaCard = ({ day, mode, onBack, language }) => {
                   <div className="w-full border-t border-gray-700 pt-4 mt-4">
                     <div className="flex flex-col items-center justify-center gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        {/* BREAK-KEEP FIX für Sätze */}
                         <p className="text-sm sm:text-base font-bold text-white leading-relaxed text-center break-keep" style={{ wordBreak: 'keep-all' }}>{currentCharacter.sentence}</p>
                         <button onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.sentence); }} className="text-blue-400 hover:text-blue-300 bg-blue-500/10 p-2 rounded-full flex-shrink-0 active:scale-90 transition-transform">🔊</button>
                       </div>
