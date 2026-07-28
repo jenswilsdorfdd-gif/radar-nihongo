@@ -42,9 +42,8 @@ const ReadingCard = ({ day, onBack, language }) => {
     "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
   };
 
-  // Smarter Regex-Scanner: Findet Partikel, aber ignoriert häufige Wort-Fallen 
-  // (z.B. ignoriert er "で", wenn ein "す" folgt -> "です" / ignoriert "と", wenn "も" folgt -> "ともだち")
-  const particleRegex = /(から|まで|を|は(?![いじ])|が(?![っ])|に(?![くも])|で(?!す)|と(?!も)|へ)/g;
+  // Smarter Regex-Scanner (Geupdatet für N5-Ausnahmen wie asagohan, totemo, densha etc.)
+  const particleRegex = /(から|まで|を|は(?![いじんらかきし])|が(?![っつお])|に(?![くもちほんぎ])|で(?![すしんき])|と(?![もてけきこ])|へ)/g;
 
   if (!deckInfo) {
     return <div className="text-white text-center mt-20">{t.error}</div>;
@@ -82,7 +81,7 @@ const ReadingCard = ({ day, onBack, language }) => {
     }
   };
 
-  // FURIGANA & PARTIKEL RENDERER
+  // FURIGANA & PARTIKEL RENDERER (Furigana Zentrierung optimiert)
   const renderTextWithFurigana = (text) => {
     if (!text) return null;
     
@@ -93,11 +92,11 @@ const ReadingCard = ({ day, onBack, language }) => {
       const match = part.match(/([^\s、。！？「」]+){([^}]+)}/);
       
       if (match) {
-        // Normaler Furigana-Block (wird NICHT nach Partikeln gescannt)
+        // Normaler Furigana-Block (Zentriert und Padding repariert)
         return (
-          <ruby key={i} className="px-1">
+          <ruby key={i} className="mx-1" style={{ rubyAlign: 'center', textAlign: 'center' }}>
             {match[1]}
-            <rt className="text-[0.5em] text-cyan-300">{match[2]}</rt>
+            <rt className="text-[0.55em] text-cyan-300 text-center leading-none tracking-tighter">{match[2]}</rt>
           </ruby>
         );
       }
