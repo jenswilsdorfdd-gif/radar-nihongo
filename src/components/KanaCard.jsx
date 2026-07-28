@@ -231,19 +231,8 @@ const KanaCard = ({ day, mode, onBack, language }) => {
             )}
           </div>
           
-          {/* SCHREIB-RASTER HINTER DEM CANVAS */}
-          <div className="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden bg-gray-800 shadow-inner">
-            {/* Das typisch japanische Schreib-Raster */}
-            <div className="absolute inset-0 pointer-events-none opacity-20">
-              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                <line x1="50%" y1="0" x2="50%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
-                <line x1="0" y1="50%" x2="100%" y2="50%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
-              </svg>
-            </div>
-            {/* Der eigentliche Canvas (muss transparenten Background haben in DrawCanvas.jsx) */}
-            <div className="absolute inset-0 z-10">
-              <DrawCanvas character={currentCharacter.kana} onResult={handleNextCard} />
-            </div>
+          <div className="w-full">
+            <DrawCanvas character={currentCharacter.kana} onResult={handleNextCard} />
           </div>
         </div>
       ) : (
