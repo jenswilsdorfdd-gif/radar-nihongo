@@ -78,15 +78,40 @@ function App() {
       .eq('id', userId)
       .single();
 
+    // Sprachen aus dem Onboarding (localStorage) holen
+    const targetLangUpdate = localStorage.getItem('radar_target_lang');
+    const sourceLangUpdate = localStorage.getItem('radar_source_lang');
+
     if (data) {
       setCurrentRadarDay(data.radar_day || 1);
       setKanaReadDay(data.kana_read_day || 1);
       setKanaWriteDay(data.kana_write_day || 1);
       setReadingDay(data.reading_day || 1);
       setCurrentKanjiDay(data.kanji_day || 1);
+
+      // Wenn frische Sprachdaten existieren -> in die Cloud pushen
+      if (targetLangUpdate || sourceLangUpdate) {
+        const updates = {};
+        if (targetLangUpdate) updates.target_language = targetLangUpdate;
+        if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
+        
+        await supabase.from('user_progress').update(updates).eq('id', userId);
+        
+        // Danach lokal löschen, damit es später keine Cloud-Werte überschreibt
+        localStorage.removeItem('radar_target_lang');
+        localStorage.removeItem('radar_source_lang');
+      }
+
     } else if (error && error.code === 'PGRST116') {
-      // User existiert noch nicht in der Tabelle -> neu anlegen
-      await supabase.from('user_progress').insert([{ id: userId }]);
+      // User existiert noch nicht in der Tabelle -> neu anlegen inkl. Sprachen
+      await supabase.from('user_progress').insert([{ 
+        id: userId,
+        target_language: targetLangUpdate || 'jp',
+        source_language: sourceLangUpdate || 'de'
+      }]);
+
+      localStorage.removeItem('radar_target_lang');
+      localStorage.removeItem('radar_source_lang');
     }
     setIsCloudLoading(false);
   };
@@ -186,7 +211,6 @@ function App() {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
         
-        {/* Sonar Logo groß */}
         <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-8 mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400 relative z-10">
@@ -216,11 +240,9 @@ function App() {
     );
   }
 
-  // Blocker während die Cloud-Daten geladen werden
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
-        {/* Sonar Logo mittel */}
         <div className="w-16 h-16 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-green-400 relative z-10">
@@ -244,7 +266,6 @@ function App() {
         <div className="fixed top-6 left-6 z-50 flex gap-3">
           <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}><span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span></button>
           
-          {/* Sprachwähler (Text statt Flagge) */}
           <button onClick={toggleLanguage} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden text-xs font-black text-gray-300 tracking-wider" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title="Sprache wechseln / Switch Language">
             {appLanguage === 'de' ? 'DE' : appLanguage === 'en' ? 'EN' : 'JP'}
           </button>
@@ -257,10 +278,8 @@ function App() {
         </div>
       )}
 
-      {/* Rounting-Weiche für Welcome */}
       {activeView === 'welcome' && <Welcome onStart={() => setActiveView(session ? 'home' : 'auth')} language={appLanguage} />}
       
-      {/* Auth View */}
       {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
 
       {activeView === 'home' && (
@@ -277,7 +296,6 @@ function App() {
           onReset={handleReset} 
           onGoToWelcome={() => setActiveView('welcome')} 
           
-          // Wir übergeben die Setter so, dass Dev-Mode Änderungen direkt in die Cloud gepusht werden
           kanaReadDay={kanaReadDay} 
           setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
           kanaWriteDay={kanaWriteDay} 
