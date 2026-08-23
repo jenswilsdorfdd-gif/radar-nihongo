@@ -8,23 +8,23 @@ const Auth = ({ onLoginSuccess, language }) => {
 
   const texts = {
     de: {
-      title: "System-Zugang",
-      subtitle: "Identifikation erforderlich",
-      desc: "Gib deine E-Mail-Adresse ein. Du erhältst einen abhörsicheren Magic Link, um ohne Passwort ins System zu gelangen.",
+      title: "RADAR Lernplattform",
+      subtitle: "System-Zugang",
+      desc: "Gib deine E-Mail-Adresse ein. Diese Anmeldeform dient dazu, deinen Lernfortschritt sicher in der Cloud zu erfassen. So kannst du das System jederzeit verlassen und später exakt an deinem letzten Speicherpunkt wieder einsteigen – komplett ohne Passwort.",
       emailLabel: "E-Mail-Adresse",
       emailPlaceholder: "deine@email.de",
-      btnSend: "Magic Link anfordern",
+      btnSend: "Systemzugang anfordern",
       btnLoading: "Sende Daten...",
       successMsg: "Link verschickt! Prüfe dein Postfach (auch Spam).",
       errorMsg: "Es gab ein Problem. Bitte versuche es noch einmal."
     },
     en: {
-      title: "System Access",
-      subtitle: "Identification required",
-      desc: "Enter your email address. You will receive a secure Magic Link to enter the system without a password.",
+      title: "RADAR Learning Platform",
+      subtitle: "System Access",
+      desc: "Enter your email address. This login method is used to securely track your learning progress in the cloud. You can leave the system at any time and return exactly to your last save point later – completely without a password.",
       emailLabel: "Email Address",
       emailPlaceholder: "your@email.com",
-      btnSend: "Request Magic Link",
+      btnSend: "Request System Access",
       btnLoading: "Sending data...",
       successMsg: "Link sent! Check your inbox (and spam folder).",
       errorMsg: "There was a problem. Please try again."
@@ -58,8 +58,16 @@ const Auth = ({ onLoginSuccess, language }) => {
   return (
     <div className="flex-1 bg-gray-900 flex flex-col items-center justify-center p-6 text-white min-h-screen relative animate-fade-in">
       <div className="w-full max-w-sm bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative overflow-hidden text-center">
-        <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 mx-auto">
-          <span className="text-4xl">⛩️</span>
+        
+        {/* Neues Sonar/Radar Logo */}
+        <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 mx-auto relative overflow-hidden">
+          <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-green-400 relative z-10">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+          </svg>
         </div>
         
         <h1 className="text-2xl font-extrabold tracking-widest text-white uppercase mb-1">{t.title}</h1>
