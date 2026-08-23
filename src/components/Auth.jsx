@@ -59,14 +59,18 @@ const Auth = ({ onLoginSuccess, language }) => {
     <div className="flex-1 bg-gray-900 flex flex-col items-center justify-center p-6 text-white min-h-screen relative animate-fade-in">
       <div className="w-full max-w-sm bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative overflow-hidden text-center">
         
-        {/* Neues Sonar/Radar Logo */}
+        {/* Neues Sonar-Logo mit pulsierendem Effekt */}
         <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-green-400 relative z-10">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="12" r="6"></circle>
-            <circle cx="12" cy="12" r="2"></circle>
-            <line x1="12" y1="2" x2="12" y2="12"></line>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-green-400 relative z-10">
+            {/* Zentraler Punkt */}
+            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+            {/* Innere Wellen */}
+            <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+            {/* Äußere Wellen */}
+            <path d="M5 5a10 10 0 0 0 0 14"></path>
+            <path d="M19 5a10 10 0 0 1 0 14"></path>
           </svg>
         </div>
         
