@@ -48,7 +48,7 @@ const Welcome = ({ onStart, language }) => {
           Viel Erfolg! Dein Jens
         </>
       ),
-      startBtn: "⛩️ ZUM HAUPTMENÜ",
+      startBtn: "ZUM HAUPTMENÜ",
 
       // Modal Texte
       regTitle: "Dojo Registrierung",
@@ -83,7 +83,7 @@ const Welcome = ({ onStart, language }) => {
           Good luck! Yours, Jens
         </>
       ),
-      startBtn: "⛩️ TO MAIN MENU",
+      startBtn: "TO MAIN MENU",
 
       // Modal Texts
       regTitle: "Dojo Registration",
@@ -206,8 +206,16 @@ const Welcome = ({ onStart, language }) => {
 
       <button 
         onClick={onStart} 
-        className="w-full max-w-sm py-5 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-green-500/20 active:scale-95 transition-all mb-12 animate-fade-in"
+        className="w-full max-w-sm py-5 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-green-500/20 active:scale-95 transition-all mb-12 animate-fade-in flex items-center justify-center gap-3"
       >
+        {/* Sonar Logo */}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-white">
+          <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+          <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M5 5a10 10 0 0 0 0 14"></path>
+          <path d="M19 5a10 10 0 0 1 0 14"></path>
+        </svg>
         {t.startBtn}
       </button>
 
