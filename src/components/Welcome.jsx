@@ -1,281 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import React, { useState } from 'react';
 
 const Welcome = ({ onStart, language }) => {
-  const [showRegModal, setShowRegModal] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [dojoCount, setDojoCount] = useState(7); 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: ''
-  });
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-
-    const fetchDojoCount = async () => {
-      const { count, error } = await supabase
-        .from('dojo_registrations')
-        .select('*', { count: 'exact', head: true });
-        
-      if (!error && count !== null) {
-        setDojoCount(7 + count); 
-      }
-    };
-
-    fetchDojoCount();
-  }, []);
+  // Als Default für die Quellsprache nehmen wir die aktuelle UI-Sprache
+  const [sourceLang, setSourceLang] = useState(language === 'jpn' ? 'jp' : language || 'de');
+  const [targetLang, setTargetLang] = useState('jp');
 
   const texts = {
     de: {
-      title: "RADAR",
-      subtitle: "Nippon Survival System",
-      heading: "Willkommen beim Nippon Survival Training!",
-      para1: "Konnichiwa! Auf meinen eigenen Reisen habe ich schnell gemerkt: Echtes Japanisch auf der Straße funktioniert nicht wie im Lehrbuch. Wenn du in Tokio an der Kasse stehst, hast du keine Zeit für Grammatikregeln. Du musst blitzschnell reagieren. Genau dafür ist dieses System!",
-      romajiTitle: "Warum absolut kein Romaji?",
-      romajiText: "Romaji (die lateinische Umschrift) ist eine Falle! Dein Gehirn ist faul und liest unbewusst Deutsch. Wir reißen dieses Pflaster sofort ab. Es wird anfangs hart, aber nur so lernst du, japanische Wortbilder als Ganzes zu erfassen.",
-      foundationTitle: "Dein Fundament",
-      foundationText: "Wir starten mit Hiragana (für Grammatik) und Katakana (für englische Lehnwörter). Später kommen die chinesischen Kanji dazu. Du musst sie nicht zwingend schreiben können, aber sie zu erkennen, ist vor Ort ein absoluter Gamechanger!",
-      dojoTitle: "Das Ziel: Das Live Dojo!",
-      dojoText: "Trainiere hier in der App deine Reflexe. Sobald die Basics sitzen, wartet der ultimative Stresstest auf dich: Trage dich für unser Live Dojo (Gruppen-Training) ein! In interaktiven Videocalls wenden wir das Erlernte live an.",
-      dojoBtn: "Jetzt fürs Live Dojo eintragen",
-      // JSX mit Umbruch für sauberes Layout
-      outro: (
-        <>
-          Mach dich bereit, bleib eisern und vertrau dem Prozess.<br />
-          Viel Erfolg! Dein Jens
-        </>
-      ),
-      startBtn: "ZUM HAUPTMENÜ",
-
-      // Modal Texte
-      regTitle: "Dojo Registrierung",
-      regSubtitle: "Trage dich für das Live-Training ein.",
-      fName: "Vorname",
-      lName: "Nachname",
-      phone: "Telefonnummer",
-      email: "E-Mail-Adresse",
-      submitBtn: "Verbindlich Anmelden",
-      cancelBtn: "Abbrechen",
-      successTitle: "Erfolgreich registriert!",
-      successText: "Du erhältst in Kürze eine E-Mail mit weiteren Informationen von uns.",
-      closeBtn: "Schließen",
-      counterText: "Teilnehmer angemeldet"
+      title: "RADAR Lernsystem",
+      subtitle: "Willkommen",
+      intro: "RADAR ist ein bidirektionales System, das dich blitzschnell auf echte Konversationen vorbereitet. Wähle nun dein Lernprofil aus, um deinen persönlichen Bereich einzurichten.",
+      targetLabel: "Ich möchte lernen:",
+      sourceLabel: "Meine Ausgangssprache ist:",
+      btnStart: "System betreten",
+      langs: { jp: "Japanisch", de: "Deutsch", en: "Englisch" }
     },
     en: {
-      title: "RADAR",
-      subtitle: "Nippon Survival System",
-      heading: "Welcome to Nippon Survival Training!",
-      para1: "Konnichiwa! On my own travels, I quickly realized: Real Japanese on the street doesn't work like in a textbook. When you're at a cash register in Tokyo, you don't have time for grammar rules. You have to react in a flash. That's exactly what this system is for!",
-      romajiTitle: "Why absolutely no Romaji?",
-      romajiText: "Romaji (the Latin alphabet) is a trap! Your brain is lazy and unconsciously reads English. We're ripping this band-aid off immediately. It will be tough at first, but it's the only way to learn to grasp Japanese word images as a whole.",
-      foundationTitle: "Your Foundation",
-      foundationText: "We start with Hiragana (for grammar) and Katakana (for English loanwords). Later, Chinese Kanji will be added. You don't necessarily have to be able to write them, but recognizing them is an absolute game-changer on site!",
-      dojoTitle: "The Goal: The Live Dojo!",
-      dojoText: "Train your reflexes here in the app. Once you have the basics down, the ultimate stress test awaits you: Sign up for our Live Dojo (group training)! In interactive video calls, we apply what we've learned live.",
-      dojoBtn: "Register for Live Dojo now",
-      // JSX mit Umbruch für sauberes Layout
-      outro: (
-        <>
-          Get ready, stay disciplined, and trust the process.<br />
-          Good luck! Yours, Jens
-        </>
-      ),
-      startBtn: "TO MAIN MENU",
-
-      // Modal Texts
-      regTitle: "Dojo Registration",
-      regSubtitle: "Sign up for the live training.",
-      fName: "First Name",
-      lName: "Last Name",
-      phone: "Phone Number",
-      email: "Email Address",
-      submitBtn: "Confirm Registration",
-      cancelBtn: "Cancel",
-      successTitle: "Registration successful!",
-      successText: "You will receive an email with further information shortly.",
-      closeBtn: "Close",
-      counterText: "participants registered"
+      title: "RADAR Learning System",
+      subtitle: "Welcome",
+      intro: "RADAR is a bidirectional system designed to prepare you for real conversations at lightning speed. Select your learning profile now to set up your personal space.",
+      targetLabel: "I want to learn:",
+      sourceLabel: "My base language is:",
+      btnStart: "Enter System",
+      langs: { jp: "Japanese", de: "German", en: "English" }
+    },
+    jpn: {
+      title: "RADAR 学習システム",
+      subtitle: "ようこそ",
+      intro: "RADARは、実際の会話に瞬時に対応できるよう設計された双方向システムです。学習プロフィールを選択して、パーソナルスペースを設定してください。",
+      targetLabel: "学びたい言語:",
+      sourceLabel: "出発言語 (母国語):",
+      btnStart: "システムに入る",
+      langs: { jp: "日本語", de: "ドイツ語", en: "英語" }
     }
   };
 
   const t = texts[language] || texts.de;
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    
-    const { error } = await supabase
-      .from('dojo_registrations')
-      .insert([
-        { 
-          first_name: formData.firstName, 
-          last_name: formData.lastName, 
-          phone: formData.phone, 
-          email: formData.email 
-        }
-      ]);
-
-    if (error) {
-      console.error("Datenbank-Fehler:", error);
-      alert("Es gab ein Problem bei der Übertragung. Bitte versuche es noch einmal.");
-      return; 
-    }
-
-    const WEBHOOK_URL = "https://hook.eu1.make.com/wmaxaao1iy2shoyk09mx6r2nyrv6awwt"; 
-    
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch (webhookError) {
-      console.error("Webhook Error:", webhookError);
-    }
-
-    setDojoCount(prev => prev + 1);
-    setIsSubmitted(true);
-  };
-
-  const closeRegistration = () => {
-    setShowRegModal(false);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ firstName: '', lastName: '', phone: '', email: '' });
-    }, 300);
+  const handleEnter = () => {
+    // Auswahl im Browser zwischenspeichern, um den Magic-Link-Reload zu überleben
+    localStorage.setItem('radar_target_lang', targetLang);
+    localStorage.setItem('radar_source_lang', sourceLang);
+    onStart(); // Leitet weiter zur Auth.jsx
   };
 
   return (
-    <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 sm:p-8 text-white min-h-screen overflow-y-auto scrollbar-hide">
+    <div className="flex-1 bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8 text-white min-h-screen relative overflow-hidden">
       
-      <div className="mt-12 mb-8 flex flex-col items-center animate-fade-in text-center">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">
+      <div className="w-full max-w-md bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative text-center animate-fade-in flex flex-col items-center">
+        
+        {/* Neues, schlankeres Sonar Logo (Dünne Linien, offenes O) */}
+        <div className="w-24 h-24 bg-gray-900 rounded-full border border-green-500/30 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.1)] mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400">
+            <circle cx="12" cy="12" r="2"></circle>
+            <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+            <path d="M5 5a10 10 0 0 0 0 14"></path>
+            <path d="M19 5a10 10 0 0 1 0 14"></path>
+          </svg>
+        </div>
+
+        <h1 className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2 uppercase">
           {t.title}
         </h1>
-        <p className="text-gray-400 text-xs sm:text-sm tracking-widest uppercase mb-8">
+        <h2 className="text-green-400 text-xs font-bold tracking-widest uppercase mb-6">
           {t.subtitle}
-        </p>
-      </div>
-
-      <div className="w-full max-w-lg bg-gray-800 rounded-3xl p-6 sm:p-10 border border-gray-700 shadow-2xl animate-fade-in mb-12">
-        <h2 className="text-2xl font-bold text-white mb-6 text-center leading-snug">
-          {t.heading}
         </h2>
-        
-        <div className="space-y-8 text-gray-300 text-sm sm:text-base leading-relaxed">
-          <p>{t.para1}</p>
 
-          <div>
-            <h3 className="font-bold text-red-400 mb-2 uppercase tracking-wide">{t.romajiTitle}</h3>
-            <p className="border-l-2 border-red-500/50 pl-3">{t.romajiText}</p>
-          </div>
+        <p className="text-gray-400 text-sm leading-relaxed mb-8">
+          {t.intro}
+        </p>
 
-          <div>
-            <h3 className="font-bold text-blue-400 mb-2 uppercase tracking-wide">{t.foundationTitle}</h3>
-            <p className="border-l-2 border-blue-500/50 pl-3">{t.foundationText}</p>
-          </div>
-
-          <div className="bg-pink-900/20 p-5 rounded-2xl border border-pink-500/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 blur-xl rounded-full"></div>
-            <h3 className="font-bold text-pink-400 mb-2 uppercase tracking-wide relative z-10 flex items-center gap-2">
-              <span>🔥</span> {t.dojoTitle}
-            </h3>
-            <p className="mb-5 relative z-10">{t.dojoText}</p>
-            <button 
-              onClick={() => setShowRegModal(true)}
-              className="w-full py-4 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all uppercase tracking-widest relative z-10 text-xs sm:text-sm"
-            >
-              {t.dojoBtn}
-            </button>
-          </div>
-
-          <p className="text-center italic text-gray-400 pt-4">
-            {t.outro}
-          </p>
-        </div>
-      </div>
-
-      <button 
-        onClick={onStart} 
-        className="w-full max-w-sm py-5 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-green-500/20 active:scale-95 transition-all mb-12 animate-fade-in flex items-center justify-center gap-3"
-      >
-        {/* Sonar Logo */}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-white">
-          <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
-          <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
-          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
-          <path d="M5 5a10 10 0 0 0 0 14"></path>
-          <path d="M19 5a10 10 0 0 1 0 14"></path>
-        </svg>
-        {t.startBtn}
-      </button>
-
-      {/* REGISTRATION MODAL */}
-      {showRegModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
-            
-            <div className="p-6 bg-gray-900 border-b border-gray-700 flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-bold tracking-widest uppercase text-pink-400">{t.regTitle}</h2>
-                <p className="text-gray-400 text-xs mt-1">{t.regSubtitle}</p>
-                
-                <div className="mt-3 inline-block bg-pink-900/40 border border-pink-500/30 text-pink-300 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm">
-                  🔥 Bereits {dojoCount} {t.counterText}!
-                </div>
+        <div className="w-full space-y-6 text-left mb-8">
+          
+          {/* Zielsprache */}
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.targetLabel}</label>
+            <div className="relative">
+              <select 
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value)}
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+              >
+                <option value="jp">{t.langs.jp}</option>
+                <option value="de">{t.langs.de}</option>
+                <option value="en">{t.langs.en}</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                ▼
               </div>
-              {!isSubmitted && <button onClick={closeRegistration} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>}
-            </div>
-            
-            <div className="p-6">
-              {!isSubmitted ? (
-                <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <label className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">{t.fName}</label>
-                      <input required type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-gray-900 text-white rounded-lg border border-gray-600 focus:border-pink-500 focus:outline-none p-3 text-sm" />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">{t.lName}</label>
-                      <input required type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-gray-900 text-white rounded-lg border border-gray-600 focus:border-pink-500 focus:outline-none p-3 text-sm" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">{t.phone}</label>
-                    <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-gray-900 text-white rounded-lg border border-gray-600 focus:border-pink-500 focus:outline-none p-3 text-sm" />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">{t.email}</label>
-                    <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-gray-900 text-white rounded-lg border border-gray-600 focus:border-pink-500 focus:outline-none p-3 text-sm" />
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    <button type="button" onClick={closeRegistration} className="flex-1 py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white uppercase tracking-widest text-xs transition-colors">{t.cancelBtn}</button>
-                    <button type="submit" className="flex-[2] py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-xl font-bold text-white uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">{t.submitBtn}</button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center animate-fade-in">
-                  <div className="w-20 h-20 bg-pink-900/30 border-2 border-pink-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(236,72,153,0.4)]">✓</div>
-                  <h2 className="text-2xl font-bold text-white mb-2">{t.successTitle}</h2>
-                  <p className="text-gray-400 mb-8">{t.successText}</p>
-                  <button onClick={closeRegistration} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white uppercase tracking-widest transition-all active:scale-95">{t.closeBtn}</button>
-                </div>
-              )}
             </div>
           </div>
-        </div>
-      )}
 
+          {/* Quellsprache */}
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.sourceLabel}</label>
+            <div className="relative">
+              <select 
+                value={sourceLang}
+                onChange={(e) => setSourceLang(e.target.value)}
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+              >
+                <option value="de">{t.langs.de}</option>
+                <option value="en">{t.langs.en}</option>
+                <option value="jp">{t.langs.jp}</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                ▼
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <button 
+          onClick={handleEnter}
+          className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 rounded-xl font-bold text-white uppercase tracking-widest text-sm shadow-lg active:scale-95 transition-all"
+        >
+          {t.btnStart}
+        </button>
+
+      </div>
     </div>
   );
 };
