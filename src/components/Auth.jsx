@@ -38,33 +38,40 @@ const Auth = ({ onLoginSuccess, language }) => {
     setLoading(true);
     setMessage('');
 
-    const { error } = await supabase.auth.signInWithOtp({ 
-      email,
-      options: {
-        // Leitet nach dem Klick in der E-Mail zurück auf deine App
-        emailRedirectTo: window.location.origin
-      }
-    });
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email,
+        options: {
+          // Leitet nach dem Klick in der E-Mail zurück auf deine App
+          emailRedirectTo: window.location.origin
+        }
+      });
 
-    if (error) {
+      if (error) {
+        setMessage(t.errorMsg);
+        console.error("Auth Error:", error.message, error);
+      } else {
+        setMessage(t.successMsg);
+      }
+    } catch (err) {
       setMessage(t.errorMsg);
-      console.error("Auth Error:", error);
-    } else {
-      setMessage(t.successMsg);
+      console.error("Unexpected Auth Error:", err);
+    } finally {
+      // Dieser Block wird GARANTIERT ausgeführt, das Hängenbleiben ist damit unmöglich
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="flex-1 bg-gray-900 flex flex-col items-center justify-center p-6 text-white min-h-screen relative animate-fade-in">
       <div className="w-full max-w-sm bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative overflow-hidden text-center">
         
-        {/* Neues Sonar-Logo mit pulsierendem Effekt */}
+        {/* Neues schlankes Sonar-Logo mit pulsierendem Effekt */}
         <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-green-400 relative z-10">
-            {/* Zentraler Punkt */}
-            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-green-400 relative z-10">
+            {/* Offener Kreis */}
+            <circle cx="12" cy="12" r="2"></circle>
             {/* Innere Wellen */}
             <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
             <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
