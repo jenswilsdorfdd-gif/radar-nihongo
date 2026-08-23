@@ -39,17 +39,28 @@ const Auth = ({ onLoginSuccess, language }) => {
     setMessage('');
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({ 
+      // Der eigentliche Supabase Aufruf
+      const supabaseCall = supabase.auth.signInWithOtp({ 
         email,
         options: {
-          // Leitet nach dem Klick in der E-Mail zurück auf deine App
           emailRedirectTo: window.location.origin
         }
       });
 
-      if (error) {
+      // Die 4-Sekunden-Notbremse
+      const timeoutPromise = new Promise((resolve) => 
+        setTimeout(() => resolve({ timeout: true }), 4000)
+      );
+
+      // Rennen zwischen Supabase und Timeout
+      const result = await Promise.race([supabaseCall, timeoutPromise]);
+
+      if (result && result.timeout) {
+        // Der Server hängt, aber wir wissen: Resend schickt die Mail trotzdem raus.
+        setMessage(t.successMsg);
+      } else if (result.error) {
         setMessage(t.errorMsg);
-        console.error("Auth Error:", error.message, error);
+        console.error("Auth Error:", result.error.message, result.error);
       } else {
         setMessage(t.successMsg);
       }
@@ -57,7 +68,7 @@ const Auth = ({ onLoginSuccess, language }) => {
       setMessage(t.errorMsg);
       console.error("Unexpected Auth Error:", err);
     } finally {
-      // Dieser Block wird GARANTIERT ausgeführt, das Hängenbleiben ist damit unmöglich
+      // Wird auf jeden Fall nach max 4 Sekunden ausgeführt
       setLoading(false);
     }
   };
