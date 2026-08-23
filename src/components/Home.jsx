@@ -60,6 +60,13 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
+    // AUTO-POPUP LOGIK FÜR DAS INTRO-MODAL
+    const hasSeenIntro = localStorage.getItem('radar_has_seen_intro');
+    if (!hasSeenIntro) {
+      setShowInfoModal(true);
+      localStorage.setItem('radar_has_seen_intro', 'true');
+    }
+
     const fetchDojoCount = async () => {
       const { count, error } = await supabase
         .from('dojo_registrations')
