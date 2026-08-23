@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient'; // NEU: Supabase Client
+import { supabase } from './supabaseClient';
 import Welcome from './components/Welcome';
-import Auth from './components/Auth'; // NEU: Auth Komponente
+import Auth from './components/Auth';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import Flashcard from './components/Flashcard';
@@ -176,20 +176,40 @@ function App() {
     setActiveView('welcome');
   };
 
+  const toggleLanguage = () => {
+    if (appLanguage === 'de') setAppLanguage('en');
+    else if (appLanguage === 'en') setAppLanguage('jpn');
+    else setAppLanguage('de');
+  };
+
   if (!appLanguage) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-        <div className="w-24 h-24 bg-gray-800 rounded-3xl border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 mb-8">
-          <span className="text-5xl">⛩️</span>
+        
+        {/* Sonar Logo groß */}
+        <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-8 mx-auto relative overflow-hidden">
+          <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400 relative z-10">
+            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+            <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+            <path d="M5 5a10 10 0 0 0 0 14"></path>
+            <path d="M19 5a10 10 0 0 1 0 14"></path>
+          </svg>
         </div>
-        <h1 className="text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8">RADAR SYSTEM</h1>
-        <h2 className="text-xl mb-6 text-gray-300">Wähle deine Sprache / Choose your language</h2>
-        <div className="flex gap-4">
-          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center">
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm"><img src="https://flagcdn.com/w80/de.png" alt="Deutsch" className="w-full h-full object-cover" /></div>Deutsch
+
+        <h1 className="text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8 text-center uppercase">RADAR Lernplattform</h1>
+        <h2 className="text-xl mb-6 text-gray-300 text-center">Wähle deine Sprache / Select Language / 言語を選択</h2>
+        
+        <div className="flex gap-4 flex-wrap justify-center">
+          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-green-500 shadow-sm flex items-center justify-center bg-gray-900 text-green-400 text-xl">DE</div>Deutsch
           </button>
-          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-xl font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center">
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-gray-600 shadow-sm"><img src="https://flagcdn.com/w80/gb.png" alt="English" className="w-full h-full object-cover" /></div>English
+          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-blue-500 shadow-sm flex items-center justify-center bg-gray-900 text-blue-400 text-xl">EN</div>English
+          </button>
+          <button onClick={() => setAppLanguage('jpn')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-red-500 shadow-sm flex items-center justify-center bg-gray-900 text-red-400 text-xl">JP</div>日本語
           </button>
         </div>
       </div>
@@ -200,7 +220,17 @@ function App() {
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
-        <span className="text-4xl mb-4">⛩️</span>
+        {/* Sonar Logo mittel */}
+        <div className="w-16 h-16 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-green-400 relative z-10">
+            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+            <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+            <path d="M5 5a10 10 0 0 0 0 14"></path>
+            <path d="M19 5a10 10 0 0 1 0 14"></path>
+          </svg>
+        </div>
         System wird autorisiert...
       </div>
     );
@@ -213,7 +243,12 @@ function App() {
       {showControls && (
         <div className="fixed top-6 left-6 z-50 flex gap-3">
           <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}><span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span></button>
-          <button onClick={() => setAppLanguage(appLanguage === 'de' ? 'en' : 'de')} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden p-0" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={appLanguage === 'de' ? "Switch to English" : "Auf Deutsch wechseln"}><img src={appLanguage === 'de' ? "https://flagcdn.com/w80/gb.png" : "https://flagcdn.com/w80/de.png"} alt={appLanguage === 'de' ? "English" : "Deutsch"} className="w-full h-full object-cover" /></button>
+          
+          {/* Sprachwähler (Text statt Flagge) */}
+          <button onClick={toggleLanguage} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none overflow-hidden text-xs font-black text-gray-300 tracking-wider" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title="Sprache wechseln / Switch Language">
+            {appLanguage === 'de' ? 'DE' : appLanguage === 'en' ? 'EN' : 'JP'}
+          </button>
+          
           {session && (
             <button onClick={handleLogout} className="w-10 h-10 flex items-center justify-center bg-red-900/30 text-red-500 rounded-full border border-red-500/50 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" title="Logout">
               <span className="text-lg leading-none">🚪</span>
@@ -225,7 +260,7 @@ function App() {
       {/* Rounting-Weiche für Welcome */}
       {activeView === 'welcome' && <Welcome onStart={() => setActiveView(session ? 'home' : 'auth')} language={appLanguage} />}
       
-      {/* NEU: Auth View */}
+      {/* Auth View */}
       {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
 
       {activeView === 'home' && (
