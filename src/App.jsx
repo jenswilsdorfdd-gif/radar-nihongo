@@ -48,72 +48,85 @@ function App() {
 
   // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
+    // Initialer Session-Check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
         fetchCloudProgress(session.user.id);
+        // Automatischer Redirect, falls man über den Magic Link kommt
+        setActiveView(prev => (prev === 'welcome' || prev === 'auth' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
       }
     });
 
+    // Listener für Auth-Status-Änderungen
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
         fetchCloudProgress(session.user.id);
-        if (activeView === 'auth') setActiveView('home');
+        setActiveView(prev => (prev === 'welcome' || prev === 'auth' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [activeView]);
+  }, []);
 
   const fetchCloudProgress = async (userId) => {
     setIsCloudLoading(true);
-    const { data, error } = await supabase
-      .from('user_progress')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    // Sprachen aus dem Onboarding (localStorage) holen
-    const targetLangUpdate = localStorage.getItem('radar_target_lang');
-    const sourceLangUpdate = localStorage.getItem('radar_source_lang');
+      // Sprachen aus dem Onboarding (localStorage) holen
+      const targetLangUpdate = localStorage.getItem('radar_target_lang');
+      const sourceLangUpdate = localStorage.getItem('radar_source_lang');
 
-    if (data) {
-      setCurrentRadarDay(data.radar_day || 1);
-      setKanaReadDay(data.kana_read_day || 1);
-      setKanaWriteDay(data.kana_write_day || 1);
-      setReadingDay(data.reading_day || 1);
-      setCurrentKanjiDay(data.kanji_day || 1);
+      if (data) {
+        setCurrentRadarDay(data.radar_day || 1);
+        setKanaReadDay(data.kana_read_day || 1);
+        setKanaWriteDay(data.kana_write_day || 1);
+        setReadingDay(data.reading_day || 1);
+        setCurrentKanjiDay(data.kanji_day || 1);
 
-      // Wenn frische Sprachdaten existieren -> in die Cloud pushen
-      if (targetLangUpdate || sourceLangUpdate) {
-        const updates = {};
-        if (targetLangUpdate) updates.target_language = targetLangUpdate;
-        if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
-        
-        await supabase.from('user_progress').update(updates).eq('id', userId);
-        
-        // Danach lokal löschen, damit es später keine Cloud-Werte überschreibt
+        // Wenn frische Sprachdaten existieren -> in die Cloud pushen
+        if (targetLangUpdate || sourceLangUpdate) {
+          const updates = {};
+          if (targetLangUpdate) updates.target_language = targetLangUpdate;
+          if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
+          
+          await supabase.from('user_progress').update(updates).eq('id', userId);
+          
+          // Danach lokal löschen, damit es später keine Cloud-Werte überschreibt
+          localStorage.removeItem('radar_target_lang');
+          localStorage.removeItem('radar_source_lang');
+        }
+
+      } else if (error && error.code === 'PGRST116') {
+        // User existiert noch nicht in der Tabelle -> neu anlegen inkl. Sprachen
+        await supabase.from('user_progress').insert([{ 
+          id: userId,
+          target_language: targetLangUpdate || 'jp',
+          source_language: sourceLangUpdate || 'de'
+        }]);
+
         localStorage.removeItem('radar_target_lang');
         localStorage.removeItem('radar_source_lang');
+      } else if (error) {
+        console.error("Supabase Database Error:", error);
       }
-
-    } else if (error && error.code === 'PGRST116') {
-      // User existiert noch nicht in der Tabelle -> neu anlegen inkl. Sprachen
-      await supabase.from('user_progress').insert([{ 
-        id: userId,
-        target_language: targetLangUpdate || 'jp',
-        source_language: sourceLangUpdate || 'de'
-      }]);
-
-      localStorage.removeItem('radar_target_lang');
-      localStorage.removeItem('radar_source_lang');
+    } catch (err) {
+      console.error("Unexpected fetch error:", err);
+    } finally {
+      // Garantiert, dass der Ladebildschirm immer verschwindet
+      setIsCloudLoading(false);
     }
-    setIsCloudLoading(false);
   };
 
   const updateCloudProgress = async (updates) => {
@@ -201,16 +214,15 @@ function App() {
     setActiveView('welcome');
   };
 
-  // Sprachwähler-Funktion entfernt, da nicht mehr benötigt
-
   if (!appLanguage) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
         
+        {/* Neues schlankes Logo */}
         <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-8 mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400 relative z-10">
-            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400 relative z-10">
+            <circle cx="12" cy="12" r="2"></circle>
             <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
             <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
             <path d="M5 5a10 10 0 0 0 0 14"></path>
@@ -239,10 +251,11 @@ function App() {
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
+        {/* Neues schlankes Logo im Ladebildschirm */}
         <div className="w-16 h-16 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-green-400 relative z-10">
-            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-green-400 relative z-10">
+            <circle cx="12" cy="12" r="2"></circle>
             <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
             <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
             <path d="M5 5a10 10 0 0 0 0 14"></path>
@@ -254,7 +267,6 @@ function App() {
     );
   }
 
-  // Zeigt die Controls (Darkmode & Logout) NUR noch im Home-Bereich an
   const showControls = activeView === 'home';
 
   return (
