@@ -141,6 +141,7 @@ const Home = ({
       successTitle: "Erfolgreich registriert!",
       successText: "Du erhältst in Kürze eine E-Mail mit weiteren Informationen von uns.",
       closeBtn: "Schließen",
+      counterPrefix: "Bereits",
       counterText: "Teilnehmer angemeldet",
       themeDark: "Dunkel-Modus",
       themeLight: "Hell-Modus",
@@ -207,6 +208,7 @@ const Home = ({
       successTitle: "Registration successful!",
       successText: "You will receive an email with further information shortly.",
       closeBtn: "Close",
+      counterPrefix: "Already",
       counterText: "participants registered",
       themeDark: "Dark Mode",
       themeLight: "Light Mode",
@@ -273,6 +275,7 @@ const Home = ({
       successTitle: "登録完了！",
       successText: "詳細情報を記載したメールをまもなく送信します。",
       closeBtn: "閉じる",
+      counterPrefix: "すでに",
       counterText: "名が登録済み",
       themeDark: "ダークモード",
       themeLight: "ライトモード",
@@ -512,6 +515,7 @@ const Home = ({
             kanjiDay={kanjiDay}
             devMode={devMode}
             t={t}
+            language={language}
           />
         )}
 
@@ -614,7 +618,7 @@ const Home = ({
                 <p className="text-gray-400 text-xs mt-1">{t.regSubtitle}</p>
                 
                 <div className="mt-3 inline-block bg-pink-900/40 border border-pink-500/30 text-pink-300 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm">
-                  🔥 Bereits {dojoCount} {t.counterText}!
+                  🔥 {t.counterPrefix} {dojoCount} {t.counterText}!
                 </div>
               </div>
               {!isSubmitted && <button onClick={closeRegistration} className="text-gray-400 hover:text-white text-3xl leading-none">×</button>}
