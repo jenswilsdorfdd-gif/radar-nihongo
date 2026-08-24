@@ -21,7 +21,17 @@ function App() {
   const [session, setSession] = useState(null);
   const [isCloudLoading, setIsCloudLoading] = useState(true);
 
+  // DEV MODE CHECK
+  const devModeActive = localStorage.getItem('radarDevMode') === 'true';
+
   const [appLanguage, setAppLanguage] = useState(() => {
+    // Im Dev Mode synchronisieren wir die App-Sprache direkt mit der gespeicherten Quellsprache (source_lang)
+    if (devModeActive) {
+      const savedSource = localStorage.getItem('radar_source_lang');
+      if (savedSource === 'jp') return 'jpn';
+      if (savedSource === 'de') return 'de';
+      if (savedSource === 'en') return 'en';
+    }
     return localStorage.getItem('appLanguage') || null;
   });
 
@@ -38,11 +48,16 @@ function App() {
   const [accessExpiresAt, setAccessExpiresAt] = useState(null);
   const [hasBookedDojo, setHasBookedDojo] = useState(false);
   
-  // NEU: State für das Payment-Erfolgs-Overlay
+  // State für das Payment-Erfolgs-Overlay
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
-  // NEU: State für die Zielsprache (Dynamic Learning Content)
-  const [targetLanguage, setTargetLanguage] = useState('jp');
+  // Zielsprache mit direktem LocalStorage-Fallback im Dev Mode
+  const [targetLanguage, setTargetLanguage] = useState(() => {
+    if (devModeActive) {
+      return localStorage.getItem('radar_target_lang') || 'jp';
+    }
+    return 'jp';
+  });
 
   // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
   const [currentRadarDay, setCurrentRadarDay] = useState(1);
@@ -67,8 +82,6 @@ function App() {
 
   // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
-    const devModeActive = localStorage.getItem('radarDevMode') === 'true';
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -78,6 +91,13 @@ function App() {
         setIsCloudLoading(false);
         // DEV MODE BYPASS: Direkt zur Home-Ansicht, wenn aktiv
         if (devModeActive) {
+          // Zielsprache und App-Sprache aus LocalStorage frisch einlesen
+          const savedTarget = localStorage.getItem('radar_target_lang');
+          const savedSource = localStorage.getItem('radar_source_lang');
+          if (savedTarget) setTargetLanguage(savedTarget);
+          if (savedSource) {
+            setAppLanguage(savedSource === 'jp' ? 'jpn' : savedSource);
+          }
           setActiveView('home');
         }
       }
@@ -255,7 +275,6 @@ function App() {
   const handlePaymentSuccess = async (orderId) => {
     console.log("Frontend Payment Success, starte Backend-Verifizierung für Order ID:", orderId);
     
-    // Wir nutzen den globalen Lade-Screen, während das Backend mit PayPal spricht
     setIsCloudLoading(true); 
     
     try {
@@ -267,14 +286,9 @@ function App() {
 
       console.log("Edge Function Response:", data);
       
-      // Erfolgreich verifiziert! Wir laden die Nutzerdaten neu aus der DB
       if (session) {
         await fetchCloudProgress(session.user.id);
-        
-        // Zeige das Erfolgs-Overlay an
         setShowPaymentSuccess(true);
-        
-        // Verstecke das Overlay nach 5 Sekunden -> der User landet im 'home' View
         setTimeout(() => {
           setShowPaymentSuccess(false);
         }, 5000);
@@ -289,7 +303,6 @@ function App() {
   };
 
   // DEV MODE PAYWALL BYPASS
-  const devModeActive = localStorage.getItem('radarDevMode') === 'true';
   const hasValidAccess = devModeActive || isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
 
   if (!appLanguage) {
@@ -384,6 +397,16 @@ function App() {
           <Welcome 
             onStart={() => {
               const isDev = localStorage.getItem('radarDevMode') === 'true';
+              if (isDev) {
+                // Werte aus Welcome übernehmen
+                const savedTarget = localStorage.getItem('radar_target_lang');
+                const savedSource = localStorage.getItem('radar_source_lang');
+                if (savedTarget) setTargetLanguage(savedTarget);
+                if (savedSource) {
+                  const mappedLang = savedSource === 'jp' ? 'jpn' : savedSource;
+                  setAppLanguage(mappedLang);
+                }
+              }
               setActiveView((session || isDev) ? 'home' : 'auth');
             }} 
             language={appLanguage} 
