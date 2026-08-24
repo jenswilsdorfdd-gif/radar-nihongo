@@ -8,8 +8,12 @@ const HomeEN = ({
   radarDay, // Radar bleibt Radar
   kanjiDay, // Wird hier für Advanced/Business English genutzt
   devMode, 
-  t 
+  t,
+  language // Wird zur Ermittlung der Muttersprache genutzt
 }) => {
+  // Erkennung der UI-Sprache (Fallback über 't', falls 'language' aus Home.jsx nicht übergeben wird)
+  const currentLang = language || (t.day === 'Day' ? 'en' : (t.day === '日' ? 'jpn' : 'de'));
+
   // LOCK MECHANISMUS (Berücksichtigt den Dev Mode)
   const isTenseUnlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14);
   const isPhase2Unlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14); 
@@ -17,24 +21,62 @@ const HomeEN = ({
   const isPhase4Unlocked = devMode || (isPhase3Unlocked && radarDay >= 21);
   const isExamUnlocked = devMode || (isPhase4Unlocked && kanjiDay >= 21);
 
-  // ENGLISCH-SPEZIFISCHE TEXTE (Überschreiben die JP-Texte aus dem Haupt-Dictionary für dieses Modul)
-  const enTexts = {
-    phase1GrammarTitle: "Phase 1: Core Grammar",
-    phase1GrammarDesc: "Die absoluten Grundlagen der englischen Satzstruktur. Das Fundament für dein Gehirn.",
-    phase1VocabTitle: "Phase 1: Core Vocabulary",
-    phase1VocabDesc: "Der essenzielle Grundwortschatz. Präge dir die wichtigsten Begriffe des Alltags ein.",
-    tenseTitle: "Die Zeiten-Matrix",
-    tenseDesc: "Entschlüssele alle englischen Zeitformen auf einen Schlag.",
-    tenseLockedDesc: "Schließe Phase 1 komplett ab, um die Zeiten-Matrix freizuschalten.",
-    phase2PhrasalTitle: "Phase 2: Phrasal Verbs & Idioms",
-    phase2PhrasalDesc: "Lerne, wie Muttersprachler wirklich reden. Weg vom Schulenglisch, hin zum echten Leben.",
-    phase2LockedDesc: "Schließe Phase 1 ab, um diese Mission freizuschalten.",
-    phase3Title: "Phase 3: 21-Day Radar",
-    phase3Desc: "Stresstest, Hörverstehen und Reaktion für das Überleben in englischsprachigen Ländern.",
-    phase4Title: "Phase 4: Advanced Fluency",
-    phase4Desc: "Business English, komplexe Ausdrucksweisen und Verhandlungsgeschick.",
-    phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Advanced-Training freizuschalten."
+  // ENGLISCH-SPEZIFISCHE TEXTE (Überschreiben die Texte aus dem Haupt-Dictionary für dieses Modul)
+  const texts = {
+    de: {
+      phase1GrammarTitle: "Phase 1: Core Grammar",
+      phase1GrammarDesc: "Die absoluten Grundlagen der englischen Satzstruktur. Das Fundament für dein Gehirn.",
+      phase1VocabTitle: "Phase 1: Core Vocabulary",
+      phase1VocabDesc: "Der essenzielle Grundwortschatz. Präge dir die wichtigsten Begriffe des Alltags ein.",
+      tenseTitle: "Die Zeiten-Matrix",
+      tenseDesc: "Entschlüssele alle englischen Zeitformen auf einen Schlag.",
+      tenseLockedDesc: "Schließe Phase 1 komplett ab, um die Zeiten-Matrix freizuschalten.",
+      phase2PhrasalTitle: "Phase 2: Phrasal Verbs & Idioms",
+      phase2PhrasalDesc: "Lerne, wie Muttersprachler wirklich reden. Weg vom Schulenglisch, hin zum echten Leben.",
+      phase2LockedDesc: "Schließe Phase 1 ab, um diese Mission freizuschalten.",
+      phase3Title: "Phase 3: 21-Day Radar",
+      phase3Desc: "Stresstest, Hörverstehen und Reaktion für das Überleben in englischsprachigen Ländern.",
+      phase4Title: "Phase 4: Advanced Fluency",
+      phase4Desc: "Business English, komplexe Ausdrucksweisen und Verhandlungsgeschick.",
+      phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Advanced-Training freizuschalten."
+    },
+    en: {
+      phase1GrammarTitle: "Phase 1: Core Grammar",
+      phase1GrammarDesc: "The absolute basics of English sentence structure. The foundation for your brain.",
+      phase1VocabTitle: "Phase 1: Core Vocabulary",
+      phase1VocabDesc: "The essential basic vocabulary. Memorize the most important everyday terms.",
+      tenseTitle: "The Tense Matrix",
+      tenseDesc: "Decode all English tenses at a glance.",
+      tenseLockedDesc: "Complete Phase 1 entirely to unlock the Tense Matrix.",
+      phase2PhrasalTitle: "Phase 2: Phrasal Verbs & Idioms",
+      phase2PhrasalDesc: "Learn how native speakers actually talk. Away from school English, into real life.",
+      phase2LockedDesc: "Complete Phase 1 to unlock this mission.",
+      phase3Title: "Phase 3: 21-Day Radar",
+      phase3Desc: "Stress test, listening comprehension, and reaction for surviving in English-speaking countries.",
+      phase4Title: "Phase 4: Advanced Fluency",
+      phase4Desc: "Business English, complex expressions, and negotiation skills.",
+      phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Advanced Training."
+    },
+    jpn: {
+      phase1GrammarTitle: "フェーズ 1: コア文法 (Core Grammar)",
+      phase1GrammarDesc: "英語の文法構造の絶対的な基礎。脳のための土台。",
+      phase1VocabTitle: "フェーズ 1: コア語彙 (Core Vocabulary)",
+      phase1VocabDesc: "必須の基礎語彙。最も重要な日常用語を記憶する。",
+      tenseTitle: "時制マトリックス (Tense Matrix)",
+      tenseDesc: "すべての英語の時制を一目で解読する。",
+      tenseLockedDesc: "時制マトリックスをアンロックするには、フェーズ1を完全にクリアしてください。",
+      phase2PhrasalTitle: "フェーズ 2: 句動詞とイディオム (Phrasal Verbs)",
+      phase2PhrasalDesc: "ネイティブの実際の話し方を学ぶ。学校英語から離れ、現実の生活へ。",
+      phase2LockedDesc: "このミッションをアンロックするには、フェーズ1をクリアしてください。",
+      phase3Title: "フェーズ 3: 21日間レーダー (21-Day Radar)",
+      phase3Desc: "英語圏で生き残るためのストレステスト、リスニング理解、そして反応力。",
+      phase4Title: "フェーズ 4: 上級の流暢さ (Advanced Fluency)",
+      phase4Desc: "ビジネス英語、複雑な表現、交渉スキル。",
+      phase4LockedDesc: "上級トレーニングをアンロックするには、フェーズ3（レーダー）をクリアしてください。"
+    }
   };
+
+  const enTexts = texts[currentLang] || texts.de;
 
   return (
     <>
