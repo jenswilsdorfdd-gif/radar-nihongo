@@ -314,18 +314,6 @@ const Home = ({
       return; 
     }
 
-    const WEBHOOK_URL = "https://hook.eu1.make.com/wmaxaao1iy2shoyk09mx6r2nyrv6awwt"; 
-    
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch (webhookError) {
-      console.error("Webhook Error:", webhookError);
-    }
-
     setDojoCount(prev => prev + 1);
     setIsSubmitted(true);
   };
@@ -339,7 +327,6 @@ const Home = ({
   };
 
   const getTargetLanguageIcon = () => {
-    // Gegen-Filter: Neutralisiert die globale Invertierung im Hell-Modus
     const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
     
     switch(targetLanguage) {
