@@ -13,6 +13,7 @@ import ReadingDeck from './components/ReadingDeck';
 import ReadingCard from './components/ReadingCard';
 import ParticleCrashcourse from './components/ParticleCrashcourse';
 import FinalExam from './components/FinalExam';
+import PremiumWall from './components/PremiumWall';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 
 function App() {
@@ -32,6 +33,11 @@ function App() {
     return saved !== null ? JSON.parse(saved) : true; 
   });
   
+  // --- PAYMENT STATES ---
+  const [isLifetime, setIsLifetime] = useState(false);
+  const [accessExpiresAt, setAccessExpiresAt] = useState(null);
+  const [hasBookedDojo, setHasBookedDojo] = useState(false);
+
   // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
   const [currentRadarDay, setCurrentRadarDay] = useState(1);
   const [kanaReadDay, setKanaReadDay] = useState(1);
@@ -97,6 +103,11 @@ function App() {
         setKanaWriteDay(data.kana_write_day || 1);
         setReadingDay(data.reading_day || 1);
         setCurrentKanjiDay(data.kanji_day || 1);
+        
+        // PAYMENT DATEN LADEN
+        setIsLifetime(data.is_lifetime || false);
+        setAccessExpiresAt(data.access_expires_at || null);
+        setHasBookedDojo(data.has_booked_dojo || false);
 
         if (targetLangUpdate || sourceLangUpdate) {
           const updates = {};
@@ -213,6 +224,14 @@ function App() {
     setActiveView('welcome');
   };
 
+  // --- PAYMENT LOGIK ---
+  const handlePaymentSuccess = (orderId) => {
+    console.log("Frontend Payment Success, Order ID:", orderId);
+    alert("Zahlung bei PayPal erfolgreich! Im nächsten Schritt bauen wir die Backend-Verifizierung.");
+  };
+
+  const hasValidAccess = isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
+
   if (!appLanguage) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
@@ -271,37 +290,49 @@ function App() {
         {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
 
         {activeView === 'home' && (
-          <Home 
-            onSelectMode={(mode) => {
-              if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
-              if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
-              if (mode === 'reading') setActiveView('reading-deck');
-              if (mode === 'radar') setActiveView('dashboard');
-              if (mode === 'kanji') setActiveView('kanji');
-              if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
-              if (mode === 'final-exam') setActiveView('final-exam');
-            }} 
-            onReset={handleReset} 
-            onGoToWelcome={() => setActiveView('welcome')} 
-            
-            kanaReadDay={kanaReadDay} 
-            setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
-            kanaWriteDay={kanaWriteDay} 
-            setKanaWriteDay={(val) => { setKanaWriteDay(val); updateCloudProgress({ kana_write_day: val }); }}
-            readingDay={readingDay} 
-            setReadingDay={(val) => { setReadingDay(val); updateCloudProgress({ reading_day: val }); }}
-            radarDay={currentRadarDay} 
-            setRadarDay={(val) => { setCurrentRadarDay(val); updateCloudProgress({ radar_day: val }); }}
-            kanjiDay={currentKanjiDay} 
-            setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
-            
-            language={appLanguage}
-            
-            isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
-            onLogout={handleLogout}
-          />
+          hasValidAccess ? (
+            <Home 
+              onSelectMode={(mode) => {
+                if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
+                if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
+                if (mode === 'reading') setActiveView('reading-deck');
+                if (mode === 'radar') setActiveView('dashboard');
+                if (mode === 'kanji') setActiveView('kanji');
+                if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
+                if (mode === 'final-exam') setActiveView('final-exam');
+              }} 
+              onReset={handleReset} 
+              onGoToWelcome={() => setActiveView('welcome')} 
+              
+              kanaReadDay={kanaReadDay} 
+              setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
+              kanaWriteDay={kanaWriteDay} 
+              setKanaWriteDay={(val) => { setKanaWriteDay(val); updateCloudProgress({ kana_write_day: val }); }}
+              readingDay={readingDay} 
+              setReadingDay={(val) => { setReadingDay(val); updateCloudProgress({ reading_day: val }); }}
+              radarDay={currentRadarDay} 
+              setRadarDay={(val) => { setCurrentRadarDay(val); updateCloudProgress({ radar_day: val }); }}
+              kanjiDay={currentKanjiDay} 
+              setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
+              
+              language={appLanguage}
+              
+              isDarkMode={isDarkMode}
+              setIsDarkMode={setIsDarkMode}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
+              <PremiumWall 
+                hasBookedDojo={hasBookedDojo} 
+                onPaymentSuccess={handlePaymentSuccess} 
+                language={appLanguage} 
+              />
+            </div>
+          )
         )}
+        
+        {/* WEITERE VIEWS... */}
         {activeView === 'kana-deck' && <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} language={appLanguage} />}
         {activeView === 'learning-kana' && <KanaCard day={learningKanaDay} mode={kanaMode} onBack={() => handleFinishKana(learningKanaDay)} language={appLanguage} />}
         {activeView === 'reading-deck' && <ReadingDeck currentDay={readingDay} totalDays={readingTotalDays} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} language={appLanguage} />}
