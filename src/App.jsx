@@ -309,8 +309,25 @@ function App() {
     );
   }
 
-  // --- NEU: ERFOLGS-OVERLAY NACH ZAHLUNG ---
+  // --- NEU: ERFOLGS-OVERLAY NACH ZAHLUNG (DYNAMISCHE TEXTE) ---
   if (showPaymentSuccess) {
+    const successTexts = {
+      de: {
+        title: "Zahlung erfolgreich!",
+        desc: "Willkommen im Premium-System. Deine Umgebung wird vorbereitet..."
+      },
+      en: {
+        title: "Payment successful!",
+        desc: "Welcome to the premium system. Your environment is being prepared..."
+      },
+      jpn: {
+        title: "支払い成功！",
+        desc: "プレミアムシステムへようこそ。環境を準備しています..."
+      }
+    };
+    
+    const tSuccess = successTexts[appLanguage] || successTexts.de;
+
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500 flex items-center justify-center shadow-[0_0_50px_rgba(34,197,94,0.4)] mb-8 mx-auto relative overflow-hidden">
@@ -318,10 +335,10 @@ function App() {
           <span className="text-5xl relative z-10">💎</span>
         </div>
         <h1 className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4 text-center uppercase">
-          Zahlung erfolgreich!
+          {tSuccess.title}
         </h1>
         <p className="text-gray-400 text-lg text-center animate-pulse">
-          Willkommen im Premium-System. Deine Umgebung wird vorbereitet...
+          {tSuccess.desc}
         </p>
       </div>
     );
