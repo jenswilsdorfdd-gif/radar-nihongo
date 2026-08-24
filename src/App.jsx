@@ -268,14 +268,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
+    // FIX: min-h-screen ersetzt durch h-[100dvh] und overflow-hidden, damit der CSS-Filter im Hell-Modus position: fixed nicht bricht.
+    <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       
-      {/* 
-        ACHTUNG: showControls und das zersplitterte Top-Menü wurden hier komplett entfernt.
-        Darkmode und Logout werden nun als Props an die Home.jsx übergeben, 
-        damit dort ein sauberes, vereintes Menü gerendert werden kann.
-      */}
-
       {activeView === 'welcome' && <Welcome onStart={() => setActiveView(session ? 'home' : 'auth')} language={appLanguage} />}
       
       {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
@@ -307,7 +302,6 @@ function App() {
           
           language={appLanguage}
           
-          // NEUE PROPS FÜR DAS VEREINTE TOP-MENÜ
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
           onLogout={handleLogout}
