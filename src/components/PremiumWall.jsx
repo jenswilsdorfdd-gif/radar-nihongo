@@ -75,8 +75,7 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
     } catch (err) {
       console.error("PayPal Capture Error:", err);
       setError(t.errorMsg);
-    } finally {
-      setIsProcessing(false);
+      setIsProcessing(false); // Bei Fehler Lade-Status wieder aufheben
     }
   };
 
@@ -84,6 +83,7 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
   const onError = (err) => {
     console.error("PayPal Button Error:", err);
     setError(t.errorMsg);
+    setIsProcessing(false);
   };
 
   return (
@@ -107,25 +107,31 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
         </div>
       </div>
       
-      <div className="p-8 bg-gray-800">
+      <div className="p-8 bg-gray-800 relative">
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-900/30 text-red-400 border border-red-500/30 text-xs font-bold text-center uppercase tracking-wider">
             {error}
           </div>
         )}
         
-        {isProcessing ? (
-          <div className="text-center text-green-400 font-bold animate-pulse text-sm uppercase tracking-widest py-4">
-            {t.processing}
+        {/* Lade-Overlay, falls processing */}
+        {isProcessing && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-800/90 rounded-b-3xl">
+            <div className="text-center text-green-400 font-bold animate-pulse text-sm uppercase tracking-widest py-4">
+              {t.processing}
+            </div>
           </div>
-        ) : (
+        )}
+        
+        {/* Buttons bleiben im DOM, werden bei processing nur deaktiviert */}
+        <div className={isProcessing ? "opacity-50 pointer-events-none transition-opacity duration-300" : "transition-opacity duration-300"}>
           <PayPalButtons 
             createOrder={createOrder}
             onApprove={onApprove}
             onError={onError}
             style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
           />
-        )}
+        </div>
       </div>
     </div>
   );
