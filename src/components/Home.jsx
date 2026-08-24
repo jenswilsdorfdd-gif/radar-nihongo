@@ -35,6 +35,12 @@ const Home = ({
     email: ''
   });
 
+  // --- LANGUAGE SWITCHER STATES ---
+  const [showLangSwitcher, setShowLangSwitcher] = useState(false);
+  const [tempSource, setTempSource] = useState(language === 'jpn' ? 'jp' : language || 'en');
+  const [tempTarget, setTempTarget] = useState(targetLanguage || 'jp');
+  const [isUpdatingLang, setIsUpdatingLang] = useState(false);
+
   // --- GOD MODE / DEV MODE ---
   const [devMode, setDevMode] = useState(() => {
     return localStorage.getItem('radarDevMode') === 'true';
@@ -147,7 +153,12 @@ const Home = ({
       themeLight: "Hell-Modus",
       logoutBtn: "Logout",
       contentPrepTitle: "Fahrplan in Vorbereitung",
-      contentPrepDesc: "Die Lerninhalte für diese Zielsprache werden aktuell geladen."
+      contentPrepDesc: "Die Lerninhalte für diese Zielsprache werden aktuell geladen.",
+      langSwitchTitle: "Sprach-Einstellungen",
+      langSwitchSource: "Meine Muttersprache (Base):",
+      langSwitchTarget: "Ich möchte lernen (Target):",
+      langSwitchSave: "Speichern & Aktualisieren",
+      langs: { jp: "Japanisch (Japanese)", de: "Deutsch (German)", en: "Englisch (English)" }
     },
     en: {
       reset: "Reset",
@@ -214,7 +225,12 @@ const Home = ({
       themeLight: "Light Mode",
       logoutBtn: "Logout",
       contentPrepTitle: "Roadmap in Preparation",
-      contentPrepDesc: "The learning content for this target language is currently being loaded."
+      contentPrepDesc: "The learning content for this target language is currently being loaded.",
+      langSwitchTitle: "Language Settings",
+      langSwitchSource: "My base language (Base):",
+      langSwitchTarget: "I want to learn (Target):",
+      langSwitchSave: "Save & Reload",
+      langs: { jp: "Japanese", de: "German", en: "English" }
     },
     jpn: {
       reset: "リセット",
@@ -281,11 +297,16 @@ const Home = ({
       themeLight: "ライトモード",
       logoutBtn: "ログアウト",
       contentPrepTitle: "ロードマップ準備中",
-      contentPrepDesc: "この対象言語の学習コンテンツは現在読み込み中です。"
+      contentPrepDesc: "この対象言語の学習コンテンツは現在読み込み中です。",
+      langSwitchTitle: "言語設定",
+      langSwitchSource: "出発言語 (Base):",
+      langSwitchTarget: "学びたい言語 (Target):",
+      langSwitchSave: "保存して更新",
+      langs: { jp: "日本語 (Japanese)", de: "ドイツ語 (German)", en: "英語 (English)" }
     }
   };
 
-  const t = texts[language] || texts.de;
+  const t = texts[language === 'jpn' ? 'jp' : language] || texts.de;
 
   const handleInputChange = (e) => {
     setFormData({
@@ -326,15 +347,52 @@ const Home = ({
     }, 300);
   };
 
+  // Hilfsfunktion für Flaggen (UI)
+  const getFlagUrl = (langCode) => {
+    switch(langCode) {
+      case 'jp': return "https://flagcdn.com/w80/jp.png";
+      case 'jpn': return "https://flagcdn.com/w80/jp.png";
+      case 'de': return "https://flagcdn.com/w80/de.png";
+      case 'en': return "https://flagcdn.com/w80/gb.png";
+      default: return "";
+    }
+  };
+
   const getTargetLanguageIcon = () => {
     const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
+    const url = getFlagUrl(targetLanguage);
     
-    switch(targetLanguage) {
-      case 'jp': return <img src="https://flagcdn.com/w80/jp.png" alt="JP" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
-      case 'de': return <img src="https://flagcdn.com/w80/de.png" alt="DE" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
-      case 'en': return <img src="https://flagcdn.com/w80/gb.png" alt="EN" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
-      default: return <span className="text-5xl" style={revertFilter}>🏳️</span>;
+    if(url) {
+      return <img src={url} alt="Flag" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
     }
+    return <span className="text-5xl" style={revertFilter}>🏳️</span>;
+  };
+
+  // --- LANGUAGE SWITCH HANDLER ---
+  const handleSaveLanguages = async () => {
+    setIsUpdatingLang(true);
+    
+    // In LocalStorage sichern, damit App.jsx es beim Reload als neues Default nimmt
+    localStorage.setItem('radar_target_lang', tempTarget);
+    localStorage.setItem('radar_source_lang', tempSource);
+    
+    // Direkt an Supabase senden, falls nicht im Dev Mode (und Session vorhanden)
+    if (!devMode) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.from('user_progress').update({
+            target_language: tempTarget,
+            source_language: tempSource
+          }).eq('id', session.user.id);
+        }
+      } catch (err) {
+        console.error("Fehler beim Speichern der Sprachen:", err);
+      }
+    }
+    
+    // Hard-Reload zwingt App.jsx dazu, die neuen Werte aus Storage & DB frisch zu mounten
+    window.location.reload();
   };
 
   return (
@@ -423,10 +481,20 @@ const Home = ({
         )}
       </div>
 
-      {/* --- HEADER BEREICH --- */}
+      {/* --- HEADER BEREICH MIT LANGUAGE SWITCHER TRIGGER --- */}
       <div className="mt-16 mb-10 flex flex-col items-center">
-        <button onClick={onGoToWelcome} className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors cursor-pointer active:scale-95 focus:outline-none">
+        <button 
+          onClick={() => setShowLangSwitcher(true)} 
+          className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-all cursor-pointer active:scale-95 focus:outline-none relative group overflow-hidden"
+          title={t.langSwitchTitle}
+        >
+          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           {getTargetLanguageIcon()}
+          
+          {/* Kleines Switch-Icon Overlay on Hover */}
+          <div className="absolute bottom-1 right-1 bg-gray-900 rounded-full w-5 h-5 flex items-center justify-center border border-gray-600 shadow-sm opacity-80 group-hover:opacity-100">
+            <span className="text-[10px] leading-none">⚙️</span>
+          </div>
         </button>
         
         <h1 
@@ -551,8 +619,69 @@ const Home = ({
             </a>
           </div>
         </div>
-
       </div>
+
+      {/* --- LANGUAGE SWITCHER MODAL (GLASSMORPHISM) --- */}
+      {showLangSwitcher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-sm bg-gray-800/90 backdrop-blur-xl rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold tracking-widest uppercase text-white">{t.langSwitchTitle}</h2>
+              <button onClick={() => setShowLangSwitcher(false)} className="text-gray-400 hover:text-white text-3xl leading-none font-light">×</button>
+            </div>
+            
+            <div className="space-y-5 mb-8">
+              {/* 1. SOURCE LANG (Ausgangssprache) */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.langSwitchSource}</label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-4 z-10 pointer-events-none">
+                    <img src={getFlagUrl(tempSource)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+                  </div>
+                  <select 
+                    value={tempSource}
+                    onChange={(e) => setTempSource(e.target.value)}
+                    className="w-full bg-gray-900/50 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer font-bold"
+                  >
+                    <option value="de">🇩🇪 {t.langs.de}</option>
+                    <option value="en">🇬🇧 {t.langs.en}</option>
+                    <option value="jp">🇯🇵 {t.langs.jp}</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">▼</div>
+                </div>
+              </div>
+
+              {/* 2. TARGET LANG (Zielsprache) */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.langSwitchTarget}</label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-4 z-10 pointer-events-none">
+                    <img src={getFlagUrl(tempTarget)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+                  </div>
+                  <select 
+                    value={tempTarget}
+                    onChange={(e) => setTempTarget(e.target.value)}
+                    className="w-full bg-gray-900/50 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer font-bold"
+                  >
+                    <option value="en">🇬🇧 {t.langs.en}</option>
+                    <option value="de">🇩🇪 {t.langs.de}</option>
+                    <option value="jp">🇯🇵 {t.langs.jp}</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">▼</div>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleSaveLanguages}
+              disabled={isUpdatingLang}
+              className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 rounded-xl font-bold text-white uppercase tracking-widest text-sm shadow-lg active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isUpdatingLang ? "..." : t.langSwitchSave}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FAHRPLAN MODAL */}
       {showInfoModal && (
