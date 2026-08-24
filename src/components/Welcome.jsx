@@ -30,17 +30,17 @@ const Welcome = ({ onStart, language }) => {
       title: "RADAR Lernsystem",
       subtitle: "Willkommen",
       intro: "RADAR ist ein bidirektionales System, das dich blitzschnell auf echte Konversationen vorbereitet. Wähle nun dein Lernprofil aus, um deinen persönlichen Bereich einzurichten.",
-      targetLabel: "Ich möchte lernen:",
-      sourceLabel: "Meine Ausgangssprache ist:",
+      targetLabel: "Ich möchte lernen (Target Language):",
+      sourceLabel: "Meine Ausgangssprache ist (Base Language):",
       btnStart: "System betreten",
-      langs: { jp: "Japanisch", de: "Deutsch", en: "Englisch" }
+      langs: { jp: "Japanisch (Japanese)", de: "Deutsch (German)", en: "Englisch (English)" }
     },
     en: {
       title: "RADAR Learning System",
       subtitle: "Welcome",
       intro: "RADAR is a bidirectional system designed to prepare you for real conversations at lightning speed. Select your learning profile now to set up your personal space.",
-      targetLabel: "I want to learn:",
-      sourceLabel: "My base language is:",
+      targetLabel: "I want to learn (Target Language):",
+      sourceLabel: "My base language is (Base Language):",
       btnStart: "Enter System",
       langs: { jp: "Japanese", de: "German", en: "English" }
     },
@@ -48,10 +48,10 @@ const Welcome = ({ onStart, language }) => {
       title: "RADAR 学習システム",
       subtitle: "ようこそ",
       intro: "RADARは、実際の会話に瞬時に対応できるよう設計された双方向システムです。学習プロフィールを選択して、パーソナルスペースを設定してください。",
-      targetLabel: "学びたい言語:",
-      sourceLabel: "出発言語 (母国語):",
+      targetLabel: "学びたい言語 (Target Language):",
+      sourceLabel: "出発言語 (Base Language):",
       btnStart: "システムに入る",
-      langs: { jp: "日本語", de: "ドイツ語", en: "英語" }
+      langs: { jp: "日本語 (Japanese)", de: "ドイツ語 (German)", en: "英語 (English)" }
     }
   };
 
@@ -64,6 +64,16 @@ const Welcome = ({ onStart, language }) => {
     localStorage.setItem('radar_target_lang', targetLang);
     localStorage.setItem('radar_source_lang', sourceLang);
     onStart(); // Leitet weiter zur Auth.jsx
+  };
+
+  // Hilfsfunktion für die Flaggen-URLs (nur für die Anzeige des ausgewählten Wertes)
+  const getFlagUrl = (langCode) => {
+    switch(langCode) {
+      case 'jp': return "https://flagcdn.com/w40/jp.png";
+      case 'de': return "https://flagcdn.com/w40/de.png";
+      case 'en': return "https://flagcdn.com/w40/gb.png";
+      default: return "";
+    }
   };
 
   return (
@@ -101,11 +111,14 @@ const Welcome = ({ onStart, language }) => {
           {/* 1. QUELLSPRACHE (Ausgangssprache) ZUERST */}
           <div className="flex flex-col">
             <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.sourceLabel}</label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <div className="absolute left-4 z-10 pointer-events-none">
+                <img src={getFlagUrl(sourceLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+              </div>
               <select 
                 value={sourceLang}
                 onChange={(e) => setSourceLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
               >
                 <option value="de">🇩🇪 {t.langs.de}</option>
                 <option value="en">🇬🇧 {t.langs.en}</option>
@@ -120,11 +133,14 @@ const Welcome = ({ onStart, language }) => {
           {/* 2. ZIELSPRACHE ZWEITENS */}
           <div className="flex flex-col">
             <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.targetLabel}</label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <div className="absolute left-4 z-10 pointer-events-none">
+                <img src={getFlagUrl(targetLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+              </div>
               <select 
                 value={targetLang}
                 onChange={(e) => setTargetLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
               >
                 <option value="en">🇬🇧 {t.langs.en}</option>
                 <option value="de">🇩🇪 {t.langs.de}</option>
