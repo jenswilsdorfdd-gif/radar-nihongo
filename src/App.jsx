@@ -41,6 +41,9 @@ function App() {
   // NEU: State für das Payment-Erfolgs-Overlay
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
+  // NEU: State für die Zielsprache (Dynamic Learning Content)
+  const [targetLanguage, setTargetLanguage] = useState('jp');
+
   // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
   const [currentRadarDay, setCurrentRadarDay] = useState(1);
   const [kanaReadDay, setKanaReadDay] = useState(1);
@@ -107,6 +110,9 @@ function App() {
         setReadingDay(data.reading_day || 1);
         setCurrentKanjiDay(data.kanji_day || 1);
         
+        // ZIELSPRACHE LADEN
+        setTargetLanguage(data.target_language || 'jp');
+
         // PAYMENT DATEN LADEN
         setIsLifetime(data.is_lifetime || false);
         setAccessExpiresAt(data.access_expires_at || null);
@@ -114,7 +120,10 @@ function App() {
 
         if (targetLangUpdate || sourceLangUpdate) {
           const updates = {};
-          if (targetLangUpdate) updates.target_language = targetLangUpdate;
+          if (targetLangUpdate) {
+            updates.target_language = targetLangUpdate;
+            setTargetLanguage(targetLangUpdate);
+          }
           if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
           
           await supabase.from('user_progress').update(updates).eq('id', userId);
@@ -124,9 +133,12 @@ function App() {
         }
 
       } else if (error && error.code === 'PGRST116') {
+        const initialTargetLang = targetLangUpdate || 'jp';
+        setTargetLanguage(initialTargetLang);
+        
         await supabase.from('user_progress').insert([{ 
           id: userId,
-          target_language: targetLangUpdate || 'jp',
+          target_language: initialTargetLang,
           source_language: sourceLangUpdate || 'de'
         }]);
 
@@ -368,6 +380,7 @@ function App() {
               setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
               
               language={appLanguage}
+              targetLanguage={targetLanguage} // <--- NEU: Zielsprache an Home übergeben
               
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
