@@ -136,40 +136,46 @@ function App() {
         setReadingDay(data.reading_day || 1);
         setCurrentKanjiDay(data.kanji_day || 1);
         
-        // ZIELSPRACHE LADEN
-        setTargetLanguage(data.target_language || 'jp');
-
         // PAYMENT DATEN LADEN
         setIsLifetime(data.is_lifetime || false);
         setAccessExpiresAt(data.access_expires_at || null);
         setHasBookedDojo(data.has_booked_dojo || false);
 
-        if (targetLangUpdate || sourceLangUpdate) {
-          const updates = {};
-          if (targetLangUpdate) {
-            updates.target_language = targetLangUpdate;
-            setTargetLanguage(targetLangUpdate);
+        // --- PRIO 3: DATENBANK-LOCK FÜR DEV MODE ---
+        if (!devModeActive) {
+          // ZIELSPRACHE LADEN
+          setTargetLanguage(data.target_language || 'jp');
+
+          if (targetLangUpdate || sourceLangUpdate) {
+            const updates = {};
+            if (targetLangUpdate) {
+              updates.target_language = targetLangUpdate;
+              setTargetLanguage(targetLangUpdate);
+            }
+            if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
+            
+            await supabase.from('user_progress').update(updates).eq('id', userId);
+            
+            localStorage.removeItem('radar_target_lang');
+            localStorage.removeItem('radar_source_lang');
           }
-          if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
-          
-          await supabase.from('user_progress').update(updates).eq('id', userId);
-          
-          localStorage.removeItem('radar_target_lang');
-          localStorage.removeItem('radar_source_lang');
         }
 
       } else if (error && error.code === 'PGRST116') {
-        const initialTargetLang = targetLangUpdate || 'jp';
-        setTargetLanguage(initialTargetLang);
-        
-        await supabase.from('user_progress').insert([{ 
-          id: userId,
-          target_language: initialTargetLang,
-          source_language: sourceLangUpdate || 'de'
-        }]);
+        // --- PRIO 3: DATENBANK-LOCK FÜR DEV MODE ---
+        if (!devModeActive) {
+          const initialTargetLang = targetLangUpdate || 'jp';
+          setTargetLanguage(initialTargetLang);
+          
+          await supabase.from('user_progress').insert([{ 
+            id: userId,
+            target_language: initialTargetLang,
+            source_language: sourceLangUpdate || 'de'
+          }]);
 
-        localStorage.removeItem('radar_target_lang');
-        localStorage.removeItem('radar_source_lang');
+          localStorage.removeItem('radar_target_lang');
+          localStorage.removeItem('radar_source_lang');
+        }
       } else if (error) {
         console.error("Supabase Database Error:", error);
       }
@@ -182,7 +188,7 @@ function App() {
 
   const updateCloudProgress = async (updates) => {
     // DEV MODE BLOCK: Verhindert Datenbank-Crashes bei aktivem Dev Mode ohne Session
-    if (localStorage.getItem('radarDevMode') === 'true') {
+    if (devModeActive) {
       console.log("Dev Mode Aktiv: Cloud-Update blockiert (Bypass Modus)", updates);
       return;
     }
