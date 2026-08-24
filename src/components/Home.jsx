@@ -11,7 +11,7 @@ const Home = ({
   radarDay, setRadarDay, 
   kanjiDay, setKanjiDay, 
   language,
-  targetLanguage = 'jp', // <--- NEU: Prop aus App.jsx empfangen
+  targetLanguage = 'jp', // <--- Prop aus App.jsx
   isDarkMode,
   setIsDarkMode,
   onLogout
@@ -90,7 +90,7 @@ const Home = ({
     de: {
       reset: "Reset",
       info: "Fahrplan",
-      subtitle: "Nippon Survival System",
+      subtitle: "Language Survival System", // <--- NEU: Sprachneutraler Titel
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
       phase1WriteTitle: "Phase 1: Kana (Schreiben)",
@@ -116,7 +116,7 @@ const Home = ({
       groupBtn: "Jetzt Registrieren",
       day: "Tag",
       scenario: "Text",
-      socialTitle: "Tägliche Japan-Hacks",
+      socialTitle: "Tägliche Sprach-Hacks", // <--- NEU: Angepasst für alle Sprachen
       socialDesc: (
         <>
           Hol dir Tipps, Vokabeln & Motivation direkt auf dein Handy.<br />
@@ -124,13 +124,13 @@ const Home = ({
         </>
       ),
       modalTitle: "Der 8-Wochen-Fahrplan",
-      modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
+      modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag. Praxis vor Theorie!",
       modalW1Title: "Woche 1 & 2: Das Fundament",
-      modalW1Desc: "Täglich 1x Phase 1 (Lesen) und direkt danach Phase 1 (Schreiben). Nach 14 Tagen kannst du Hiragana und Katakana blind.",
+      modalW1Desc: "Täglich 1x Phase 1 (Lesen) und direkt danach Phase 1 (Schreiben). Nach 14 Tagen sitzt die absolute Basis blind.",
       modalW3Title: "Woche 3 bis 5: Der Einsatz",
       modalW3Desc: "Jetzt laufen Phase 2 (Flow) und Phase 3 (Radar) parallel! Starte mit einem Text zum Aufwärmen und absolviere danach den Radar-Einsatz des Tages.",
       modalW6Title: "Woche 6 bis 8: Der Feinschliff",
-      modalW6Desc: "Phase 4 (Kanji). Jeden Tag ein neues Deck. Wiederhole nebenbei alte Radar-Einsätze, um deine Reaktionszeit zu pushen.",
+      modalW6Desc: "Phase 4. Jeden Tag ein neues Deck. Wiederhole nebenbei alte Radar-Einsätze, um deine Reaktionszeit zu pushen.",
       modalCtaTitle: "Ab Woche 8: Das Live Dojo",
       modalCtaDesc: "Wissen allein reicht nicht – du musst es anwenden! Melde dich für unser interaktives Gruppentraining an und trainiere deine Reflexe in echten Gesprächen.",
       modalCtaBtn: "Jetzt fürs Dojo registrieren",
@@ -150,14 +150,13 @@ const Home = ({
       themeDark: "Dunkel-Modus",
       themeLight: "Hell-Modus",
       logoutBtn: "Logout",
-      // Neue Texte für die Platzhalter
       contentPrepTitle: "Fahrplan in Vorbereitung",
       contentPrepDesc: "Die Lerninhalte für diese Zielsprache werden aktuell geladen."
     },
     en: {
       reset: "Reset",
       info: "Roadmap",
-      subtitle: "Nippon Survival System",
+      subtitle: "Language Survival System", // <--- NEU: Sprachneutraler Titel
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
       phase1WriteTitle: "Phase 1: Kana (Write)",
@@ -183,7 +182,7 @@ const Home = ({
       groupBtn: "Register Now",
       day: "Day",
       scenario: "Text",
-      socialTitle: "Daily Japan Hacks",
+      socialTitle: "Daily Language Hacks", // <--- NEU: Angepasst für alle Sprachen
       socialDesc: (
         <>
           Get tips, vocabulary & motivation straight to your phone.<br />
@@ -191,13 +190,13 @@ const Home = ({
         </>
       ),
       modalTitle: "The 8-Week Roadmap",
-      modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life in Japan. Practice over theory!",
+      modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life. Practice over theory!",
       modalW1Title: "Week 1 & 2: The Foundation",
-      modalW1Desc: "Daily 1x Phase 1 (Read) followed by Phase 1 (Write). After 14 days you will know Hiragana and Katakana blindly.",
+      modalW1Desc: "Daily 1x Phase 1 (Read) followed by Phase 1 (Write). After 14 days the absolute basis is set blindly.",
       modalW3Title: "Week 3 to 5: The Mission",
       modalW3Desc: "Now Phase 2 (Flow) and Phase 3 (Radar) run in parallel! Start with a text to warm up and then complete the Radar mission of the day.",
       modalW6Title: "Week 6 to 8: The Polish",
-      modalW6Desc: "Phase 4 (Kanji). One new deck every day. Repeat old Radar missions on the side to push your reaction time.",
+      modalW6Desc: "Phase 4. One new deck every day. Repeat old Radar missions on the side to push your reaction time.",
       modalCtaTitle: "Week 8+: The Live Dojo",
       modalCtaDesc: "Knowledge alone isn't enough – you have to apply it! Sign up for our interactive group training and test your reflexes in real conversations.",
       modalCtaBtn: "Register for the Dojo now",
@@ -217,7 +216,6 @@ const Home = ({
       themeDark: "Dark Mode",
       themeLight: "Light Mode",
       logoutBtn: "Logout",
-      // Neue Texte für die Platzhalter
       contentPrepTitle: "Roadmap in Preparation",
       contentPrepDesc: "The learning content for this target language is currently being loaded."
     }
@@ -274,6 +272,16 @@ const Home = ({
       setIsSubmitted(false);
       setFormData({ firstName: '', lastName: '', phone: '', email: '' });
     }, 300);
+  };
+
+  // --- NEU: Dynamische Länderflagge für den Header ---
+  const getTargetLanguageIcon = () => {
+    switch(targetLanguage) {
+      case 'jp': return '🇯🇵';
+      case 'de': return '🇩🇪';
+      case 'en': return '🇬🇧'; // Oder '🇺🇸', je nach Vorliebe
+      default: return '🏳️'; // Fallback
+    }
   };
 
   return (
@@ -362,9 +370,10 @@ const Home = ({
         )}
       </div>
 
+      {/* --- HEADER BEREICH --- */}
       <div className="mt-16 mb-10 flex flex-col items-center">
         <button onClick={onGoToWelcome} className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors cursor-pointer active:scale-95 focus:outline-none">
-          <span className="text-5xl">⛩️</span>
+          <span className="text-5xl">{getTargetLanguageIcon()}</span>
         </button>
         
         <h1 
