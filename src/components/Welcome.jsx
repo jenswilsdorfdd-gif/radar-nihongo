@@ -66,16 +66,6 @@ const Welcome = ({ onStart, language }) => {
     onStart(); // Leitet weiter zur Auth.jsx
   };
 
-  // Hilfsfunktion für die Flaggen-URLs
-  const getFlagUrl = (langCode) => {
-    switch(langCode) {
-      case 'jp': return "https://flagcdn.com/w40/jp.png";
-      case 'de': return "https://flagcdn.com/w40/de.png";
-      case 'en': return "https://flagcdn.com/w40/gb.png";
-      default: return "";
-    }
-  };
-
   return (
     <div className="flex-1 bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8 text-white min-h-screen relative overflow-hidden">
       
@@ -108,21 +98,18 @@ const Welcome = ({ onStart, language }) => {
 
         <div className="w-full space-y-6 text-left mb-8">
           
-          {/* Zielsprache */}
+          {/* 1. QUELLSPRACHE (Ausgangssprache) ZUERST */}
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.targetLabel}</label>
-            <div className="relative flex items-center">
-              <div className="absolute left-4 z-10 pointer-events-none">
-                <img src={getFlagUrl(targetLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
-              </div>
+            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.sourceLabel}</label>
+            <div className="relative">
               <select 
-                value={targetLang}
-                onChange={(e) => setTargetLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
+                value={sourceLang}
+                onChange={(e) => setSourceLang(e.target.value)}
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
               >
-                <option value="jp">{t.langs.jp}</option>
-                <option value="de">{t.langs.de}</option>
-                <option value="en">{t.langs.en}</option>
+                <option value="de">🇩🇪 {t.langs.de}</option>
+                <option value="en">🇬🇧 {t.langs.en}</option>
+                <option value="jp">🇯🇵 {t.langs.jp}</option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                 ▼
@@ -130,21 +117,18 @@ const Welcome = ({ onStart, language }) => {
             </div>
           </div>
 
-          {/* Quellsprache */}
+          {/* 2. ZIELSPRACHE ZWEITENS */}
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.sourceLabel}</label>
-            <div className="relative flex items-center">
-              <div className="absolute left-4 z-10 pointer-events-none">
-                <img src={getFlagUrl(sourceLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
-              </div>
+            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.targetLabel}</label>
+            <div className="relative">
               <select 
-                value={sourceLang}
-                onChange={(e) => setSourceLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value)}
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
               >
-                <option value="de">{t.langs.de}</option>
-                <option value="en">{t.langs.en}</option>
-                <option value="jp">{t.langs.jp}</option>
+                <option value="en">🇬🇧 {t.langs.en}</option>
+                <option value="de">🇩🇪 {t.langs.de}</option>
+                <option value="jp">🇯🇵 {t.langs.jp}</option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                 ▼
