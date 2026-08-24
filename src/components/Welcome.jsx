@@ -5,6 +5,22 @@ const Welcome = ({ onStart, language }) => {
   const [sourceLang, setSourceLang] = useState(language === 'jpn' ? 'jp' : language || 'de');
   const [targetLang, setTargetLang] = useState('jp');
 
+  // --- GOD MODE TRIGGER ---
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleSecretClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    
+    if (newCount === 5) {
+      localStorage.setItem('radarDevMode', 'true');
+      setClickCount(0);
+      onStart(); // Leitet direkt zur App.jsx weiter
+    }
+    
+    setTimeout(() => setClickCount(0), 2000);
+  };
+
   const texts = {
     de: {
       title: "RADAR Lernsystem",
@@ -60,7 +76,10 @@ const Welcome = ({ onStart, language }) => {
           </svg>
         </div>
 
-        <h1 className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2 uppercase">
+        <h1 
+          onClick={handleSecretClick}
+          className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2 uppercase cursor-pointer select-none"
+        >
           {t.title}
         </h1>
         <h2 className="text-green-400 text-xs font-bold tracking-widest uppercase mb-6">
