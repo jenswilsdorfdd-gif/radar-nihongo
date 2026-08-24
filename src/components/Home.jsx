@@ -10,11 +10,17 @@ const Home = ({
   readingDay, setReadingDay, 
   radarDay, setRadarDay, 
   kanjiDay, setKanjiDay, 
-  language 
+  language,
+  // Neu empfangene Props aus der App.jsx für das vereinte Menü
+  isDarkMode,
+  setIsDarkMode,
+  onLogout
 }) => {
   const containerRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showSurvivalModal, setShowSurvivalModal] = useState(false); 
+  
+  // State für das Mobile Hamburger-Menü
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // REGISTRIERUNG & LIVE-COUNTER
   const [showRegModal, setShowRegModal] = useState(false);
@@ -84,7 +90,6 @@ const Home = ({
     de: {
       reset: "Reset",
       info: "Fahrplan",
-      survivalBtn: "Survival",
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
@@ -118,15 +123,6 @@ const Home = ({
           Bleib bei der Stange!
         </>
       ),
-      survModalTitle: "Japan Survival-Kit",
-      survModalIntro: "Sprache ist nur die halbe Miete. Wer das Mindset und die Kultur versteht, gewinnt auf der Straße.",
-      survSec1Title: "📺 Filme & Serien",
-      survSec1Desc: "Schau dir Serien wie 'Midnight Diner: Tokyo Stories' (Netflix) an. Dort hörst du echtes Kneipen-Japanisch, abseits vom sterilen Lehrbuch-Slang.",
-      survSec2Title: "🎧 Dokus & Vibes",
-      survSec2Desc: "Such auf YouTube nach 'Tokyo Walking Tours' oder 'Japan Street Food'. Das hilft deinem Gehirn, sich an die akustische Kulisse und die visuelle Reizüberflutung zu gewöhnen.",
-      survSec3Title: "🙇‍♂️ Der Straßen-Knigge",
-      survSec3Desc: "Regel Nr. 1: In der Bahn wird nicht telefoniert. Regel Nr. 2: Steck deine Essstäbchen niemals aufrecht in den Reis (Todes-Symbolik). Beobachte die Locals und pass dich an!",
-      survModalClose: "Alles klar!",
       modalTitle: "Der 8-Wochen-Fahrplan",
       modalIntro: "Dieses System ist kein klassischer Vokabeltrainer, sondern ein taktisches Trainingslager für den echten Alltag in Japan. Praxis vor Theorie!",
       modalW1Title: "Woche 1 & 2: Das Fundament",
@@ -150,12 +146,14 @@ const Home = ({
       successTitle: "Erfolgreich registriert!",
       successText: "Du erhältst in Kürze eine E-Mail mit weiteren Informationen von uns.",
       closeBtn: "Schließen",
-      counterText: "Teilnehmer angemeldet"
+      counterText: "Teilnehmer angemeldet",
+      themeDark: "Dunkel-Modus",
+      themeLight: "Hell-Modus",
+      logoutBtn: "Logout"
     },
     en: {
       reset: "Reset",
       info: "Roadmap",
-      survivalBtn: "Survival", 
       subtitle: "Nippon Survival System",
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
@@ -189,15 +187,6 @@ const Home = ({
           Stay focused!
         </>
       ),
-      survModalTitle: "Japan Survival Kit",
-      survModalIntro: "Language is only half the battle. If you understand the mindset and culture, you win on the street.",
-      survSec1Title: "📺 Movies & Series",
-      survSec1Desc: "Watch series like 'Midnight Diner: Tokyo Stories' (Netflix). You'll hear real pub Japanese, away from the sterile textbook slang.",
-      survSec2Title: "🎧 Documentaries & Vibes",
-      survSec2Desc: "Search YouTube for 'Tokyo Walking Tours' or 'Japan Street Food'. This helps your brain get used to the acoustic background and visual overload.",
-      survSec3Title: "🙇‍♂️ Street Etiquette",
-      survSec3Desc: "Rule No. 1: No phone calls on the train. Rule No. 2: Never stick your chopsticks upright in the rice (death symbolism). Observe the locals and adapt!",
-      survModalClose: "Got it!",
       modalTitle: "The 8-Week Roadmap",
       modalIntro: "This system is not a classic vocabulary trainer, but a tactical boot camp for everyday life in Japan. Practice over theory!",
       modalW1Title: "Week 1 & 2: The Foundation",
@@ -221,7 +210,10 @@ const Home = ({
       successTitle: "Registration successful!",
       successText: "You will receive an email with further information shortly.",
       closeBtn: "Close",
-      counterText: "participants registered"
+      counterText: "participants registered",
+      themeDark: "Dark Mode",
+      themeLight: "Light Mode",
+      logoutBtn: "Logout"
     }
   };
 
@@ -281,16 +273,87 @@ const Home = ({
   return (
     <div ref={containerRef} className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
-      <div className="absolute top-6 right-6 z-10 flex gap-3 items-center">
-        <button onClick={() => setShowSurvivalModal(true)} className="text-pink-400 hover:text-pink-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-pink-900/30 px-3 py-1.5 rounded-full border border-pink-500/50 transition-all active:scale-95">
-          <span>🎒</span> {t.survivalBtn}
-        </button>
-        <button onClick={() => setShowInfoModal(true)} className="text-cyan-400 hover:text-cyan-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-cyan-900/30 px-3 py-1.5 rounded-full border border-cyan-500/50 transition-all active:scale-95">
-          <span>ℹ️</span> {t.info}
-        </button>
-        <button onClick={onReset} className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest uppercase ml-1">
-          {t.reset}
-        </button>
+      {/* VEREINTES TOP-MENÜ */}
+      <div className="absolute top-6 right-6 z-50">
+        
+        {/* Desktop Ansicht: Inline Menü */}
+        <div className="hidden md:flex gap-3 items-center">
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)} 
+            className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform focus:outline-none" 
+            style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} 
+            title={isDarkMode ? t.themeLight : t.themeDark}
+          >
+            <span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span>
+          </button>
+
+          <button onClick={() => setShowInfoModal(true)} className="text-cyan-400 hover:text-cyan-300 text-xs font-bold tracking-widest uppercase flex items-center gap-1 bg-cyan-900/30 px-4 py-2.5 rounded-full border border-cyan-500/50 transition-all shadow-lg active:scale-95">
+            <span>ℹ️</span> {t.info}
+          </button>
+          
+          <button onClick={onReset} className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest uppercase bg-red-900/20 px-4 py-2.5 rounded-full border border-red-500/30 transition-all shadow-lg active:scale-95 mx-1">
+            {t.reset}
+          </button>
+
+          <button 
+            onClick={onLogout} 
+            className="w-10 h-10 flex items-center justify-center bg-red-900/30 text-red-500 rounded-full border border-red-500/50 shadow-lg hover:scale-110 transition-transform focus:outline-none" 
+            title={t.logoutBtn}
+          >
+            <span className="text-xl font-bold leading-none mb-0.5">✖</span>
+          </button>
+        </div>
+
+        {/* Mobile Ansicht: Hamburger Button */}
+        <div className="md:hidden flex items-center">
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            className="w-12 h-12 flex items-center justify-center bg-gray-800 rounded-xl border border-gray-700 shadow-lg active:scale-95 transition-transform focus:outline-none"
+          >
+            <span className="text-2xl leading-none text-gray-300">
+              {isMobileMenuOpen ? '✖' : '☰'}
+            </span>
+          </button>
+        </div>
+
+        {/* Mobile Ansicht: Dropdown Overlay */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-16 right-0 w-56 bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl flex flex-col p-2 gap-2 md:hidden animate-fade-in">
+            <button 
+              onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} 
+              className="flex items-center justify-between p-3.5 hover:bg-gray-700 rounded-xl text-white text-sm font-bold tracking-wide transition-colors"
+            >
+              <span>{isDarkMode ? t.themeLight : t.themeDark}</span>
+              <span className="text-lg" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>{isDarkMode ? '☀️' : '🌙'}</span>
+            </button>
+            
+            <button 
+              onClick={() => { setShowInfoModal(true); setIsMobileMenuOpen(false); }} 
+              className="flex items-center justify-between p-3.5 hover:bg-gray-700 rounded-xl text-cyan-400 text-sm font-bold tracking-widest uppercase transition-colors"
+            >
+              <span>{t.info}</span>
+              <span className="text-lg">ℹ️</span>
+            </button>
+            
+            <button 
+              onClick={() => { onReset(); setIsMobileMenuOpen(false); }} 
+              className="flex items-center justify-between p-3.5 hover:bg-gray-700 rounded-xl text-red-500 text-sm font-bold tracking-widest uppercase transition-colors"
+            >
+              <span>{t.reset}</span>
+              <span className="text-lg font-black leading-none">↺</span>
+            </button>
+            
+            <div className="h-px bg-gray-700 my-1 mx-2"></div>
+            
+            <button 
+              onClick={() => { onLogout(); setIsMobileMenuOpen(false); }} 
+              className="flex items-center justify-between p-3.5 hover:bg-red-900/30 rounded-xl text-red-500 text-sm font-bold tracking-widest uppercase transition-colors"
+            >
+              <span>{t.logoutBtn}</span>
+              <span className="text-lg font-black leading-none mb-0.5">✖</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-16 mb-10 flex flex-col items-center">
@@ -513,46 +576,13 @@ const Home = ({
 
       </div>
 
-      {/* SURVIVAL MODAL */}
-      {showSurvivalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-6 bg-gray-900 border-b border-gray-700 flex justify-between items-center shrink-0">
-              <h2 className="text-xl font-bold tracking-widest uppercase text-pink-400">{t.survModalTitle}</h2>
-              <button onClick={() => setShowSurvivalModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto space-y-6">
-              <p className="text-gray-300 text-sm leading-relaxed italic border-l-4 border-pink-500 pl-3">{t.survModalIntro}</p>
-              
-              <div>
-                <h3 className="font-bold text-white mb-1">{t.survSec1Title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec1Desc}</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-white mb-1">{t.survSec2Title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec2Desc}</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-white mb-1">{t.survSec3Title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{t.survSec3Desc}</p>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-gray-900 border-t border-gray-700 shrink-0">
-              <button onClick={() => setShowSurvivalModal(false)} className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors">{t.survModalClose}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* FAHRPLAN MODAL */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             <div className="p-6 bg-gray-900 border-b border-gray-700 flex justify-between items-center shrink-0">
               <h2 className="text-xl font-bold tracking-widest uppercase text-cyan-400">{t.modalTitle}</h2>
-              <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+              <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-white text-3xl leading-none">×</button>
             </div>
             
             <div className="p-6 overflow-y-auto space-y-6">
@@ -600,7 +630,7 @@ const Home = ({
                   🔥 Bereits {dojoCount} {t.counterText}!
                 </div>
               </div>
-              {!isSubmitted && <button onClick={closeRegistration} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>}
+              {!isSubmitted && <button onClick={closeRegistration} className="text-gray-400 hover:text-white text-3xl leading-none">×</button>}
             </div>
             
             <div className="p-6">
