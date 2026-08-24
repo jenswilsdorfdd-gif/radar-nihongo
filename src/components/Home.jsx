@@ -90,7 +90,7 @@ const Home = ({
     de: {
       reset: "Reset",
       info: "Fahrplan",
-      subtitle: "Language Survival System", // <--- NEU: Sprachneutraler Titel
+      subtitle: "Language Survival System",
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
       phase1WriteTitle: "Phase 1: Kana (Schreiben)",
@@ -116,7 +116,7 @@ const Home = ({
       groupBtn: "Jetzt Registrieren",
       day: "Tag",
       scenario: "Text",
-      socialTitle: "Tägliche Sprach-Hacks", // <--- NEU: Angepasst für alle Sprachen
+      socialTitle: "Tägliche Sprach-Hacks",
       socialDesc: (
         <>
           Hol dir Tipps, Vokabeln & Motivation direkt auf dein Handy.<br />
@@ -156,7 +156,7 @@ const Home = ({
     en: {
       reset: "Reset",
       info: "Roadmap",
-      subtitle: "Language Survival System", // <--- NEU: Sprachneutraler Titel
+      subtitle: "Language Survival System",
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
       phase1WriteTitle: "Phase 1: Kana (Write)",
@@ -182,7 +182,7 @@ const Home = ({
       groupBtn: "Register Now",
       day: "Day",
       scenario: "Text",
-      socialTitle: "Daily Language Hacks", // <--- NEU: Angepasst für alle Sprachen
+      socialTitle: "Daily Language Hacks",
       socialDesc: (
         <>
           Get tips, vocabulary & motivation straight to your phone.<br />
@@ -274,13 +274,13 @@ const Home = ({
     }, 300);
   };
 
-  // --- NEU: Dynamische Länderflagge für den Header ---
+  // --- NEU: Dynamische Länderflagge für den Header (CDN) ---
   const getTargetLanguageIcon = () => {
     switch(targetLanguage) {
-      case 'jp': return '🇯🇵';
-      case 'de': return '🇩🇪';
-      case 'en': return '🇬🇧'; // Oder '🇺🇸', je nach Vorliebe
-      default: return '🏳️'; // Fallback
+      case 'jp': return <img src="https://flagcdn.com/w80/jp.png" alt="JP" className="w-10 rounded-sm shadow-sm" />;
+      case 'de': return <img src="https://flagcdn.com/w80/de.png" alt="DE" className="w-10 rounded-sm shadow-sm" />;
+      case 'en': return <img src="https://flagcdn.com/w80/gb.png" alt="EN" className="w-10 rounded-sm shadow-sm" />;
+      default: return <span className="text-5xl">🏳️</span>;
     }
   };
 
@@ -373,7 +373,7 @@ const Home = ({
       {/* --- HEADER BEREICH --- */}
       <div className="mt-16 mb-10 flex flex-col items-center">
         <button onClick={onGoToWelcome} className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-colors cursor-pointer active:scale-95 focus:outline-none">
-          <span className="text-5xl">{getTargetLanguageIcon()}</span>
+          {getTargetLanguageIcon()}
         </button>
         
         <h1 
