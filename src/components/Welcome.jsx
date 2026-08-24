@@ -13,7 +13,7 @@ const Welcome = ({ onStart, language }) => {
     setClickCount(newCount);
     
     if (newCount === 5) {
-      // NEU: Sprachen beim Dev Mode Bypass ebenfalls im LocalStorage sichern
+      // Sprachen beim Dev Mode Bypass ebenfalls im LocalStorage sichern
       localStorage.setItem('radar_target_lang', targetLang);
       localStorage.setItem('radar_source_lang', sourceLang);
       
@@ -55,13 +55,25 @@ const Welcome = ({ onStart, language }) => {
     }
   };
 
-  const t = texts[language] || texts.de;
+  // Live-Übersetzung basierend auf der aktuellen Dropdown-Auswahl der Muttersprache
+  const activeTextKey = sourceLang === 'jp' ? 'jpn' : sourceLang;
+  const t = texts[activeTextKey] || texts.de;
 
   const handleEnter = () => {
     // Auswahl im Browser zwischenspeichern, um den Magic-Link-Reload zu überleben
     localStorage.setItem('radar_target_lang', targetLang);
     localStorage.setItem('radar_source_lang', sourceLang);
     onStart(); // Leitet weiter zur Auth.jsx
+  };
+
+  // Hilfsfunktion für die Flaggen-URLs
+  const getFlagUrl = (langCode) => {
+    switch(langCode) {
+      case 'jp': return "https://flagcdn.com/w40/jp.png";
+      case 'de': return "https://flagcdn.com/w40/de.png";
+      case 'en': return "https://flagcdn.com/w40/gb.png";
+      default: return "";
+    }
   };
 
   return (
@@ -99,11 +111,14 @@ const Welcome = ({ onStart, language }) => {
           {/* Zielsprache */}
           <div className="flex flex-col">
             <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.targetLabel}</label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <div className="absolute left-4 z-10 pointer-events-none">
+                <img src={getFlagUrl(targetLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+              </div>
               <select 
                 value={targetLang}
                 onChange={(e) => setTargetLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
               >
                 <option value="jp">{t.langs.jp}</option>
                 <option value="de">{t.langs.de}</option>
@@ -118,11 +133,14 @@ const Welcome = ({ onStart, language }) => {
           {/* Quellsprache */}
           <div className="flex flex-col">
             <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{t.sourceLabel}</label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <div className="absolute left-4 z-10 pointer-events-none">
+                <img src={getFlagUrl(sourceLang)} alt="Flag" className="w-6 rounded-sm shadow-sm" />
+              </div>
               <select 
                 value={sourceLang}
                 onChange={(e) => setSourceLang(e.target.value)}
-                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none p-4 text-sm appearance-none cursor-pointer"
+                className="w-full bg-gray-900 text-white rounded-xl border border-gray-600 focus:border-green-500 focus:outline-none py-4 pl-14 pr-10 text-sm appearance-none cursor-pointer"
               >
                 <option value="de">{t.langs.de}</option>
                 <option value="en">{t.langs.en}</option>
