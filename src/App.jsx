@@ -267,21 +267,14 @@ function App() {
     );
   }
 
-  const showControls = activeView === 'home';
-
   return (
     <div className="min-h-screen w-screen max-w-full bg-gray-900 overflow-x-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
-      {showControls && (
-        <div className="fixed top-6 left-6 z-50 flex gap-3">
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}} title={isDarkMode ? "In den Hell-Modus wechseln" : "In den Dunkel-Modus wechseln"}><span className="text-xl leading-none">{isDarkMode ? '☀️' : '🌙'}</span></button>
-          
-          {session && (
-            <button onClick={handleLogout} className="w-10 h-10 flex items-center justify-center bg-red-900/30 text-red-500 rounded-full border border-red-500/50 shadow-lg hover:scale-110 transition-transform cursor-pointer focus:outline-none" title="Logout">
-              <span className="text-lg leading-none">🚪</span>
-            </button>
-          )}
-        </div>
-      )}
+      
+      {/* 
+        ACHTUNG: showControls und das zersplitterte Top-Menü wurden hier komplett entfernt.
+        Darkmode und Logout werden nun als Props an die Home.jsx übergeben, 
+        damit dort ein sauberes, vereintes Menü gerendert werden kann.
+      */}
 
       {activeView === 'welcome' && <Welcome onStart={() => setActiveView(session ? 'home' : 'auth')} language={appLanguage} />}
       
@@ -313,6 +306,11 @@ function App() {
           setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
           
           language={appLanguage}
+          
+          // NEUE PROPS FÜR DAS VEREINTE TOP-MENÜ
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          onLogout={handleLogout}
         />
       )}
       {activeView === 'kana-deck' && <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} language={appLanguage} />}
