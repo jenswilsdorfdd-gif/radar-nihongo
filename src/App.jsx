@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import Welcome from './components/Welcome';
-import Auth from './components/Auth';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import Flashcard from './components/Flashcard';
@@ -86,7 +85,7 @@ function App() {
       setSession(session);
       if (session) {
         fetchCloudProgress(session.user.id);
-        setActiveView(prev => (prev === 'welcome' || prev === 'auth' ? 'home' : prev));
+        setActiveView(prev => (prev === 'welcome' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
         // DEV MODE BYPASS: Direkt zur Home-Ansicht, wenn aktiv
@@ -107,7 +106,7 @@ function App() {
       setSession(session);
       if (session) {
         fetchCloudProgress(session.user.id);
-        setActiveView(prev => (prev === 'welcome' || prev === 'auth' ? 'home' : prev));
+        setActiveView(prev => (prev === 'welcome' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
       }
@@ -413,13 +412,11 @@ function App() {
                   setAppLanguage(mappedLang);
                 }
               }
-              setActiveView((session || isDev) ? 'home' : 'auth');
+              setActiveView('home');
             }} 
             language={appLanguage} 
           />
         )}
-        
-        {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
 
         {activeView === 'home' && (
           hasValidAccess ? (
