@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 import HomeJP from './HomeJP'; 
-import HomeEN from './HomeEN'; // <-- NEU: Import der Englisch-Komponente
+import HomeEN from './HomeEN';
 
 const Home = ({ 
   onSelectMode, 
@@ -270,11 +270,14 @@ const Home = ({
   };
 
   const getTargetLanguageIcon = () => {
+    // Gegen-Filter: Neutralisiert die globale Invertierung im Hell-Modus
+    const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
+    
     switch(targetLanguage) {
-      case 'jp': return <img src="https://flagcdn.com/w80/jp.png" alt="JP" className="w-10 rounded-sm shadow-sm" />;
-      case 'de': return <img src="https://flagcdn.com/w80/de.png" alt="DE" className="w-10 rounded-sm shadow-sm" />;
-      case 'en': return <img src="https://flagcdn.com/w80/gb.png" alt="EN" className="w-10 rounded-sm shadow-sm" />;
-      default: return <span className="text-5xl">🏳️</span>;
+      case 'jp': return <img src="https://flagcdn.com/w80/jp.png" alt="JP" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
+      case 'de': return <img src="https://flagcdn.com/w80/de.png" alt="DE" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
+      case 'en': return <img src="https://flagcdn.com/w80/gb.png" alt="EN" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
+      default: return <span className="text-5xl" style={revertFilter}>🏳️</span>;
     }
   };
 
