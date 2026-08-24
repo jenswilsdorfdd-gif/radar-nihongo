@@ -37,6 +37,9 @@ function App() {
   const [isLifetime, setIsLifetime] = useState(false);
   const [accessExpiresAt, setAccessExpiresAt] = useState(null);
   const [hasBookedDojo, setHasBookedDojo] = useState(false);
+  
+  // NEU: State für das Payment-Erfolgs-Overlay
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
   // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
   const [currentRadarDay, setCurrentRadarDay] = useState(1);
@@ -240,10 +243,17 @@ function App() {
 
       console.log("Edge Function Response:", data);
       
-      // Erfolgreich verifiziert! Wir laden die Nutzerdaten neu aus der DB, 
-      // damit sich die Bezahlschranke (PremiumWall) sofort in Luft auflöst.
+      // Erfolgreich verifiziert! Wir laden die Nutzerdaten neu aus der DB
       if (session) {
         await fetchCloudProgress(session.user.id);
+        
+        // Zeige das Erfolgs-Overlay an
+        setShowPaymentSuccess(true);
+        
+        // Verstecke das Overlay nach 3 Sekunden -> der User landet im 'home' View
+        setTimeout(() => {
+          setShowPaymentSuccess(false);
+        }, 3000);
       }
       
     } catch (err) {
@@ -283,6 +293,24 @@ function App() {
             <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-red-500 shadow-sm flex items-center justify-center bg-gray-900 text-red-400 text-xl">JP</div>日本語
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // --- NEU: ERFOLGS-OVERLAY NACH ZAHLUNG ---
+  if (showPaymentSuccess) {
+    return (
+      <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white animate-fade-in">
+        <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500 flex items-center justify-center shadow-[0_0_50px_rgba(34,197,94,0.4)] mb-8 mx-auto relative overflow-hidden">
+          <div className="absolute inset-0 bg-green-500/20 animate-ping rounded-full"></div>
+          <span className="text-5xl relative z-10">💎</span>
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4 text-center uppercase">
+          Zahlung erfolgreich!
+        </h1>
+        <p className="text-gray-400 text-lg text-center animate-pulse">
+          Willkommen im Premium-System. Deine Umgebung wird vorbereitet...
+        </p>
       </div>
     );
   }
