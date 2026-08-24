@@ -13,6 +13,10 @@ const Welcome = ({ onStart, language }) => {
     setClickCount(newCount);
     
     if (newCount === 5) {
+      // NEU: Sprachen beim Dev Mode Bypass ebenfalls im LocalStorage sichern
+      localStorage.setItem('radar_target_lang', targetLang);
+      localStorage.setItem('radar_source_lang', sourceLang);
+      
       localStorage.setItem('radarDevMode', 'true');
       setClickCount(0);
       onStart(); // Leitet direkt zur App.jsx weiter
