@@ -224,10 +224,34 @@ function App() {
     setActiveView('welcome');
   };
 
-  // --- PAYMENT LOGIK ---
-  const handlePaymentSuccess = (orderId) => {
-    console.log("Frontend Payment Success, Order ID:", orderId);
-    alert("Zahlung bei PayPal erfolgreich! Im nächsten Schritt bauen wir die Backend-Verifizierung.");
+  // --- PAYMENT LOGIK & BACKEND VERIFIZIERUNG ---
+  const handlePaymentSuccess = async (orderId) => {
+    console.log("Frontend Payment Success, starte Backend-Verifizierung für Order ID:", orderId);
+    
+    // Wir nutzen den globalen Lade-Screen, während das Backend mit PayPal spricht
+    setIsCloudLoading(true); 
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('paypal-verify', {
+        body: { orderId: orderId }
+      });
+
+      if (error) throw error;
+
+      console.log("Edge Function Response:", data);
+      
+      // Erfolgreich verifiziert! Wir laden die Nutzerdaten neu aus der DB, 
+      // damit sich die Bezahlschranke (PremiumWall) sofort in Luft auflöst.
+      if (session) {
+        await fetchCloudProgress(session.user.id);
+      }
+      
+    } catch (err) {
+      console.error("Zahlungsverifizierung fehlgeschlagen:", err);
+      alert("Es gab ein Problem bei der Verifizierung der Zahlung. Bitte kontaktiere den Support.");
+    } finally {
+      setIsCloudLoading(false);
+    }
   };
 
   const hasValidAccess = isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
@@ -276,7 +300,7 @@ function App() {
             <path d="M19 5a10 10 0 0 1 0 14"></path>
           </svg>
         </div>
-        System wird autorisiert...
+        System arbeitet...
       </div>
     );
   }
