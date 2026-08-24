@@ -67,6 +67,8 @@ function App() {
 
   // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
+    const devModeActive = localStorage.getItem('radarDevMode') === 'true';
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -74,6 +76,10 @@ function App() {
         setActiveView(prev => (prev === 'welcome' || prev === 'auth' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
+        // DEV MODE BYPASS: Direkt zur Home-Ansicht, wenn aktiv
+        if (devModeActive) {
+          setActiveView('home');
+        }
       }
     });
 
@@ -155,6 +161,12 @@ function App() {
   };
 
   const updateCloudProgress = async (updates) => {
+    // DEV MODE BLOCK: Verhindert Datenbank-Crashes bei aktivem Dev Mode ohne Session
+    if (localStorage.getItem('radarDevMode') === 'true') {
+      console.log("Dev Mode Aktiv: Cloud-Update blockiert (Bypass Modus)", updates);
+      return;
+    }
+
     if (!session) return;
     const { error } = await supabase
       .from('user_progress')
@@ -276,7 +288,9 @@ function App() {
     }
   };
 
-  const hasValidAccess = isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
+  // DEV MODE PAYWALL BYPASS
+  const devModeActive = localStorage.getItem('radarDevMode') === 'true';
+  const hasValidAccess = devModeActive || isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
 
   if (!appLanguage) {
     return (
@@ -309,7 +323,7 @@ function App() {
     );
   }
 
-  // --- NEU: ERFOLGS-OVERLAY NACH ZAHLUNG (DYNAMISCHE TEXTE) ---
+  // --- ERFOLGS-OVERLAY NACH ZAHLUNG (DYNAMISCHE TEXTE) ---
   if (showPaymentSuccess) {
     const successTexts = {
       de: {
@@ -366,7 +380,15 @@ function App() {
     <PayPalScriptProvider options={paypalOptions}>
       <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
         
-        {activeView === 'welcome' && <Welcome onStart={() => setActiveView(session ? 'home' : 'auth')} language={appLanguage} />}
+        {activeView === 'welcome' && (
+          <Welcome 
+            onStart={() => {
+              const isDev = localStorage.getItem('radarDevMode') === 'true';
+              setActiveView((session || isDev) ? 'home' : 'auth');
+            }} 
+            language={appLanguage} 
+          />
+        )}
         
         {activeView === 'auth' && <Auth onLoginSuccess={() => setActiveView('home')} language={appLanguage} />}
 
@@ -397,7 +419,7 @@ function App() {
               setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
               
               language={appLanguage}
-              targetLanguage={targetLanguage} // <--- NEU: Zielsprache an Home übergeben
+              targetLanguage={targetLanguage} 
               
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
