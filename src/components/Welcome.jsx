@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 
 const Welcome = ({ onStart, language }) => {
-  // Als Default für die Quellsprache nehmen wir die aktuelle UI-Sprache
-  const [sourceLang, setSourceLang] = useState(language === 'jpn' ? 'jp' : language || 'de');
-  const [targetLang, setTargetLang] = useState('jp');
+  // Zuerst im LocalStorage nachschauen, ansonsten Fallback auf die UI-Sprache
+  const [sourceLang, setSourceLang] = useState(() => {
+    return localStorage.getItem('radar_source_lang') || (language === 'jpn' ? 'jp' : language || 'de');
+  });
+  
+  // Zuerst im LocalStorage nachschauen, ansonsten Fallback auf Japanisch
+  const [targetLang, setTargetLang] = useState(() => {
+    return localStorage.getItem('radar_target_lang') || 'jp';
+  });
 
   // --- GOD MODE TRIGGER ---
   const [clickCount, setClickCount] = useState(0);
