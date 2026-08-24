@@ -250,10 +250,10 @@ function App() {
         // Zeige das Erfolgs-Overlay an
         setShowPaymentSuccess(true);
         
-        // Verstecke das Overlay nach 3 Sekunden -> der User landet im 'home' View
+        // Verstecke das Overlay nach 5 Sekunden -> der User landet im 'home' View
         setTimeout(() => {
           setShowPaymentSuccess(false);
-        }, 3000);
+        }, 5000);
       }
       
     } catch (err) {
