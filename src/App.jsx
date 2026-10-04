@@ -422,6 +422,7 @@ function App() {
           hasValidAccess ? (
             <Home 
               onSelectMode={(mode) => {
+                // Standard-Routing (Japanisch & Englisch)
                 if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
                 if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
                 if (mode === 'reading') setActiveView('reading-deck');
@@ -429,6 +430,15 @@ function App() {
                 if (mode === 'kanji') setActiveView('kanji');
                 if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
                 if (mode === 'final-exam') setActiveView('final-exam');
+
+                // Spezifisches Routing für Deutsch-Lernpfad (HomeDE)
+                if (mode === 'de-phonetik') { setKanaMode('read'); setActiveView('kana-deck'); }
+                if (mode === 'de-v2') { setKanaMode('write'); setActiveView('kana-deck'); }
+                if (mode === 'de-signals') setActiveView('particle-crashcourse');
+                if (mode === 'de-klammer') setActiveView('reading-deck');
+                if (mode === 'de-radar') setActiveView('dashboard');
+                if (mode === 'de-komposita') setActiveView('kanji');
+                if (mode === 'final-exam-de') setActiveView('final-exam');
               }} 
               onReset={handleReset} 
               onGoToWelcome={() => setActiveView('welcome')} 
@@ -462,22 +472,95 @@ function App() {
           )
         )}
         
-        {/* WEITERE VIEWS... */}
-        {activeView === 'kana-deck' && <KanaDeck currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} totalDays={kanaTotalDays} mode={kanaMode} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} language={appLanguage} />}
-        {activeView === 'learning-kana' && <KanaCard day={learningKanaDay} mode={kanaMode} onBack={() => handleFinishKana(learningKanaDay)} language={appLanguage} />}
-        {activeView === 'reading-deck' && <ReadingDeck currentDay={readingDay} totalDays={readingTotalDays} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} language={appLanguage} />}
-        {activeView === 'learning-reading' && <ReadingCard day={learningReadingDay} onBack={() => handleFinishReading(learningReadingDay)} language={appLanguage} />}
-        {activeView === 'dashboard' && <Dashboard currentDay={currentRadarDay} onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} onBackToHome={() => setActiveView('home')} language={appLanguage} />}
-        {activeView === 'learning-radar' && <Flashcard day={learningRadarDay} onBack={() => handleFinishRadar(learningRadarDay)} onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} language={appLanguage} />}
-        {activeView === 'kanji' && <KanjiDeck currentDay={currentKanjiDay} onBackToHome={() => setActiveView('home')} onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} language={appLanguage} />}
-        {activeView === 'learning-kanji' && <KanjiCard day={learningKanjiDay} onBack={() => handleFinishKanji(learningKanjiDay)} language={appLanguage} />}
+        {/* WEITERE VIEWS... MIT DURCHGEREICHTER targetLanguage */}
+        {activeView === 'kana-deck' && (
+          <KanaDeck 
+            currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
+            totalDays={kanaTotalDays} 
+            mode={kanaMode} 
+            onBackToHome={() => setActiveView('home')} 
+            onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'learning-kana' && (
+          <KanaCard 
+            day={learningKanaDay} 
+            mode={kanaMode} 
+            onBack={() => handleFinishKana(learningKanaDay)} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'reading-deck' && (
+          <ReadingDeck 
+            currentDay={readingDay} 
+            totalDays={readingTotalDays} 
+            onBackToHome={() => setActiveView('home')} 
+            onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'learning-reading' && (
+          <ReadingCard 
+            day={learningReadingDay} 
+            onBack={() => handleFinishReading(learningReadingDay)} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'dashboard' && (
+          <Dashboard 
+            currentDay={currentRadarDay} 
+            onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
+            onBackToHome={() => setActiveView('home')} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'learning-radar' && (
+          <Flashcard 
+            day={learningRadarDay} 
+            onBack={() => handleFinishRadar(learningRadarDay)} 
+            onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'kanji' && (
+          <KanjiDeck 
+            currentDay={currentKanjiDay} 
+            onBackToHome={() => setActiveView('home')} 
+            onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
+        {activeView === 'learning-kanji' && (
+          <KanjiCard 
+            day={learningKanjiDay} 
+            onBack={() => handleFinishKanji(learningKanjiDay)} 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+          />
+        )}
         
         {activeView === 'particle-crashcourse' && (
-          <ParticleCrashcourse language={appLanguage} onBack={() => setActiveView('home')} />
+          <ParticleCrashcourse 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+            onBack={() => setActiveView('home')} 
+          />
         )}
 
         {activeView === 'final-exam' && (
-          <FinalExam language={appLanguage} onBack={() => setActiveView('home')} />
+          <FinalExam 
+            language={appLanguage} 
+            targetLanguage={targetLanguage}
+            onBack={() => setActiveView('home')} 
+          />
         )}
       </div>
     </PayPalScriptProvider>
