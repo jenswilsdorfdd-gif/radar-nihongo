@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 import HomeJP from './HomeJP'; 
 import HomeEN from './HomeEN';
+import HomeDE from './HomeDE';
 
 const Home = ({ 
   onSelectMode, 
@@ -569,7 +570,20 @@ const Home = ({
           />
         )}
 
-        {targetLanguage !== 'jp' && targetLanguage !== 'en' && (
+        {targetLanguage === 'de' && (
+          <HomeDE 
+            onSelectMode={onSelectMode}
+            kanaReadDay={kanaReadDay}
+            kanaWriteDay={kanaWriteDay}
+            readingDay={readingDay}
+            radarDay={radarDay}
+            kanjiDay={kanjiDay}
+            devMode={devMode}
+            t={t}
+          />
+        )}
+
+        {targetLanguage !== 'jp' && targetLanguage !== 'en' && targetLanguage !== 'de' && (
           /* --- ALTERNATIVER FAHRPLAN (PLATZHALTER FÜR WEITERE SPRACHEN) --- */
           <div className="w-full bg-gray-800/80 p-8 rounded-3xl border border-gray-700 text-center relative overflow-hidden shadow-xl mb-4">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
