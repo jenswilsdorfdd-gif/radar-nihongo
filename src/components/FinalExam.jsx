@@ -10,8 +10,8 @@ const shuffleArray = (array) => {
   return arr;
 };
 
-// --- MONSTER-POOL MIT ÜBERSETZUNGEN & ERKLÄRUNGEN --- 
-const masterPool = [
+// --- FRAGENPOOL JAPANISCH (JLPT-N5 & RADAR JP) ---
+const masterPoolJP = [
   // --- KANA ---
   { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びょういん", en: "Hospital or Hairdresser? Read: びょういん" }, options: [{de: "Krankenhaus", en: "Hospital"}, {de: "Friseur", en: "Hairdresser"}, {de: "Arzt", en: "Doctor"}, {de: "Firma", en: "Company"}], correct: 0 },
   { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びよういん", en: "Hospital or Hairdresser? Read: びよういん" }, options: [{de: "Friseur", en: "Hairdresser"}, {de: "Krankenhaus", en: "Hospital"}, {de: "Schule", en: "School"}, {de: "Arzt", en: "Doctor"}], correct: 0 },
@@ -50,7 +50,7 @@ const masterPool = [
   { category: 'kanji', q: { de: "Finde das Kanji-Wort für 'Auto':", en: "Find the Kanji for 'Car':" }, options: [{de: "車 (くるま)", en: "車 (くるま)"}, {de: "電車 (でんしゃ)", en: "電車 (でんしゃ)"}, {de: "自転車 (じてんしゃ)", en: "自転車 (じてんしゃ)"}, {de: "駅 (えき)", en: "駅 (えき)"}], correct: 0 },
   { category: 'kanji', q: { de: "Lies: 見ます", en: "Read: 見ます" }, options: ["みます", "ききます", "はなします", "かきます"], correct: 0 },
 
-  // --- PARTICLE MATRIX (Mit genauen Erklärungen) ---
+  // --- PARTICLE MATRIX ---
   { 
     category: 'particle', q: { de: "わたし [ ? ] ドイツじんです。", en: "わたし [ ? ] ドイツじんです。" }, options: ["は", "を", "で", "に"], correct: 0,
     translation: { de: "Ich bin Deutscher.", en: "I am German." },
@@ -59,113 +59,195 @@ const masterPool = [
   { 
     category: 'particle', q: { de: "みず [ ? ] のみます。", en: "みず [ ? ] のみます。" }, options: ["を", "は", "に", "が"], correct: 0,
     translation: { de: "Ich trinke Wasser.", en: "I drink water." },
-    explanation: { de: "Das Partikel 'を' (wo/o) markiert das direkte Objekt (das Wasser), mit dem die Handlung (trinken) ausgeführt wird.", en: "The particle 'を' (wo/o) marks the direct object (the water) that the action (drinking) is performed on." }
+    explanation: { de: "Das Partikel 'を' (wo/o) markiert das direkte Objekt (das Wasser).", en: "The particle 'を' (wo/o) marks the direct object (the water)." }
   },
   { 
     category: 'particle', q: { de: "あした、とうきょう [ ? ] いきます。", en: "あした、とうきょう [ ? ] いきます。" }, options: ["へ / に", "を", "で", "が"], correct: 0,
     translation: { de: "Ich fahre morgen nach Tokio.", en: "I am going to Tokyo tomorrow." },
-    explanation: { de: "'へ' (e) oder 'に' (ni) zeigen die Richtung oder das Ziel einer Bewegung an (nach Tokio).", en: "'へ' (e) or 'に' (ni) indicate the direction or destination of a movement (to Tokyo)." }
+    explanation: { de: "'へ' (e) oder 'に' (ni) zeigen Richtung oder Ziel einer Bewegung an.", en: "'へ' (e) or 'に' (ni) indicate direction or destination." }
   },
   { 
     category: 'particle', q: { de: "レストラン [ ? ] すしを たべる。", en: "レストラン [ ? ] すしを たべる。" }, options: ["で", "に", "は", "が"], correct: 0,
     translation: { de: "Ich esse Sushi im Restaurant.", en: "I eat sushi at the restaurant." },
-    explanation: { de: "'で' (de) markiert den Ort, an dem eine aktive Handlung stattfindet (das Essen im Restaurant).", en: "'で' (de) marks the location where an active action takes place (eating at the restaurant)." }
+    explanation: { de: "'で' (de) markiert den Ort einer aktiven Handlung.", en: "'で' (de) marks the location of an action." }
   },
   { 
     category: 'particle', q: { de: "タクシー [ ? ] かえります。", en: "タクシー [ ? ] かえります。" }, options: ["で", "に", "を", "は"], correct: 0,
     translation: { de: "Ich fahre mit dem Taxi nach Hause.", en: "I go home by taxi." },
-    explanation: { de: "'で' (de) wird auch verwendet, um das Mittel oder Werkzeug einer Handlung zu markieren (mit dem Taxi).", en: "'で' (de) is also used to mark the means or tool of an action (by taxi)." }
+    explanation: { de: "'で' (de) markiert Mittel oder Werkzeug (mit dem Taxi).", en: "'で' (de) marks the means or tool (by taxi)." }
   },
   { 
     category: 'particle', q: { de: "あめ [ ? ] ふっています。(Fokus!)", en: "あめ [ ? ] ふっています。(Focus!)" }, options: ["が", "を", "で", "は"], correct: 0,
     translation: { de: "Es regnet (gerade).", en: "It is raining." },
-    explanation: { de: "'が' (ga) markiert das Subjekt. Es wird oft bei Naturphänomenen oder neutralen Beobachtungen verwendet.", en: "'が' (ga) marks the subject. It is often used for natural phenomena or neutral observations." }
+    explanation: { de: "'が' (ga) markiert das Subjekt bei Naturphänomenen.", en: "'が' (ga) marks the subject for natural phenomena." }
   },
   { 
     category: 'particle', q: { de: "ともだち [ ? ] えいがを みます。", en: "ともだち [ ? ] えいがを みます。" }, options: ["と", "から", "まで", "に"], correct: 0,
     translation: { de: "Ich schaue mit einem Freund einen Film.", en: "I watch a movie with a friend." },
-    explanation: { de: "'と' (to) bedeutet 'mit' (zusammen mit einer Person).", en: "'と' (to) means 'with' (together with a person)." }
+    explanation: { de: "'と' (to) bedeutet 'mit' (zusammen mit einer Person).", en: "'と' (to) means 'with'." }
   },
   { 
     category: 'particle', q: { de: "あさ、９じ [ ? ] おきます。", en: "あさ、９じ [ ? ] おきます。" }, options: ["に", "で", "を", "は"], correct: 0,
     translation: { de: "Ich stehe morgens um 9 Uhr auf.", en: "I wake up at 9 AM in the morning." },
-    explanation: { de: "'に' (ni) markiert einen spezifischen, genauen Zeitpunkt auf der Uhr (um 9 Uhr).", en: "'に' (ni) marks a specific, precise point in time (at 9 o'clock)." }
-  },
-  { 
-    category: 'particle', q: { de: "えき [ ? ] きました。", en: "えき [ ? ] きました。" }, options: ["から", "まで", "に", "で"], correct: 0,
-    translation: { de: "Ich bin vom Bahnhof gekommen.", en: "I came from the station." },
-    explanation: { de: "'から' (kara) markiert den Ausgangspunkt oder Startpunkt einer Bewegung (von/aus).", en: "'から' (kara) marks the starting point of a movement (from)." }
-  },
-  { 
-    category: 'particle', q: { de: "ホテル [ ? ] おねがいします。", en: "ホテル [ ? ] おねがいします。" }, options: ["まで", "を", "から", "は"], correct: 0,
-    translation: { de: "Bis zum Hotel, bitte.", en: "To the hotel, please." },
-    explanation: { de: "'まで' (made) markiert den Endpunkt einer Bewegung (bis zum).", en: "'まで' (made) marks the end point of a movement (up to / until)." }
-  },
-  { 
-    category: 'particle', q: { de: "ほん [ ? ] ノートを かいます。(Und)", en: "ほん [ ? ] ノートを かいます。(And)" }, options: ["と", "に", "で", "が"], correct: 0,
-    translation: { de: "Ich kaufe ein Buch und ein Notizbuch.", en: "I buy a book and a notebook." },
-    explanation: { de: "'と' (to) verbindet hier zwei Nomen vollständig und bedeutet einfach 'und'.", en: "'と' (to) connects two nouns completely here and simply means 'and'." }
-  },
-  { 
-    category: 'particle', q: { de: "だれ [ ? ] きますか。(Subjekt)", en: "だれ [ ? ] きますか。(Subject)" }, options: ["が", "は", "を", "で"], correct: 0,
-    translation: { de: "Wer kommt?", en: "Who is coming?" },
-    explanation: { de: "Fragewörter wie 'Wer' (だれ) als Subjekt erfordern zwingend das Partikel 'が' (ga), nicht 'は'.", en: "Question words like 'Who' (だれ) as a subject strictly require the particle 'が' (ga), not 'は'." }
-  },
-  { 
-    category: 'particle', q: { de: "にほんご [ ? ] はなします。", en: "にほんご [ ? ] はなします。" }, options: ["を / で", "に", "が", "から"], correct: 0,
-    translation: { de: "Ich spreche Japanisch.", en: "I speak Japanese." },
-    explanation: { de: "'を' (Objekt) oder 'で' (Mittel) sind hier möglich, in der Regel wird die Sprache hier als Objekt 'を' markiert.", en: "'を' (Object) or 'で' (Means) are possible here, usually the language is marked as the object 'を'." }
-  },
-  { 
-    category: 'particle', q: { de: "スマホ [ ? ] しゃしんを とる。(Mittel)", en: "スマホ [ ? ] しゃしんを とる。(Means)" }, options: ["で", "に", "を", "は"], correct: 0,
-    translation: { de: "Ich mache ein Foto mit dem Smartphone.", en: "I take a picture with the smartphone." },
-    explanation: { de: "'で' (de) markiert hier das Werkzeug oder Hilfsmittel (mit dem Smartphone).", en: "'で' (de) marks the tool or means here (with the smartphone)." }
-  },
-  { 
-    category: 'particle', q: { de: "ドイツ [ ? ] 日本まで。", en: "ドイツ [ ? ] 日本まで。" }, options: ["から", "に", "を", "が"], correct: 0,
-    translation: { de: "Von Deutschland bis nach Japan.", en: "From Germany to Japan." },
-    explanation: { de: "'から' (kara) bedeutet 'von' und bildet oft das Paar 'von... bis...' (から... まで...).", en: "'から' (kara) means 'from' and often forms the pair 'from... to...' (から... まで...)." }
+    explanation: { de: "'に' (ni) markiert einen spezifischen Zeitpunkt auf der Uhr.", en: "'に' (ni) marks a specific point in time." }
   },
 
-  // --- RADAR: TEXT ---
+  // --- RADAR: TEXT & AUDIO ---
   { category: 'radar', q: { de: "Wie fragst du, wo die Toilette ist?", en: "How do you ask where the toilet is?" }, options: ["トイレは どこですか。", "トイレは いつですか。", "トイレは なんですか。", "トイレは いくらですか。"], correct: 0, translation: { de: "Die Toilette, wo ist sie?", en: "The toilet, where is it?" } },
   { category: 'radar', q: { de: "Du möchtest etwas kaufen. Zeig darauf und sag:", en: "You want to buy something. Point and say:" }, options: ["これを ください。", "ありがとう。", "わかりません。", "それです。"], correct: 0, translation: { de: "Das hier, bitte.", en: "This one, please." } },
-  { category: 'radar', q: { de: "Jemand redet viel zu schnell. Was sagst du?", en: "Someone is speaking too fast. What do you say?" }, options: ["ゆっくり はなして ください。", "わかります。", "しりません。", "ちがいます。"], correct: 0, translation: { de: "Bitte sprechen Sie langsam.", en: "Please speak slowly." } },
-  { category: 'radar', q: { de: "Du verlässt morgens das Haus. Was rufst du in den Flur?", en: "You leave the house in the morning. What do you say?" }, options: ["いってきます。", "ただいま。", "おかえり。", "おやすみ。"], correct: 0, translation: { de: "Ich gehe jetzt (und komme später wieder).", en: "I'm leaving (and coming back)." } },
-  { category: 'radar', q: { de: "Du kaufst ein Ticket. Was fragst du das Personal?", en: "You buy a ticket. What do you ask the staff?" }, options: ["いくらですか。", "どこですか。", "なんですか。", "だれですか。"], correct: 0, translation: { de: "Wie viel kostet das?", en: "How much is this?" } },
-
-  // --- RADAR: PURES AUDIO ---
-  { category: 'radar', audioText: "おなまえは なんですか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["じぇんす です。", "ドイツから きました。", "はい、そうです。", "ありがとう。"], correct: 0, translation: { de: "Was ist Ihr Name?", en: "What is your name?" } },
-  { category: 'radar', audioText: "どこから きましたか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["ドイツから きました。", "ベルリンに いきます。", "はい、ドイツです。", "ちがいます。"], correct: 0, translation: { de: "Woher kommen Sie?", en: "Where did you come from?" } },
-  { category: 'radar', audioText: "いただきます", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Vor dem Essen", en: "Before eating"}, {de: "Nach dem Essen", en: "After eating"}, {de: "Beim Betreten eines Ladens", en: "Entering a store"}, {de: "Beim Bezahlen", en: "Paying"}], correct: 0, translation: { de: "Wird unmittelbar vor dem Essen gesagt.", en: "Said immediately before eating." } },
-  { category: 'radar', audioText: "ごちそうさまでした", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Nach dem Essen", en: "After eating"}, {de: "Vor dem Essen", en: "Before eating"}, {de: "Beim Vorstellen", en: "Introducing"}, {de: "Verabschiedung", en: "Farewell"}], correct: 0, translation: { de: "Wird nach der Beendigung des Essens gesagt.", en: "Said after finishing a meal." } },
   { category: 'radar', audioText: "すみません、えきは どこですか。", q: { de: "🎧 Was möchte die Person?", en: "🎧 What does the person want?" }, options: [{de: "Sucht den Bahnhof", en: "Looks for station"}, {de: "Sucht die Toilette", en: "Looks for toilet"}, {de: "Fragt den Preis", en: "Asks for price"}, {de: "Fragt die Uhrzeit", en: "Asks the time"}], correct: 0, translation: { de: "Entschuldigung, wo ist der Bahnhof?", en: "Excuse me, where is the station?" } },
-  { category: 'radar', audioText: "いらっしゃいませ", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: [{de: "Laden-Personal", en: "Shop staff"}, {de: "Ich selbst", en: "Myself"}, {de: "Gastfamilie", en: "Host family"}, {de: "Passant", en: "Stranger"}], correct: 0, translation: { de: "Herzlich Willkommen (wird vom Personal gerufen).", en: "Welcome (called out by staff)." } },
+  { category: 'radar', audioText: "いらっしゃいませ", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: [{de: "Laden-Personal", en: "Shop staff"}, {de: "Ich selbst", en: "Myself"}, {de: "Gastfamilie", en: "Host family"}, {de: "Passant", en: "Stranger"}], correct: 0, translation: { de: "Herzlich Willkommen (vom Personal gerufen).", en: "Welcome (called by staff)." } },
   { category: 'radar', audioText: "これ、いくらですか。", q: { de: "🎧 Was fragt die Person?", en: "🎧 What is asked?" }, options: [{de: "Wie viel das kostet", en: "How much it costs"}, {de: "Wo das ist", en: "Where it is"}, {de: "Was das ist", en: "What it is"}, {de: "Wem das gehört", en: "Whose it is"}], correct: 0, translation: { de: "Das hier, wie viel kostet es?", en: "This here, how much is it?" } },
-  { category: 'radar', audioText: "これを おねがいします。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Beim Bestellen/Kaufen", en: "Buying/Ordering"}, {de: "Nach dem Weg fragen", en: "Asking directions"}, {de: "Sich verabschieden", en: "Saying goodbye"}, {de: "Sich entschuldigen", en: "Apologizing"}], correct: 0, translation: { de: "Das hier, bitte (ich nehme das).", en: "This here, please (I'll take it)." } },
-  { category: 'radar', audioText: "ありがとうございます", q: { de: "🎧 Deine Antwort?", en: "🎧 Your reply?" }, options: ["どういたしまして。", "いただきます。", "ごめんなさい。", "ただいま。"], correct: 0, translation: { de: "Vielen Dank.", en: "Thank you very much." } },
-  { category: 'radar', audioText: "おかいけい、おねがいします。", q: { de: "🎧 Was möchte die Person?", en: "🎧 What does the person want?" }, options: [{de: "Die Rechnung bitte", en: "The bill please"}, {de: "Speisekarte bitte", en: "Menu please"}, {de: "Wasser bitte", en: "Water please"}, {de: "Wo ist die Kasse?", en: "Where is the register?"}], correct: 0, translation: { de: "Die Rechnung, bitte.", en: "The bill, please." } },
-  { category: 'radar', audioText: "ちょっと まってください。", q: { de: "🎧 Was passiert?", en: "🎧 What is happening?" }, options: [{de: "Du sollst kurz warten", en: "You should wait briefly"}, {de: "Jemand geht weg", en: "Someone leaves"}, {de: "Zu schnell gesprochen", en: "Speaking too fast"}, {de: "Zu teuer", en: "Too expensive"}], correct: 0, translation: { de: "Warten Sie bitte einen Moment.", en: "Please wait a moment." } },
-  { category: 'radar', audioText: "いってらっしゃい", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: [{de: "Person, die zu Hause bleibt", en: "Person staying home"}, {de: "Person, die das Haus verlässt", en: "Person leaving"}, {de: "Person, die heimkehrt", en: "Person arriving"}, {de: "Verkäufer im Laden", en: "Shop staff"}], correct: 0, translation: { de: "Komm sicher wieder! (Zu jemandem, der geht)", en: "Go and come back safely! (To someone leaving)" } },
-  { category: 'radar', audioText: "おかえりなさい", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: [{de: "Person, die zu Hause empfängt", en: "Person staying home"}, {de: "Person, die heimkehrt", en: "Person arriving"}, {de: "Person, die das Haus verlässt", en: "Person leaving"}, {de: "Verkäufer im Laden", en: "Shop staff"}], correct: 0, translation: { de: "Willkommen zurück zu Hause!", en: "Welcome back home!" } },
-  { category: 'radar', audioText: "もういちど おねがいします。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Bitte wiederholen Sie", en: "Please repeat"}, {de: "Bitte warten Sie", en: "Please wait"}, {de: "Bitte langsamer", en: "Please slower"}, {de: "Ich verstehe nicht", en: "I don't understand"}], correct: 0, translation: { de: "Noch einmal, bitte.", en: "One more time, please." } },
-  { category: 'radar', audioText: "えいごを はなしますか。", q: { de: "🎧 Antwort?", en: "🎧 Reply?" }, options: ["はい、はなします。", "えいごです。", "わかりません。", "ちがいます。"], correct: 0, translation: { de: "Sprechen Sie Englisch?", en: "Do you speak English?" } },
-  { category: 'radar', audioText: "トイレは どこですか。", q: { de: "🎧 Was fragt die Person?", en: "🎧 What does the person ask?" }, options: [{de: "Wo die Toilette ist", en: "Where the toilet is"}, {de: "Ob es eine Toilette gibt", en: "If there is a toilet"}, {de: "Was es kostet", en: "How much it costs"}, {de: "Wer dort ist", en: "Who is in there"}], correct: 0, translation: { de: "Die Toilette, wo ist sie?", en: "The toilet, where is it?" } },
-  { category: 'radar', audioText: "カードで いいですか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Kartenzahlung an der Kasse", en: "Card payment at register"}, {de: "Nach dem Namen fragen", en: "Asking for name"}, {de: "Ticketkontrolle im Zug", en: "Ticket check"}, {de: "Brief einwerfen", en: "Mailing a letter"}], correct: 0, translation: { de: "Ist (Zahlen) mit Karte in Ordnung?", en: "Is (paying by) card okay?" } },
+  { category: 'radar', audioText: "カードで いいですか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Kartenzahlung an der Kasse", en: "Card payment at register"}, {de: "Nach dem Namen fragen", en: "Asking for name"}, {de: "Ticketkontrolle im Zug", en: "Ticket check"}, {de: "Brief einwerfen", en: "Mailing a letter"}], correct: 0, translation: { de: "Ist Kartenzahlung in Ordnung?", en: "Is card payment okay?" } },
   { category: 'radar', audioText: "ふくろは いりますか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "An der Kasse (Tüte?)", en: "Register (Need a bag?)"}, {de: "Im Restaurant (Getränke?)", en: "Restaurant (Drinks?)"}, {de: "Auf der Straße (Hilfe?)", en: "Street (Help?)"}, {de: "Im Hotel (Schlüssel?)", en: "Hotel (Key?)"}], correct: 0, translation: { de: "Brauchen Sie eine Tüte?", en: "Do you need a bag?" } },
-  { category: 'radar', audioText: "ちがいます。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Das ist falsch / Stimmt nicht", en: "That's wrong / Incorrect"}, {de: "Ich weiß nicht", en: "I don't know"}, {de: "Ich verstehe nicht", en: "I don't understand"}, {de: "Es tut mir leid", en: "I'm sorry"}], correct: 0, translation: { de: "Das ist falsch / Das weicht ab.", en: "That is incorrect / different." } },
-  { category: 'radar', audioText: "わかりません。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Ich verstehe nicht", en: "I don't understand"}, {de: "Ich weiß nicht", en: "I don't know"}, {de: "Das ist falsch", en: "That's wrong"}, {de: "Es tut mir leid", en: "I'm sorry"}], correct: 0, translation: { de: "Ich verstehe nicht.", en: "I don't understand." } },
-  { category: 'radar', audioText: "えきまで おねがいします。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: [{de: "Im Taxi", en: "In a taxi"}, {de: "Im Restaurant", en: "In a restaurant"}, {de: "Im Supermarkt", en: "In a supermarket"}, {de: "Auf der Post", en: "At the post office"}], correct: 0, translation: { de: "Zum Bahnhof, bitte.", en: "To the station, please." } },
-  { category: 'radar', audioText: "ごめんください", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Man betritt ein fremdes Haus", en: "Entering someone's house"}, {de: "Man entschuldigt sich", en: "Apologizing"}, {de: "Man verlässt ein Geschäft", en: "Leaving a store"}, {de: "Am Telefon", en: "On the phone"}], correct: 0, translation: { de: "Entschuldigen Sie (beim Eintreten/Klopfen).", en: "Excuse me (when entering/knocking)." } },
-  { category: 'radar', audioText: "もしもし", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Am Telefon", en: "On the phone"}, {de: "Beim Anklopfen", en: "Knocking on a door"}, {de: "Auf der Straße rufen", en: "Calling on the street"}, {de: "Im Restaurant", en: "In a restaurant"}], correct: 0, translation: { de: "Hallo? (nur am Telefon verwendet)", en: "Hello? (only used on the phone)" } },
-  { category: 'radar', audioText: "なんめいさま ですか。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: [{de: "Empfang im Restaurant", en: "Restaurant reception"}, {de: "Am Bahnhof", en: "At the station"}, {de: "Im Taxi", en: "In a taxi"}, {de: "Im Konbini", en: "Convenience store"}], correct: 0, translation: { de: "Wie viele Personen sind Sie?", en: "How many people in your party?" } },
-  { category: 'radar', audioText: "ふたりです。", q: { de: "🎧 Auf welche Frage antwortest du?", en: "🎧 Which question are you answering?" }, options: ["なんめいさま ですか。", "おなまえは なんですか。", "いくつですか。", "いくらですか。"], correct: 0, translation: { de: "Wir sind zu zweit.", en: "We are two people." } },
-  { category: 'radar', audioText: "だいじょうぶ ですか。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Ist alles in Ordnung?", en: "Is everything ok?"}, {de: "Wie spät ist es?", en: "What time is it?"}, {de: "Wer ist das?", en: "Who is that?"}, {de: "Wo ist das?", en: "Where is that?"}], correct: 0, translation: { de: "Ist es in Ordnung? / Geht es Ihnen gut?", en: "Is it okay? / Are you alright?" } },
-  { category: 'radar', audioText: "はい、だいじょうぶ です。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Ja, alles in Ordnung.", en: "Yes, everything is ok."}, {de: "Ja, bitte.", en: "Yes, please."}, {de: "Nein, danke.", en: "No, thank you."}, {de: "Das ist falsch.", en: "That's wrong."}], correct: 0, translation: { de: "Ja, alles ist in Ordnung.", en: "Yes, everything is fine." } },
-  { category: 'radar', audioText: "いいえ、けっこうです。", q: { de: "🎧 Bedeutung?", en: "🎧 Meaning?" }, options: [{de: "Nein, danke (ich brauche nichts).", en: "No thank you."}, {de: "Das ist falsch.", en: "That's wrong."}, {de: "Ich verstehe nicht.", en: "I don't understand."}, {de: "Entschuldigung.", en: "Excuse me."}], correct: 0, translation: { de: "Nein, danke (ich bin bedient).", en: "No thank you (I am fine)." } }
+  { category: 'radar', audioText: "えきまで おねがいします。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: [{de: "Im Taxi", en: "In a taxi"}, {de: "Im Restaurant", en: "In a restaurant"}, {de: "Im Supermarkt", en: "In a supermarket"}, {de: "Auf der Post", en: "At the post office"}], correct: 0, translation: { de: "Zum Bahnhof, bitte.", en: "To the station, please." } }
 ];
 
-const FinalExam = ({ onBack, language }) => {
+// --- FRAGENPOOL DEUTSCH (PHASEN 1-4 DAF / RADAR DE) ---
+const masterPoolDE = [
+  // --- PHASE 1: PHONETIK & AUSSPRACHE ---
+  {
+    category: 'phonetik',
+    q: { de: "Welches Wortpaar unterscheidet sich NUR durch Vokallänge?", en: "Which word pair differs ONLY by vowel length?", jpn: "母音の長短（長母音・短母音）のみで意味が区別されるペアはどれ？" },
+    options: ["bieten / bitten", "Haus / Maus", "Tag / Nacht", "gehen / laufen"],
+    correct: 0,
+    translation: { de: "bieten [i:] (anbieten) vs. bitten [ɪ] (ersuchen)", en: "offer vs. ask/plead", jpn: "bieten (提供する) vs. bitten (頼む)" },
+    explanation: { de: "Doppelkonsonanten verkürzen den vorherigen Vokal radikal. 'ie' ist langes [i:], 'tt' kurzes [ɪ].", en: "Double consonants shorten the vowel.", jpn: "子音の重複（tt）は直前の母音を短縮させます。" }
+  },
+  {
+    category: 'phonetik',
+    q: { de: "Wie wird das Schluss-D in 'Fahrrad' artikuliert?", en: "How is the final -d in 'Fahrrad' pronounced?", jpn: "「Fahrrad」の末尾の「d」はどのように調音されるか？" },
+    options: ["Stimmlos als hartes [t] (Auslautverhärtung)", "Stimmhaft als weiches [d]", "Als stummes Zeichen (nicht gesprochen)", "Wie ein englisches [th]"],
+    correct: 0,
+    translation: { de: "Fahrrad klingt phonetisch wie [ˈfaːɐ̯ˌʁaːt]", en: "Pronounced with a hard [t]", jpn: "語末無声化（Auslautverhärtung）により硬い [t] と発音される" },
+    explanation: { de: "Im Deutschen werden b, d, g am Silben- oder Wortende ausnahmslos stimmlos verhärtet (b->p, d->t, g->k).", en: "Final b, d, g become unvoiced in German.", jpn: "ドイツ語の語尾の b, d, g は例外なく無声化します。" }
+  },
+  {
+    category: 'phonetik',
+    q: { de: "Welcher Laut steht in 'Küche'?", en: "Which sound is in 'Küche'?", jpn: "「Küche」の ch はどの音か？" },
+    options: ["Ich-Laut [ç] (weicher Palatallaut)", "Ach-Laut [x] (harter Rachenlaut)", "K-Laut [k]", "Sch-Laut [ʃ]"],
+    correct: 0,
+    translation: { de: "Küche [ˈkʏçə]", en: "Soft palatal Ich-sound [ç]", jpn: "前舌母音（ü）の後は口蓋摩擦音 [ç]" },
+    explanation: { de: "Nach vorderen Vokalen (e, i, ä, ö, ü, eu, ei) folgt immer der weiche Ich-Laut [ç].", en: "After front vowels, the soft ich-sound is used.", jpn: "前舌母音の後では軟口蓋ではなく硬口蓋の Ich-Laut [ç] になります。" }
+  },
+  {
+    category: 'phonetik',
+    q: { de: "Was ist der 'Knacklaut' (Glottisschlag [ʔ])?", en: "What is the glottal stop [ʔ]?", jpn: "声門閉鎖音（Knacklaut [ʔ]）とは何か？" },
+    options: ["Harter Stimmritzenverschluss vor vokalischem Wortanfang", "Ein Dehnungs-H nach Vokalen", "Ein Schweizer Dialektlaut", "Ein Nasallaut wie im Französischen"],
+    correct: 0,
+    translation: { de: "z.B. 'Spiegelei' -> [ˈʃpiːɡl̩|ʔaɪ̯]", en: "Hard glottal stop before initial vowel", jpn: "母音で始まる音節の直前に声門を閉鎖して破裂させる音" },
+    explanation: { de: "Der Knacklaut trennt im Deutschen Wörter sauber ab und verhindert das Verschleifen von Vokalen.", en: "The glottal stop separates words distinctly.", jpn: "単語間の母音衝突を防ぎ、各単語の輪郭を際立たせます。" }
+  },
+
+  // --- PHASE 2: SATZKLAMMER & V2-STELLUNG ---
+  {
+    category: 'klammer',
+    q: { de: "Wo steht das finite (gebeugte) Verb im deutschen Hauptsatz?", en: "Where is the conjugated verb in a German main clause?", jpn: "ドイツ語の平叙文（主文）で定形動詞はどこに位置するか？" },
+    options: ["Immer an Position 2 (V2-Regel)", "Immer an Position 1", "Immer ganz am Ende (wie im Japanischen)", "Direkt hinter dem Akkusativobjekt"],
+    correct: 0,
+    translation: { de: "Position 2 ist das unumstößliche Gesetz im Hauptsatz.", en: "Position 2 is mandatory.", jpn: "主文において定形動詞は常に第2位（V2原則）" },
+    explanation: { de: "Egal welches Satzglied auf Position 1 steht: Das konjugierte Verb besetzt zwingend die Position 2.", en: "Position 2 is strictly reserved for the verb.", jpn: "第1位に何が置かれても、動詞は必ず第2位に吸着します。" }
+  },
+  {
+    category: 'klammer',
+    q: { de: "Welcher Satz bildet eine korrekte Satzklammer mit Modalverb?", en: "Which sentence forms a correct verbal bracket with a modal verb?", jpn: "話法の助動詞を使った正しい文枠構造（Satzklammer）はどれ？" },
+    options: ["Ich muss heute mein Ticket am Schalter kaufen.", "Ich muss kaufen heute mein Ticket am Schalter.", "Ich heute mein Ticket am Schalter kaufen muss.", "Ich kaufe muss heute mein Ticket am Schalter."],
+    correct: 0,
+    translation: { de: "muss (Verb 1) ... kaufen (Verb 2 am Satzende)", en: "Bracket: modal verb in V2, infinitive at the end", jpn: "muss（第2位）… kaufen（文末の不定詞）" },
+    explanation: { de: "Hilfs-/Modalverben stehen auf Position 2, der Vollverb-Infinitiv bildet die schließende Klammer am Satzende.", en: "Modal verbs open the bracket, infinitives close it.", jpn: "助動詞が第2位で枠を開き、本動詞が文末で枠を閉じます。" }
+  },
+  {
+    category: 'klammer',
+    q: { de: "Welcher Signal-Baustein passt: 'Ich fahre morgen [...] Hauptbahnhof.'", en: "Which signal chunk fits: 'Ich fahre morgen [...] Hauptbahnhof.'", jpn: "空欄に入る正しいシグナル結合パーツはどれ？「Ich fahre morgen [...] Hauptbahnhof.」" },
+    options: ["zum (zu + dem)", "zur (zu + der)", "im (in + dem)", "beim (bei + dem)"],
+    correct: 0,
+    translation: { de: "zum Hauptbahnhof (maskulin: der Hof -> zu dem)", en: "to the central station", jpn: "zum Hauptbahnhof（男性名詞 der Hof -> zu + dem = zum）" },
+    explanation: { de: "'Hauptbahnhof' ist maskulin (der). 'zu' verlangt Dativ -> zu dem = zum.", en: "'Bahnhof' is masculine -> zu + dem = zum.", jpn: "zu は与格支配。男性名詞なので zu dem が短縮して zum になります。" }
+  },
+  {
+    category: 'klammer',
+    q: { de: "Wohin wandert die Vorsilbe beim trennbaren Verb 'umsteigen' im Präsens?", en: "Where does the prefix go for 'umsteigen' in present tense?", jpn: "分離動詞「umsteigen」を現在形で使う場合、前綴り「um-」はどこへ移動するか？" },
+    options: ["Ganz ans Satzende (Rechte Satzklammer)", "Direkt vor das Verb an Position 2", "An den Satzanfang vor das Subjekt", "Fällt im Präsens komplett weg"],
+    correct: 0,
+    translation: { de: "Ich steige am Südkreuz in die S-Bahn um.", en: "I change trains at Südkreuz.", jpn: "Ich steige ... um.（umは文末に配置）" },
+    explanation: { de: "Die abtrennbare Vorsilbe bildet den Schlusspunkt der Satzklammer am absoluten Satzende.", en: "The prefix locks the bracket at the end.", jpn: "分離前綴りは文末に配置され、文枠構造のフタを閉じます。" }
+  },
+
+  // --- PHASE 3: D/A/CH-SURVIVAL-RADAR ---
+  {
+    category: 'radar',
+    q: { de: "Was ist in deutschen Zügen/Bahnhöfen vor Fahrtantritt zwingend zu prüfen?", en: "What must strictly be checked before boarding in German stations?", jpn: "ドイツの近郊列車に乗る前、切符に関して最も警戒すべき規則は何か？" },
+    options: ["Muss das Ticket am Automaten/Entwerter entwertet (gestempelt) werden?", "Muss man dem Schaffner ein Trinkgeld geben?", "Muss der Pass im Tresor deponiert werden?", "Gibt es zwingend eine Sitzplatzreservierung im Nahverkehr?"],
+    correct: 0,
+    translation: { de: "Entwertungs-Pflicht vor Fahrtantritt (Schwarzfahr-Falle).", en: "Validation stamp required.", jpn: "打刻機（Entwerter）での日時刻印が必要かどうか" },
+    explanation: { de: "In vielen Verkehrsverbünden ist ein Ticket ohne Entwerter-Stempel ungültig und gilt als 'Erhöhtes Beförderungsentgelt' (60 € Strafe).", en: "Unvalidated tickets count as fare evasion.", jpn: "打刻忘れは不正乗車とみなされ、60ユーロの追徴罰金が科されます。" }
+  },
+  {
+    category: 'radar',
+    q: { de: "Welche Notrufnummer wählst du in Deutschland für Notarzt & Feuerwehr?", en: "Which emergency number for paramedics & fire department in Germany?", jpn: "ドイツで救急医（Notarzt）・消防車を呼ぶ緊急ダイヤルは何番か？" },
+    options: ["112", "110", "911", "116 117"],
+    correct: 0,
+    translation: { de: "112: Rettungsdienst & Feuerwehr (110 = Polizei)", en: "112: Ambulance & Fire", jpn: "112（救急・消防）／ 110は警察" },
+    explanation: { de: "112 ist der EU-weite Notruf für Feuerwehr und Notarzt. 110 verbindet direkt mit der Polizei.", en: "112 is ambulance/fire; 110 is police.", jpn: "112が救急・消防、110が警察です。" }
+  },
+  {
+    category: 'radar',
+    audioText: "Die Rechnung macht zusammen 27 Euro 40.",
+    q: { de: "🎧 Der Kellner nennt den Betrag. Du willst ca. 10% Trinkgeld geben. Was sagst du?", en: "🎧 Bill is 27.40 €. What do you say to include ~10% tip?", jpn: "🎧 会計は27.40ユーロ。約10%のチップを含めて支払う場合、何と言うか？" },
+    options: ["Machen Sie bitte 30 Euro.", "Hier sind 27 Euro 40, danke.", "Ich gebe Ihnen 10 Prozent extra.", "Behalten Sie den Rest von 50 Euro."],
+    correct: 0,
+    translation: { de: "Machen Sie bitte 30 Euro (Aufrunden beim Bezahlen).", en: "Make it 30 euros please.", jpn: "「30ユーロにしてください（端数切り上げ）」" },
+    explanation: { de: "In Deutschland nennt man direkt den aufgerundeten Gesamtbetrag, den man inklusive Trinkgeld zahlen möchte.", en: "State the rounded total including tip.", jpn: "店員に渡す際、チップを含めた切りの良い合計額を口頭で伝えます。" }
+  },
+  {
+    category: 'radar',
+    audioText: "Entschuldigung, nehmen Sie auch Kartenzahlung oder nur bar?",
+    q: { de: "🎧 Was fragt der Kunde an der Kasse?", en: "🎧 What is the customer asking?", jpn: "🎧 客はレジで何を尋ねているか？" },
+    options: ["Ob Kartenzahlung möglich ist oder nur Bargeld", "Ob der Kassenbon ausgedruckt wird", "Wo die nächste Bankfiliale liegt", "Wie teuer die Einkaufstasche ist"],
+    correct: 0,
+    translation: { de: "Akzeptieren Sie Kartenzahlung oder nur Bargeld?", en: "Do you take cards or only cash?", jpn: "カードが使えますか、それとも現金のみですか？" },
+    explanation: { de: "In Deutschland gilt in vielen kleineren Geschäften immer noch: 'Nur Barzahlung'!", en: "Cash only is still common in Germany.", jpn: "ドイツでは現在でもカード不可・現金のみの店舗が多数存在します。" }
+  },
+
+  // --- PHASE 4: KOMPOSITA-DEKOMPOSITION & MORPHOLOGIE ---
+  {
+    category: 'komposita',
+    q: { de: "Was bestimmt das grammatikalische Geschlecht (der/die/das) eines Kompositums?", en: "What determines the gender of a German compound noun?", jpn: "ドイツ語の複合名詞の文法上の性（der/die/das）を決定するのはどこか？" },
+    options: ["Das letzte Wort (Grundwort / Rechtsregel)", "Das erste Wort (Bestimmungswort)", "Die Anzahl der Buchstaben", "Es ist immer neutral (das)"],
+    correct: 0,
+    translation: { de: "Das letzte Nomen entscheidet zu 100% über Genus und Bedeutungskern.", en: "The last noun determines gender and core meaning.", jpn: "一番最後にある名詞（Grundwort / 右端ルール）" },
+    explanation: { de: "Egal wie lang das Wort ist: Das Grundwort am Ende diktiert den Artikel (z.B. das Zimmer -> das Hotelzimmer).", en: "The final noun dictates the article.", jpn: "どれほど長い単語でも、最後の名詞が全体の性を決定します。" }
+  },
+  {
+    category: 'komposita',
+    q: { de: "Warum steht in 'Verspätungsbescheinigung' ein -s-?", en: "Why is there an -s- in 'Verspätungsbescheinigung'?", jpn: "「Verspätungsbescheinigung」の真ん中に -s- が挟まる理由は？" },
+    options: ["Fugen-S als Verbindungselement nach der Endung -ung", "Es handelt sich um einen Genitiv Plural", "Ein Grammatikfehler der Deutschen Bahn", "Es zeigt an, dass der Zug Verspätung hat"],
+    correct: 0,
+    translation: { de: "Verspätung + s + Bescheinigung", en: "Fugen-S after suffix -ung", jpn: "-ung で終わる名詞の後に結合要素 Fugen-S が入るため" },
+    explanation: { de: "Nomen auf -ung, -heit, -keit, -schaft binden nachfolgende Nomen zwingend mit dem Fugen-S an.", en: "Suffixes like -ung trigger Fugen-S.", jpn: "-ung, -heit, -keit などの語尾の後は必ず結合要素 -s- が挿入されます。" }
+  },
+  {
+    category: 'komposita',
+    q: { de: "Zerlege: 'Schienenersatzverkehr'", en: "Deconstruct: 'Schienenersatzverkehr'", jpn: "「Schienenersatzverkehr」の構造分解として正しいものは？" },
+    options: ["Schiene(n) + Ersatz + Verkehr (der Verkehr = Grundwort)", "Schienen + Ersatzverkehr (das Verkehr)", "Schienenersatz + Verkehr (die Schiene)", "Schiene + nersatz + verkehr"],
+    correct: 0,
+    translation: { de: "der Schienenersatzverkehr (der Verkehr -> maskulin)", en: "Rail replacement bus service", jpn: "Schiene(n) + Ersatz + Verkehr（基底語は男性名詞 der Verkehr）" },
+    explanation: { de: "Schiene (Gleis) + Ersatz (Austausch) + Verkehr (Transport). Bedeutet: Busersatzverkehr bei Zugausfall.", en: "Rail + replacement + traffic.", jpn: "線路＋代替＋交通 ＝ 鉄道代行バス輸送。" }
+  },
+  {
+    category: 'komposita',
+    q: { de: "Welches Genus hat das Wort: 'Krankenversicherungskarte'?", en: "What is the gender of: 'Krankenversicherungskarte'?", jpn: "複合名詞「Krankenversicherungskarte」の正しい定冠詞はどれ？" },
+    options: ["die (weil 'die Karte' weiblich ist)", "der (weil 'der Kranke' männlich ist)", "das (weil 'das Versicherungswesen' neutral ist)", "den (weil es im Akkusativ steht)"],
+    correct: 0,
+    translation: { de: "die Krankenversicherungskarte (die Karte)", en: "Health insurance card (die)", jpn: "die（末尾の die Karte が女性名詞であるため）" },
+    explanation: { de: "Das letzte Nomen ist 'die Karte' (feminin). Daher ist das gesamte Wort feminin: die Krankenversicherungskarte.", en: "Final word 'Karte' is feminine.", jpn: "末尾の「Karte」が女性名詞なので、単語全体も「die」になります。" }
+  }
+];
+
+const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
+  const isGermanTarget = targetLanguage === 'de';
+  const currentLang = language || 'de';
+
   const [examState, setExamState] = useState('intro'); // intro, exam, result
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -175,10 +257,10 @@ const FinalExam = ({ onBack, language }) => {
   const [score, setScore] = useState(0);
   const [wrongAnswers, setWrongAnswers] = useState([]); 
   const [categoryStats, setCategoryStats] = useState({
-    kana: { correct: 0, total: 0 },
-    kanji: { correct: 0, total: 0 },
-    particle: { correct: 0, total: 0 },
-    radar: { correct: 0, total: 0 }
+    cat1: { correct: 0, total: 0 },
+    cat2: { correct: 0, total: 0 },
+    cat3: { correct: 0, total: 0 },
+    cat4: { correct: 0, total: 0 }
   });
 
   useEffect(() => {
@@ -188,9 +270,11 @@ const FinalExam = ({ onBack, language }) => {
   const texts = {
     de: {
       back: "Zurück",
-      introTitle: "Die Abschluss-Prüfung",
-      introSub: "Der ultimative Stresstest",
-      introDesc: "30 zufällige Fragen aus einem riesigen Pool. Komplexe Laute, N5-Kanjis, Partikel-Matrix und vor allem pures Audio-Hörverstehen (Radar). Kein Romaji. Fast kein Deutsch. Überlebe!",
+      introTitle: isGermanTarget ? "Die D/A/CH Abschluss-Prüfung" : "Die Abschluss-Prüfung",
+      introSub: isGermanTarget ? "Der 4-Phasen Stresstest (DaF Meisterklasse)" : "Der ultimative Stresstest",
+      introDesc: isGermanTarget
+        ? "Prüfung über alle 4 Phasen des RADAR-Systems: Deutsche Phonetik, Satzklammer-Architektur, 21-Tage Survival-Radar und Komposita-Dekomposition. Echte Audioscans und Realtransaktionen ohne Grammatiktabellen!"
+        : "30 zufällige Fragen aus einem riesigen Pool. Komplexe Laute, N5-Kanjis, Partikel-Matrix und vor allem pures Audio-Hörverstehen (Radar). Kein Romaji. Fast kein Deutsch. Überlebe!",
       startBtn: "Prüfung Starten",
       question: "Frage",
       btnNext: "Weiter",
@@ -203,23 +287,28 @@ const FinalExam = ({ onBack, language }) => {
       errorLogEmpty: "Keine Fehler! Perfekte Mission.",
       yourAnswer: "Deine Wahl:",
       correctAnswer: "Korrekt wäre:",
-      transLabel: "Übersetzung:",
+      transLabel: "Übersetzung / Bedeutung:",
       expLabel: "Erklärung:",
       btnHome: "Zurück zum Dashboard",
       btnRetry: "Prüfung wiederholen",
-      catKana: "Kana-Matrix (Erweitert)",
-      catKanji: "N5 Kanji (Bedeutung & Lesung)",
-      catParticle: "Partikel-Code",
-      catRadar: "Radar (Audio & Dialoge)",
+      
+      // Kategorienamen
+      cat1Label: isGermanTarget ? "Phonetik & Aussprache" : "Kana-Matrix (Erweitert)",
+      cat2Label: isGermanTarget ? "Satzklammer & V2-Flow" : "N5 Kanji (Bedeutung & Lesung)",
+      cat3Label: isGermanTarget ? "D/A/CH Survival-Radar" : "Partikel-Code",
+      cat4Label: isGermanTarget ? "Komposita-Dekomposition" : "Radar (Audio & Dialoge)",
+
       evalPerfect: "Hervorragend! Dieses Gebiet sitzt blind im Langzeitgedächtnis.",
       evalGood: "Solide Leistung, aber im Ernstfall noch etwas langsam. Dranbleiben!",
       evalCritical: "Kritisch! Du bist hier ein leichtes Ziel. Unbedingt diese Phase wiederholen!"
     },
     en: {
       back: "Back",
-      introTitle: "Final Exam",
-      introSub: "The Ultimate Stress Test",
-      introDesc: "30 random questions from a massive pool. Complex sounds, N5 Kanjis, Particle Matrix and pure audio listening comprehension (Radar). No Romaji. Survive!",
+      introTitle: isGermanTarget ? "D/A/CH Final Exam" : "Final Exam",
+      introSub: isGermanTarget ? "4-Phase Stress Test (German Mastery)" : "The Ultimate Stress Test",
+      introDesc: isGermanTarget
+        ? "Comprehensive exam across all 4 phases: German Phonetics, Sentence Bracket Architecture, 21-Day Survival Radar, and Compound Word Decomposition. Real-world audio scans and survival reflexes!"
+        : "30 random questions from a massive pool. Complex sounds, N5 Kanjis, Particle Matrix and pure audio listening comprehension (Radar). No Romaji. Survive!",
       startBtn: "Start Exam",
       question: "Question",
       btnNext: "Next",
@@ -232,49 +321,86 @@ const FinalExam = ({ onBack, language }) => {
       errorLogEmpty: "No mistakes! Perfect mission.",
       yourAnswer: "Your choice:",
       correctAnswer: "Correct was:",
-      transLabel: "Translation:",
+      transLabel: "Translation / Meaning:",
       expLabel: "Explanation:",
       btnHome: "Back to Dashboard",
       btnRetry: "Retry Exam",
-      catKana: "Kana Matrix (Advanced)",
-      catKanji: "N5 Kanji (Meaning & Reading)",
-      catParticle: "Particle Code",
-      catRadar: "Radar (Audio & Dialogues)",
+
+      cat1Label: isGermanTarget ? "Phonetics & Pronunciation" : "Kana Matrix (Advanced)",
+      cat2Label: isGermanTarget ? "Sentence Bracket & V2" : "N5 Kanji (Meaning & Reading)",
+      cat3Label: isGermanTarget ? "D/A/CH Survival Radar" : "Particle Code",
+      cat4Label: isGermanTarget ? "Compound Decomposition" : "Radar (Audio & Dialogues)",
+
       evalPerfect: "Excellent! This area is completely locked in your long-term memory.",
       evalGood: "Solid performance, but might be too slow in real situations. Keep practicing!",
       evalCritical: "Critical! You are an easy target here. You must repeat this phase!"
+    },
+    jpn: {
+      back: "戻る",
+      introTitle: isGermanTarget ? "実戦D/A/CH 総合修了試験" : "最終卒業試験",
+      introSub: isGermanTarget ? "ドイツ語4大フェーズ完全制覇ストレステスト" : "究極のストレステスト",
+      introDesc: isGermanTarget
+        ? "RADARシステム全4段階（発音・母音長短／文枠構造・V2配置／21日日常サバイバル／複合語形態素解体）を網羅した実戦試験です。日本語の格変化表を捨て、現場のシグナル塊で即座に解答せよ！"
+        : "膨大なプールからランダム抽出された30問。複合音・N5漢字・助詞コード、そして実戦音声聴取。ローマ字なしで生き残れ！",
+      startBtn: "試験を開始する",
+      question: "問題",
+      btnNext: "次へ進む",
+      btnFinish: "試験終了・結果判定",
+      resultsTitle: "総合判定レポート",
+      totalScore: "総合得点",
+      rank: "獲得称号:",
+      recommendations: "戦術分析・弱点補強",
+      errorLogTitle: "誤答分析ログ",
+      errorLogEmpty: "誤答なし！完璧なクリアです。",
+      yourAnswer: "あなたの選択:",
+      correctAnswer: "正解:",
+      transLabel: "日本語訳・意味:",
+      expLabel: "文法・発音解説:",
+      btnHome: "ダッシュボードへ戻る",
+      btnRetry: "試験を再受験する",
+
+      cat1Label: isGermanTarget ? "第1期: 音声・発音規則" : "仮名マトリクス",
+      cat2Label: isGermanTarget ? "第2期: 文枠構造・動詞第2位" : "N5必須漢字",
+      cat3Label: isGermanTarget ? "第3期: 現地サバイバルレーダー" : "助詞コード",
+      cat4Label: isGermanTarget ? "第4期: 複合名詞形態素解体" : "実戦音響レーダー",
+
+      evalPerfect: "完璧です！この領域は長期記憶に完全に定着しています。",
+      evalGood: "合格水準ですが、実戦では即答が必要です。反復演習を継続してください。",
+      evalCritical: "危険水域です！現地で致命的な誤認を招く恐れがあります。該当フェーズを再受講してください！"
     }
   };
 
-  const t = texts[language] || texts.de;
+  const t = texts[currentLang === 'jpn' ? 'jpn' : (texts[currentLang] ? currentLang : 'de')] || texts.de;
 
+  // Sprachsynthese: Dynamisch de-DE oder ja-JP
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      const cleanText = text.replace(/([^{]+){([^}]+)}/g, "$1");
+      const cleanText = isGermanTarget
+        ? text.replace(/\[.*?\]/g, '').trim()
+        : text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'ja-JP';
-      utterance.rate = 0.85; 
+      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
+      utterance.rate = isGermanTarget ? 0.90 : 0.85; 
       window.speechSynthesis.speak(utterance);
     }
   };
 
-  // --- ABSICHERUNG: Fallback falls ein Element leer ist ---
   const getOptionText = (opt) => {
-    if (!opt) return "Unbekannt / Fehler";
-    return typeof opt === 'string' ? opt : (opt[language] || opt.de);
+    if (!opt) return "N/A";
+    if (typeof opt === 'string') return opt;
+    return opt[currentLang] || opt.de || opt.en || "N/A";
   };
 
   const startExam = () => {
-    // Fisher-Yates nutzen statt Math.random() - Absolut fehlerfrei!
-    const shuffledPool = shuffleArray(masterPool);
+    const rawPool = isGermanTarget ? masterPoolDE : masterPoolJP;
+    const shuffledPool = shuffleArray(rawPool);
+    const questionLimit = Math.min(shuffledPool.length, 30);
     
-    const selected = shuffledPool.slice(0, 30).map(q => {
+    const selected = shuffledPool.slice(0, questionLimit).map(q => {
       const correctOptObj = q.options[q.correct];
       const shuffledOptions = shuffleArray(q.options);
       let newCorrectIndex = shuffledOptions.indexOf(correctOptObj);
-      
-      // Fallback: Falls der Index extrem unwahrscheinlich doch auf -1 springt, crasht es nicht
       if (newCorrectIndex === -1) newCorrectIndex = 0; 
 
       return {
@@ -288,10 +414,10 @@ const FinalExam = ({ onBack, language }) => {
     setScore(0);
     setWrongAnswers([]);
     setCategoryStats({
-      kana: { correct: 0, total: 0 },
-      kanji: { correct: 0, total: 0 },
-      particle: { correct: 0, total: 0 },
-      radar: { correct: 0, total: 0 }
+      cat1: { correct: 0, total: 0 },
+      cat2: { correct: 0, total: 0 },
+      cat3: { correct: 0, total: 0 },
+      cat4: { correct: 0, total: 0 }
     });
     setCurrentIndex(0);
     setSelectedAnswer(null);
@@ -302,37 +428,52 @@ const FinalExam = ({ onBack, language }) => {
     setSelectedAnswer(idx);
   };
 
+  const mapCategoryToKey = (cat) => {
+    if (isGermanTarget) {
+      if (cat === 'phonetik') return 'cat1';
+      if (cat === 'klammer') return 'cat2';
+      if (cat === 'radar') return 'cat3';
+      if (cat === 'komposita') return 'cat4';
+    } else {
+      if (cat === 'kana') return 'cat1';
+      if (cat === 'kanji') return 'cat2';
+      if (cat === 'particle') return 'cat3';
+      if (cat === 'radar') return 'cat4';
+    }
+    return 'cat1';
+  };
+
   const handleNext = () => {
     if (selectedAnswer === null) return;
 
     const currentQ = questions[currentIndex];
     const isCorrect = selectedAnswer === currentQ.correct;
+    const catKey = mapCategoryToKey(currentQ.category);
 
     if (isCorrect) {
       setScore(prev => prev + 1);
     } else {
       const questionPrompt = currentQ.audioText 
         ? `🎧 (Audio: ${currentQ.audioText})` 
-        : (currentQ.q[language] || currentQ.q.de);
+        : (currentQ.q[currentLang] || currentQ.q.de || currentQ.q.en);
 
       const correctChoiceObj = currentQ.options[currentQ.correct] || currentQ.options[0];
       const userChoiceObj = currentQ.options[selectedAnswer] || "N/A";
 
-      // Wir speichern jetzt Übersetzung und Erklärung direkt im Fehlerprotokoll mit ab
       setWrongAnswers(prev => [...prev, {
         questionText: questionPrompt,
         userChoice: getOptionText(userChoiceObj),
         correctChoice: getOptionText(correctChoiceObj),
-        translation: currentQ.translation ? (currentQ.translation[language] || currentQ.translation.de) : null,
-        explanation: currentQ.explanation ? (currentQ.explanation[language] || currentQ.explanation.de) : null
+        translation: currentQ.translation ? (currentQ.translation[currentLang] || currentQ.translation.de || currentQ.translation.en) : null,
+        explanation: currentQ.explanation ? (currentQ.explanation[currentLang] || currentQ.explanation.de || currentQ.explanation.en) : null
       }]);
     }
     
     setCategoryStats(prev => ({
       ...prev,
-      [currentQ.category]: {
-        correct: prev[currentQ.category].correct + (isCorrect ? 1 : 0),
-        total: prev[currentQ.category].total + 1
+      [catKey]: {
+        correct: prev[catKey].correct + (isCorrect ? 1 : 0),
+        total: prev[catKey].total + 1
       }
     }));
 
@@ -345,6 +486,13 @@ const FinalExam = ({ onBack, language }) => {
   };
 
   const getRank = (percentage) => {
+    if (isGermanTarget) {
+      if (percentage >= 90) return { title: "D/A/CH INSIDER 🎖️", desc: currentLang === 'jpn' ? "現地即応完了・ネイティブレベル" : "Vollkommene Beherrschung aller D/A/CH-Transaktionen.", color: "text-yellow-400" };
+      if (percentage >= 75) return { title: "SURVIVAL EXPERT 🛡️", desc: currentLang === 'jpn' ? "現場対応力確立・生活自立レベル" : "Souveräne Alltags-Reflexe im gesamten Sprachraum.", color: "text-cyan-400" };
+      if (percentage >= 50) return { title: "NAVIGATOR 🧭", desc: currentLang === 'jpn' ? "基本構造把握・要反復演習" : "Solide Basis, aber noch Verzögerungen bei Notfällen.", color: "text-green-400" };
+      return { title: "ANFÄNGER ⚠️", desc: currentLang === 'jpn' ? "基礎再受講推奨" : "Kritische Lücken. Bitte Kernmodule wiederholen!", color: "text-red-400" };
+    }
+
     if (percentage >= 90) return { title: "SHOGUN 👑", desc: "Meister des Systems", color: "text-yellow-400" };
     if (percentage >= 75) return { title: "SAMURAI ⚔️", desc: "Elite-Kämpfer", color: "text-cyan-400" };
     if (percentage >= 50) return { title: "NINJA 🥷", desc: "Schattenläufer", color: "text-green-400" };
@@ -359,27 +507,35 @@ const FinalExam = ({ onBack, language }) => {
     return t.evalCritical;
   };
 
+  // --- VIEW 1: INTRO ---
   if (examState === 'intro') {
     return (
       <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto">
         <div className="absolute top-6 left-6 z-10">
-          <button onClick={onBack} className="text-gray-400 hover:text-white text-xs font-bold tracking-widest uppercase transition-colors active:scale-95">
+          <button onClick={onBack} className="text-gray-400 hover:text-white text-xs font-bold tracking-widest uppercase transition-colors active:scale-95 cursor-pointer">
             &larr; {t.back}
           </button>
         </div>
         
-        <div className="mt-20 flex flex-col items-center max-w-sm text-center animate-fade-in">
+        <div className="mt-16 flex flex-col items-center max-w-md text-center animate-fade-in">
           <div className="w-24 h-24 bg-red-900/30 rounded-full border-2 border-red-500 flex items-center justify-center shadow-[0_0_40px_rgba(239,68,68,0.3)] mb-6">
-            <span className="text-5xl">⛩️</span>
+            <span className="text-5xl">{isGermanTarget ? "🏛️" : "⛩️"}</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-widest text-red-500 uppercase mb-2">{t.introTitle}</h1>
-          <h2 className="text-gray-300 font-bold uppercase tracking-widest mb-6">{t.introSub}</h2>
+          <h1 className="text-3xl font-extrabold tracking-widest text-red-500 uppercase mb-2 leading-tight">
+            {t.introTitle}
+          </h1>
+          <h2 className="text-gray-300 text-sm font-bold uppercase tracking-widest mb-6">
+            {t.introSub}
+          </h2>
           
-          <p className="text-gray-400 text-sm leading-relaxed mb-12 border-l-2 border-red-500/50 pl-4 text-left">
+          <p className="text-gray-400 text-sm leading-relaxed mb-10 border-l-2 border-red-500/50 pl-4 text-left">
             {t.introDesc}
           </p>
           
-          <button onClick={startExam} className="w-full py-5 bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+          <button 
+            onClick={startExam} 
+            className="w-full py-5 bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 rounded-xl font-bold text-white text-lg tracking-widest uppercase shadow-lg shadow-red-500/20 active:scale-95 transition-all cursor-pointer"
+          >
             {t.startBtn}
           </button>
         </div>
@@ -387,73 +543,90 @@ const FinalExam = ({ onBack, language }) => {
     );
   }
 
+  // --- VIEW 2: EXAM FRAGENLAUF ---
   if (examState === 'exam') {
     const q = questions[currentIndex];
     const isLastQuestion = currentIndex === questions.length - 1;
     
     const catColors = {
+      phonetik: "text-blue-400 border-blue-500/50 bg-blue-900/20",
+      klammer: "text-purple-400 border-purple-500/50 bg-purple-900/20",
+      radar: "text-green-400 border-green-500/50 bg-green-900/20",
+      komposita: "text-cyan-400 border-cyan-500/50 bg-cyan-900/20",
       kana: "text-blue-400 border-blue-500/50 bg-blue-900/20",
       kanji: "text-purple-400 border-purple-500/50 bg-purple-900/20",
-      particle: "text-orange-400 border-orange-500/50 bg-orange-900/20",
-      radar: "text-green-400 border-green-500/50 bg-green-900/20"
+      particle: "text-orange-400 border-orange-500/50 bg-orange-900/20"
     };
-    
-    const catLabels = {
-      kana: "KANA", kanji: "KANJI", particle: "PARTICLE", radar: "RADAR"
+
+    const getBadgeLabel = (cat) => {
+      if (isGermanTarget) {
+        if (cat === 'phonetik') return "PHONETIK";
+        if (cat === 'klammer') return "SATZKLAMMER";
+        if (cat === 'radar') return "SURVIVAL RADAR";
+        if (cat === 'komposita') return "KOMPOSITA";
+      }
+      return cat.toUpperCase();
     };
 
     return (
       <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-hidden">
         
+        {/* Progress Bar oben */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-800">
-          <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${((currentIndex) / 30) * 100}%` }}></div>
+          <div 
+            className="h-full bg-red-500 transition-all duration-300" 
+            style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
+          ></div>
         </div>
 
-        <div className="w-full max-w-sm flex justify-between items-center mt-6 mb-8">
-          <button onClick={onBack} className="text-gray-500 text-xs uppercase font-bold tracking-widest hover:text-white">
-            X Abbrechen
+        <div className="w-full max-w-md flex justify-between items-center mt-6 mb-6">
+          <button onClick={onBack} className="text-gray-500 text-xs uppercase font-bold tracking-widest hover:text-white cursor-pointer">
+            ✕ {currentLang === 'jpn' ? '中断する' : 'Abbrechen'}
           </button>
           <span className="text-gray-400 text-xs font-bold tracking-widest">
-            {t.question} {currentIndex + 1} / 30
+            {t.question} {currentIndex + 1} / {questions.length}
           </span>
         </div>
 
-        <div className="w-full max-w-sm flex flex-col animate-fade-in flex-1">
+        <div className="w-full max-w-md flex flex-col animate-fade-in flex-1">
           
-          <div className="flex justify-center mb-6">
-            <span className={`text-xs font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full border ${catColors[q.category]}`}>
-              {catLabels[q.category]}
+          {/* Kategorie Badge */}
+          <div className="flex justify-center mb-4">
+            <span className={`text-xs font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full border ${catColors[q.category] || 'text-gray-400 border-gray-600'}`}>
+              {getBadgeLabel(q.category)}
             </span>
           </div>
 
-          <div className="bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl mb-8 min-h-[160px] flex flex-col items-center justify-center text-center">
-            
+          {/* Frage-Box */}
+          <div className="bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl mb-6 min-h-[140px] flex flex-col items-center justify-center text-center">
             {q.audioText && (
               <button 
                 onClick={() => playAudio(q.audioText)}
-                className="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-3xl mb-6 mx-auto hover:bg-blue-600/40 active:scale-95 transition-all shadow-lg shadow-blue-500/10 border border-blue-500/50"
+                className="w-14 h-14 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-2xl mb-4 mx-auto hover:bg-blue-600/40 active:scale-95 transition-all shadow-lg shadow-blue-500/10 border border-blue-500/50 cursor-pointer"
+                title="Audio abspielen"
               >
                 🔊
               </button>
             )}
 
-            <h2 className="text-xl sm:text-2xl font-bold text-white leading-relaxed">
-              {q.q[language] || q.q.de}
+            <h2 className="text-lg sm:text-xl font-bold text-white leading-relaxed">
+              {q.q[currentLang] || q.q.de || q.q.en}
             </h2>
           </div>
 
-          <div className="space-y-3 mb-8">
+          {/* Optionen */}
+          <div className="space-y-3 mb-6">
             {q.options.map((opt, idx) => {
               const isSelected = selectedAnswer === idx;
               const btnClass = isSelected 
-                ? "bg-cyan-900/50 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-[1.02]" 
+                ? "bg-cyan-900/50 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-[1.01]" 
                 : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-750 hover:border-gray-500";
 
               return (
                 <button
                   key={idx}
                   onClick={() => handleSelectOption(idx)}
-                  className={`w-full p-5 rounded-xl border-2 font-bold text-lg transition-all ${btnClass}`}
+                  className={`w-full p-4 rounded-xl border-2 font-bold text-base transition-all text-left cursor-pointer ${btnClass}`}
                 >
                   {getOptionText(opt)}
                 </button>
@@ -461,11 +634,12 @@ const FinalExam = ({ onBack, language }) => {
             })}
           </div>
           
+          {/* Weiter / Beenden Button */}
           <div className="mt-auto pb-6">
             <button
               onClick={handleNext}
               disabled={selectedAnswer === null}
-              className={`w-full py-5 rounded-xl font-bold text-white text-lg tracking-widest uppercase transition-all shadow-lg active:scale-95 ${
+              className={`w-full py-4 rounded-xl font-bold text-white text-base tracking-widest uppercase transition-all shadow-lg active:scale-95 cursor-pointer ${
                 selectedAnswer !== null 
                   ? "bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 shadow-red-500/20" 
                   : "bg-gray-800 text-gray-500 cursor-not-allowed opacity-50"
@@ -480,22 +654,27 @@ const FinalExam = ({ onBack, language }) => {
     );
   }
 
+  // --- VIEW 3: RESULT REPORT ---
   if (examState === 'result') {
-    const percentage = Math.round((score / 30) * 100);
+    const totalQ = questions.length || 1;
+    const percentage = Math.round((score / totalQ) * 100);
     const rankInfo = getRank(percentage);
 
     return (
       <div className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
         
-        <div className="mt-8 mb-8 flex flex-col items-center w-full max-w-md text-center animate-fade-in">
-          <h1 className="text-2xl font-bold text-gray-400 uppercase tracking-widest mb-6">{t.resultsTitle}</h1>
+        <div className="mt-6 mb-8 flex flex-col items-center w-full max-w-md text-center animate-fade-in">
+          <h1 className="text-2xl font-bold text-gray-400 uppercase tracking-widest mb-6">
+            {t.resultsTitle}
+          </h1>
           
+          {/* Score Card */}
           <div className="w-full bg-gray-800 rounded-3xl p-8 border border-gray-700 shadow-2xl relative overflow-hidden mb-8">
             <div className={`absolute top-0 left-0 w-full h-2 ${percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
             
             <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">{t.totalScore}</p>
             <div className="text-6xl font-extrabold text-white mb-6">
-              {score}<span className="text-2xl text-gray-500">/30</span>
+              {score}<span className="text-2xl text-gray-500">/{totalQ}</span>
             </div>
             
             <div className="border-t border-gray-700 pt-6">
@@ -505,100 +684,103 @@ const FinalExam = ({ onBack, language }) => {
             </div>
           </div>
 
+          {/* 4-Kategorien-Analyse */}
           <div className="w-full text-left">
-            <h3 className="text-lg font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+            <h3 className="text-base font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
               <span>📊</span> {t.recommendations}
             </h3>
             
-            <div className="space-y-4 mb-10">
-              {/* Kana Stats */}
-              <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
+            <div className="space-y-4 mb-8">
+              {/* Kategorie 1 */}
+              <div className="bg-gray-800 p-4 rounded-2xl border border-gray-700">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="font-bold text-blue-400">{t.catKana}</span>
-                  <span className="text-sm font-bold text-gray-400">{categoryStats.kana.correct}/{categoryStats.kana.total}</span>
+                  <span className="font-bold text-blue-400 text-sm">{t.cat1Label}</span>
+                  <span className="text-xs font-bold text-gray-400">{categoryStats.cat1.correct}/{categoryStats.cat1.total}</span>
                 </div>
-                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-3 overflow-hidden">
-                  <div className="h-full bg-blue-500" style={{ width: `${categoryStats.kana.total > 0 ? (categoryStats.kana.correct / categoryStats.kana.total) * 100 : 0}%` }}></div>
+                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-2 overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${categoryStats.cat1.total > 0 ? (categoryStats.cat1.correct / categoryStats.cat1.total) * 100 : 0}%` }}></div>
                 </div>
-                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.kana.correct, categoryStats.kana.total)}</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.cat1.correct, categoryStats.cat1.total)}</p>
               </div>
 
-              {/* Kanji Stats */}
-              <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
+              {/* Kategorie 2 */}
+              <div className="bg-gray-800 p-4 rounded-2xl border border-gray-700">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="font-bold text-purple-400">{t.catKanji}</span>
-                  <span className="text-sm font-bold text-gray-400">{categoryStats.kanji.correct}/{categoryStats.kanji.total}</span>
+                  <span className="font-bold text-purple-400 text-sm">{t.cat2Label}</span>
+                  <span className="text-xs font-bold text-gray-400">{categoryStats.cat2.correct}/{categoryStats.cat2.total}</span>
                 </div>
-                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-3 overflow-hidden">
-                  <div className="h-full bg-purple-500" style={{ width: `${categoryStats.kanji.total > 0 ? (categoryStats.kanji.correct / categoryStats.kanji.total) * 100 : 0}%` }}></div>
+                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-2 overflow-hidden">
+                  <div className="h-full bg-purple-500" style={{ width: `${categoryStats.cat2.total > 0 ? (categoryStats.cat2.correct / categoryStats.cat2.total) * 100 : 0}%` }}></div>
                 </div>
-                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.kanji.correct, categoryStats.kanji.total)}</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.cat2.correct, categoryStats.cat2.total)}</p>
               </div>
 
-              {/* Particle Stats */}
-              <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
+              {/* Kategorie 3 */}
+              <div className="bg-gray-800 p-4 rounded-2xl border border-gray-700">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="font-bold text-orange-400">{t.catParticle}</span>
-                  <span className="text-sm font-bold text-gray-400">{categoryStats.particle.correct}/{categoryStats.particle.total}</span>
+                  <span className="font-bold text-orange-400 text-sm">{t.cat3Label}</span>
+                  <span className="text-xs font-bold text-gray-400">{categoryStats.cat3.correct}/{categoryStats.cat3.total}</span>
                 </div>
-                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-3 overflow-hidden">
-                  <div className="h-full bg-orange-500" style={{ width: `${categoryStats.particle.total > 0 ? (categoryStats.particle.correct / categoryStats.particle.total) * 100 : 0}%` }}></div>
+                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-2 overflow-hidden">
+                  <div className="h-full bg-orange-500" style={{ width: `${categoryStats.cat3.total > 0 ? (categoryStats.cat3.correct / categoryStats.cat3.total) * 100 : 0}%` }}></div>
                 </div>
-                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.particle.correct, categoryStats.particle.total)}</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.cat3.correct, categoryStats.cat3.total)}</p>
               </div>
 
-              {/* Radar Stats */}
-              <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
+              {/* Kategorie 4 */}
+              <div className="bg-gray-800 p-4 rounded-2xl border border-gray-700">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="font-bold text-green-400">{t.catRadar}</span>
-                  <span className="text-sm font-bold text-gray-400">{categoryStats.radar.correct}/{categoryStats.radar.total}</span>
+                  <span className="font-bold text-green-400 text-sm">{t.cat4Label}</span>
+                  <span className="text-xs font-bold text-gray-400">{categoryStats.cat4.correct}/{categoryStats.cat4.total}</span>
                 </div>
-                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-3 overflow-hidden">
-                  <div className="h-full bg-green-500" style={{ width: `${categoryStats.radar.total > 0 ? (categoryStats.radar.correct / categoryStats.radar.total) * 100 : 0}%` }}></div>
+                <div className="w-full bg-gray-900 h-1.5 rounded-full mb-2 overflow-hidden">
+                  <div className="h-full bg-green-500" style={{ width: `${categoryStats.cat4.total > 0 ? (categoryStats.cat4.correct / categoryStats.cat4.total) * 100 : 0}%` }}></div>
                 </div>
-                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.radar.correct, categoryStats.radar.total)}</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{getRecommendation(categoryStats.cat4.correct, categoryStats.cat4.total)}</p>
               </div>
             </div>
 
-            {/* Fehler-Protokoll mit neuen Lern-Elementen */}
-            <h3 className="text-lg font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+            {/* Fehlerprotokoll */}
+            <h3 className="text-base font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
               <span>⚠️</span> {t.errorLogTitle}
             </h3>
             
-            <div className="space-y-4 mb-12">
+            <div className="space-y-4 mb-10">
               {wrongAnswers.length === 0 ? (
                 <div className="bg-green-900/30 p-5 rounded-2xl border border-green-500/50 text-center">
                   <p className="text-green-400 font-bold">{t.errorLogEmpty}</p>
                 </div>
               ) : (
                 wrongAnswers.map((err, i) => (
-                  <div key={i} className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
-                    <p className="text-white font-bold mb-3 border-b border-gray-700 pb-2 leading-relaxed">{err.questionText}</p>
+                  <div key={i} className="bg-gray-800 p-4 rounded-2xl border border-gray-700 text-left">
+                    <p className="text-white font-bold mb-3 border-b border-gray-700 pb-2 leading-relaxed text-sm">
+                      {err.questionText}
+                    </p>
                     
                     <div className="flex flex-col gap-2 mb-3">
-                      <div className="bg-red-900/20 p-3 rounded-lg border border-red-500/30">
-                        <span className="text-xs text-red-400 uppercase tracking-widest block mb-1">{t.yourAnswer}</span>
-                        <span className="text-red-300 font-bold">{err.userChoice}</span>
+                      <div className="bg-red-900/20 p-2.5 rounded-lg border border-red-500/30">
+                        <span className="text-[10px] text-red-400 uppercase tracking-widest block mb-0.5">{t.yourAnswer}</span>
+                        <span className="text-red-300 font-bold text-xs">{err.userChoice}</span>
                       </div>
-                      <div className="bg-green-900/20 p-3 rounded-lg border border-green-500/30">
-                        <span className="text-xs text-green-400 uppercase tracking-widest block mb-1">{t.correctAnswer}</span>
-                        <span className="text-green-300 font-bold">{err.correctChoice}</span>
+                      <div className="bg-green-900/20 p-2.5 rounded-lg border border-green-500/30">
+                        <span className="text-[10px] text-green-400 uppercase tracking-widest block mb-0.5">{t.correctAnswer}</span>
+                        <span className="text-green-300 font-bold text-xs">{err.correctChoice}</span>
                       </div>
                     </div>
 
-                    {/* NEU: Übersetzung anzeigen, falls vorhanden */}
                     {err.translation && (
-                      <div className="mt-3">
-                        <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">{t.transLabel}</span>
-                        <p className="text-sm text-gray-300 italic">{err.translation}</p>
+                      <div className="mt-2">
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest block mb-0.5">{t.transLabel}</span>
+                        <p className="text-xs text-gray-300 italic">{err.translation}</p>
                       </div>
                     )}
 
-                    {/* NEU: Partikel-Erklärung mit Hervorhebung anzeigen */}
                     {err.explanation && (
-                      <div className="mt-3 bg-cyan-900/20 p-3 rounded-lg border border-cyan-500/30">
-                        <span className="text-[10px] text-cyan-400 uppercase tracking-widest block mb-1 flex items-center gap-1"><span>💡</span> {t.expLabel}</span>
-                        <p className="text-sm text-cyan-100 leading-relaxed">{err.explanation}</p>
+                      <div className="mt-2 bg-cyan-900/20 p-2.5 rounded-lg border border-cyan-500/30">
+                        <span className="text-[10px] text-cyan-400 uppercase tracking-widest block mb-0.5 flex items-center gap-1">
+                          <span>💡</span> {t.expLabel}
+                        </span>
+                        <p className="text-xs text-cyan-100 leading-relaxed">{err.explanation}</p>
                       </div>
                     )}
                   </div>
@@ -606,12 +788,18 @@ const FinalExam = ({ onBack, language }) => {
               )}
             </div>
 
-            {/* Buttons */}
-            <div className="space-y-4 pb-12">
-              <button onClick={startExam} className="w-full py-4 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors active:scale-95">
+            {/* Aktionen */}
+            <div className="space-y-3 pb-12">
+              <button 
+                onClick={startExam} 
+                className="w-full py-4 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-xl font-bold text-white tracking-widest uppercase transition-colors active:scale-95 cursor-pointer text-sm"
+              >
                 {t.btnRetry}
               </button>
-              <button onClick={onBack} className="w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-lg shadow-red-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95">
+              <button 
+                onClick={onBack} 
+                className="w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-lg shadow-red-500/20 rounded-xl font-bold text-white tracking-widest uppercase transition-all active:scale-95 cursor-pointer text-sm"
+              >
                 {t.btnHome}
               </button>
             </div>
