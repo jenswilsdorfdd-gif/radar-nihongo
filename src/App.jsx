@@ -50,12 +50,9 @@ function App() {
   // State für das Payment-Erfolgs-Overlay
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
-  // Zielsprache mit direktem LocalStorage-Fallback im Dev Mode
+  // Zielsprache mit direktem LocalStorage-Fallback
   const [targetLanguage, setTargetLanguage] = useState(() => {
-    if (devModeActive) {
-      return localStorage.getItem('radar_target_lang') || 'jp';
-    }
-    return 'jp';
+    return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
   // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
@@ -79,6 +76,22 @@ function App() {
     currency: "EUR",
   };
 
+  // Synchronisation von targetLanguage in den LocalStorage
+  useEffect(() => {
+    if (targetLanguage) {
+      localStorage.setItem('radar_target_lang', targetLanguage);
+    }
+  }, [targetLanguage]);
+
+  // Synchronisation von appLanguage & Theme
+  useEffect(() => { 
+    if (appLanguage) localStorage.setItem('appLanguage', appLanguage); 
+  }, [appLanguage]);
+
+  useEffect(() => { 
+    localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); 
+  }, [isDarkMode]);
+
   // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -90,7 +103,6 @@ function App() {
         setIsCloudLoading(false);
         // DEV MODE BYPASS: Direkt zur Home-Ansicht, wenn aktiv
         if (devModeActive) {
-          // Zielsprache und App-Sprache aus LocalStorage frisch einlesen
           const savedTarget = localStorage.getItem('radar_target_lang');
           const savedSource = localStorage.getItem('radar_source_lang');
           if (savedTarget) setTargetLanguage(savedTarget);
@@ -142,7 +154,6 @@ function App() {
 
         // --- PRIO 3: DATENBANK-LOCK FÜR DEV MODE ---
         if (!devModeActive) {
-          // ZIELSPRACHE LADEN
           setTargetLanguage(data.target_language || 'jp');
 
           if (targetLangUpdate || sourceLangUpdate) {
@@ -161,7 +172,6 @@ function App() {
         }
 
       } else if (error && error.code === 'PGRST116') {
-        // --- PRIO 3: DATENBANK-LOCK FÜR DEV MODE ---
         if (!devModeActive) {
           const initialTargetLang = targetLangUpdate || 'jp';
           setTargetLanguage(initialTargetLang);
@@ -186,7 +196,6 @@ function App() {
   };
 
   const updateCloudProgress = async (updates) => {
-    // DEV MODE BLOCK: Verhindert Datenbank-Crashes bei aktivem Dev Mode ohne Session
     if (devModeActive) {
       console.log("Dev Mode Aktiv: Cloud-Update blockiert (Bypass Modus)", updates);
       return;
@@ -200,9 +209,6 @@ function App() {
       
     if (error) console.error("Cloud-Save Error:", error);
   };
-
-  useEffect(() => { if (appLanguage) localStorage.setItem('appLanguage', appLanguage); }, [appLanguage]);
-  useEffect(() => { localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
 
   // --- PROGRESS HANDLER MIT CLOUD-UPDATE ---
   const handleReset = () => {
@@ -278,8 +284,6 @@ function App() {
 
   // --- PAYMENT LOGIK & BACKEND VERIFIZIERUNG ---
   const handlePaymentSuccess = async (orderId) => {
-    console.log("Frontend Payment Success, starte Backend-Verifizierung für Order ID:", orderId);
-    
     setIsCloudLoading(true); 
     
     try {
@@ -288,8 +292,6 @@ function App() {
       });
 
       if (error) throw error;
-
-      console.log("Edge Function Response:", data);
       
       if (session) {
         await fetchCloudProgress(session.user.id);
@@ -327,13 +329,13 @@ function App() {
         <h2 className="text-xl mb-6 text-gray-300 text-center">Wähle deine Sprache / Select Language / 言語を選択</h2>
         
         <div className="flex gap-4 flex-wrap justify-center">
-          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
             <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-green-500 shadow-sm flex items-center justify-center bg-gray-900 text-green-400 text-xl">DE</div>Deutsch
           </button>
-          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
             <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-blue-500 shadow-sm flex items-center justify-center bg-gray-900 text-blue-400 text-xl">EN</div>English
           </button>
-          <button onClick={() => setAppLanguage('jpn')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32">
+          <button onClick={() => setAppLanguage('jpn')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
             <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-red-500 shadow-sm flex items-center justify-center bg-gray-900 text-red-400 text-xl">JP</div>日本語
           </button>
         </div>
@@ -341,7 +343,7 @@ function App() {
     );
   }
 
-  // --- ERFOLGS-OVERLAY NACH ZAHLUNG (DYNAMISCHE TEXTE) ---
+  // --- ERFOLGS-OVERLAY NACH ZAHLUNG ---
   if (showPaymentSuccess) {
     const successTexts = {
       de: {
@@ -403,7 +405,6 @@ function App() {
             onStart={() => {
               const isDev = localStorage.getItem('radarDevMode') === 'true';
               if (isDev) {
-                // Werte aus Welcome übernehmen
                 const savedTarget = localStorage.getItem('radar_target_lang');
                 const savedSource = localStorage.getItem('radar_source_lang');
                 if (savedTarget) setTargetLanguage(savedTarget);
@@ -472,7 +473,7 @@ function App() {
           )
         )}
         
-        {/* WEITERE VIEWS... MIT DURCHGEREICHTER targetLanguage */}
+        {/* WEITERE VIEWS MIT DURCHGEREICHTER targetLanguage */}
         {activeView === 'kana-deck' && (
           <KanaDeck 
             currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
