@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { kanaData } from '../data/kanaData';
+import { dePhonetikData } from '../data/dePhonetikData';
 import DrawCanvas from './DrawCanvas'; 
 
-const KanaCard = ({ day, mode, onBack, language }) => {
-  const deckInfo = kanaData[day];
+const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
+  const isGermanTarget = targetLanguage === 'de';
+  const activeDataSource = isGermanTarget ? dePhonetikData : kanaData;
+  const deckInfo = activeDataSource[day];
   
   const [queue, setQueue] = useState(() => {
     return deckInfo && deckInfo.cards ? [...deckInfo.cards] : [];
@@ -27,17 +30,17 @@ const KanaCard = ({ day, mode, onBack, language }) => {
   const texts = {
     de: {
       back: "Deck",
-      read: "Lesen",
-      write: "Schreiben",
+      read: isGermanTarget ? "Lautbildung" : "Lesen",
+      write: isGermanTarget ? "V2-Code" : "Schreiben",
       day: "Tag",
       remaining: "Übrig:",
-      noteLabel: "Trainer-Notiz:",
-      drawPrompt: "Audio abspielen & Zeichnen:",
+      noteLabel: isGermanTarget ? "Trainer-Notiz (Phonetik):" : "Trainer-Notiz:",
+      drawPrompt: isGermanTarget ? "Audio abspielen & Lautform einprägen:" : "Audio abspielen & Zeichnen:",
       listenAction: "Wort anhören",
       tip: "Bedeutung:",
       clickToReveal: "Klicken zum Aufdecken",
-      mnemonicLabel: "Eselsbrücke",
-      placeholder: "Deine eigene, verrückte Idee...",
+      mnemonicLabel: isGermanTarget ? "Physische Mundstellung" : "Eselsbrücke",
+      placeholder: "Deine eigene Notiz...",
       cancel: "Abbrechen",
       save: "Speichern",
       again: "Nochmal",
@@ -46,47 +49,51 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       finishTitle: "Mission Abgeschlossen",
       finishSub: "Tagesziel erreicht!",
       
-      finishFinalReadTitle: "Kana Lesen Komplett!",
-      finishFinalReadSub: "Wahnsinn! 🏆 14 Tage eisern geblieben.",
-      finishFinalReadDesc: "Dein Auge ist geschärft. Du kannst jederzeit alte Decks wiederholen, falls du merkst, dass du etwas hängst. Und vergiss nicht: Hol dir auf TikTok oder Insta deine tägliche Dosis Tokio-Vibes ab! Auf zur Schreib-Mission!",
-      finishFinalReadNext: "Weiter zu Phase 1 (Schreiben) →",
+      finishFinalReadTitle: isGermanTarget ? "Lautbildung Komplett!" : "Kana Lesen Komplett!",
+      finishFinalReadSub: isGermanTarget ? "14 Tage Phonetik gemeistert! 🏆" : "Wahnsinn! 🏆 14 Tage eisern geblieben.",
+      finishFinalReadDesc: isGermanTarget 
+        ? "Deine Mundmuskeln und dein Gehör sind auf Standard-Hochdeutsch kalibriert. Wiederhole alte Decks jederzeit nach Bedarf!"
+        : "Dein Auge ist geschärft. Du kannst jederzeit alte Decks wiederholen, falls du merkst, dass du etwas hängst. Und vergiss nicht: Hol dir auf TikTok oder Insta deine tägliche Dosis Tokio-Vibes ab! Auf zur Schreib-Mission!",
+      finishFinalReadNext: isGermanTarget ? "Weiter zu Phase 1 (V2-Code) →" : "Weiter zu Phase 1 (Schreiben) →",
       
-      finishFinalWriteTitle: "Kana Schreiben Komplett!",
+      finishFinalWriteTitle: isGermanTarget ? "V2-Code Komplett!" : "Kana Schreiben Komplett!",
       finishFinalWriteSub: "Phase 1: ABGESCHLOSSEN! 🎖️",
-      finishFinalWriteDesc: "Fundament gegossen! Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Folge uns auf Insta für den täglichen Boost und dann ab in den Partikel-Code!",
-      finishFinalWriteNext: "Weiter zum Partikel-Code 🔑",
+      finishFinalWriteDesc: isGermanTarget
+        ? "Fundament gegossen! Die Verb-Zweit-Regel sitzt blind. Bereit für die Signal-Bausteine?"
+        : "Fundament gegossen! Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Folge uns auf Insta für den täglichen Boost und dann ab in den Partikel-Code!",
+      finishFinalWriteNext: isGermanTarget ? "Weiter zu den Signal-Bausteinen 🔑" : "Weiter zum Partikel-Code 🔑",
       
       backToMenu: "Zurück zum Deck",
 
       motivations: {
-        1: "Tag 1 im Kasten! ⛩️ Ein starker Anfang. Dein Gehirn verknüpft gerade völlig neue Muster. Ruh dich kurz aus oder zieh dir direkt die nächste Einheit rein!",
-        2: "Saubere Arbeit an Tag 2! 🔥 Die Zeichen werden langsam vertrauter. Du bist auf dem absolut richtigen Weg. Dranbleiben!",
-        3: "Tag 3 geschafft! 🎯 Wiederholung ist der Schlüssel. Lass dich nicht entmutigen, falls du mal ein Zeichen vergisst – das ist völlig normal!",
-        4: "Tag 4 im Sack! ⚡️ Du baust dir gerade ein solides Fundament auf. Gönn dir eine kurze Pause oder starte direkt die nächste Runde!",
-        5: "Fünf Tage durchgezogen! 🏆 Respekt! Merkst du, wie es langsam 'Klick' macht? Dein Auge wird von Tag zu Tag schneller.",
-        6: "Tag 6 gemeistert! 🥋 Sehr stark! Japanisch lernen ist ein Marathon, kein Sprint. Du zeigst genau die richtige Disziplin.",
-        7: "Halbzeit der Phase 1! 🎌 Tag 7 ist durch. Feier diesen kleinen Meilenstein! Schau auf unserem Instagram oder TikTok vorbei, um dir zur Belohnung echte Japan-Vibes zu holen!",
-        8: "Tag 8 erledigt! 🔋 Katakana können fies sein, aber du beißt dich super durch. Zieh dir direkt die nächste Einheit rein, wenn du noch Fokus hast!",
-        9: "Tag 9 im Kasten! 🚀 Dein Gehirn gewöhnt sich an die kantigen Katakana-Formen. Mach weiter so, du bist voll im Flow!",
-        10: "Zweistellig! Tag 10! 🎉 Darauf kannst du stolz sein. Die meisten geben vorher auf. Du gehörst nicht zu den meisten.",
-        11: "Tag 11 ist Geschichte! ⚔️ Die Zielgerade von Phase 1 rückt in Sicht. Halt den Fokus, wir haben noch ein bisschen was vor uns.",
-        12: "Tag 12 abgehakt! 🛡️ Du hast schon so viele Zeichen in deinem Arsenal. Vertrau dem Prozess, es lohnt sich extrem!",
-        13: "Tag 13 geschafft! ⏳ Nur noch ein Tag bis zum Boss-Level. Du bist bestens vorbereitet. Sammel deine Kräfte für das Finale!"
+        1: "Tag 1 im Kasten! Ein starker Anfang. Dein Gehirn verknüpft gerade völlig neue Muster. Ruh dich kurz aus!",
+        2: "Saubere Arbeit an Tag 2! Die Laute werden vertrauter. Du bist auf dem absolut richtigen Weg. Dranbleiben!",
+        3: "Tag 3 geschafft! Wiederholung ist der Schlüssel. Lass dich nicht entmutigen!",
+        4: "Tag 4 im Sack! Du baust dir gerade ein solides Fundament auf. Gönn dir eine kurze Pause!",
+        5: "Fünf Tage durchgezogen! Respekt! Merkst du, wie es langsam 'Klick' macht?",
+        6: "Tag 6 gemeistert! Sehr stark! Sprache lernen ist ein Marathon, kein Sprint.",
+        7: "Halbzeit der Phase 1! Tag 7 ist durch. Feier diesen kleinen Meilenstein!",
+        8: "Tag 8 erledigt! Zungenstellung und Rhythmus sitzen immer sicherer.",
+        9: "Tag 9 im Kasten! Du bist voll im Flow!",
+        10: "Zweistellig! Tag 10! Darauf kannst du stolz sein.",
+        11: "Tag 11 ist Geschichte! Die Zielgerade von Phase 1 rückt in Sicht.",
+        12: "Tag 12 abgehakt! Du hast schon so viele Muster in deinem Arsenal.",
+        13: "Tag 13 geschafft! Nur noch ein Tag bis zum Boss-Level. Sammel deine Kräfte!"
       }
     },
     en: {
       back: "Deck",
-      read: "Read",
-      write: "Write",
+      read: isGermanTarget ? "Phonetics" : "Read",
+      write: isGermanTarget ? "V2 Structure" : "Write",
       day: "Day",
       remaining: "Remaining:",
-      noteLabel: "Trainer Note:",
-      drawPrompt: "Play audio & draw:",
+      noteLabel: isGermanTarget ? "Trainer Note (Phonetics):" : "Trainer Note:",
+      drawPrompt: isGermanTarget ? "Play audio & memorize sound pattern:" : "Play audio & draw:",
       listenAction: "Listen to word",
       tip: "Meaning:",
       clickToReveal: "Click to reveal",
-      mnemonicLabel: "Mnemonic",
-      placeholder: "Your own crazy idea...",
+      mnemonicLabel: isGermanTarget ? "Mouth Articulation" : "Mnemonic",
+      placeholder: "Your own notes...",
       cancel: "Cancel",
       save: "Save",
       again: "Again",
@@ -95,32 +102,89 @@ const KanaCard = ({ day, mode, onBack, language }) => {
       finishTitle: "Mission Completed",
       finishSub: "Daily goal reached!",
       
-      finishFinalReadTitle: "Kana Reading Complete!",
-      finishFinalReadSub: "Amazing! 🏆 14 days going strong.",
-      finishFinalReadDesc: "Your eyes are sharp. You can always repeat old decks if you feel stuck. And don't forget: Get your daily dose of Tokyo vibes on TikTok or Insta! Onwards to the writing mission!",
-      finishFinalReadNext: "Continue to Phase 1 (Write) →",
+      finishFinalReadTitle: isGermanTarget ? "Phonetics Complete!" : "Kana Reading Complete!",
+      finishFinalReadSub: isGermanTarget ? "14 Days of Phonetics mastered! 🏆" : "Amazing! 🏆 14 days going strong.",
+      finishFinalReadDesc: isGermanTarget
+        ? "Your articulation and auditory perception are now calibrated to Standard German."
+        : "Your eyes are sharp. You can always repeat old decks if you feel stuck.",
+      finishFinalReadNext: isGermanTarget ? "Continue to Phase 1 (V2 Structure) →" : "Continue to Phase 1 (Write) →",
       
-      finishFinalWriteTitle: "Kana Writing Complete!",
+      finishFinalWriteTitle: isGermanTarget ? "V2 Structure Complete!" : "Kana Writing Complete!",
       finishFinalWriteSub: "Phase 1: COMPLETED! 🎖️",
-      finishFinalWriteDesc: "Foundation built! You know the characters blindly now. Come back anytime for a warm-up. Ready for the real deal? Follow us on Insta for a daily boost, then onto the Particle Code!",
-      finishFinalWriteNext: "Continue to Particle Code 🔑",
+      finishFinalWriteDesc: isGermanTarget
+        ? "Foundation built! Verb-second rule is locked in. Ready for Signal Chunks?"
+        : "Foundation built! You know the characters blindly now.",
+      finishFinalWriteNext: isGermanTarget ? "Continue to Signal Chunks 🔑" : "Continue to Particle Code 🔑",
       
       backToMenu: "Back to Deck",
 
       motivations: {
-        1: "Day 1 in the books! ⛩️ A strong start. Your brain is wiring completely new patterns. Rest up or jump straight into the next session!",
-        2: "Great work on Day 2! 🔥 The characters are getting familiar. You're exactly on the right track. Keep it up!",
-        3: "Day 3 complete! 🎯 Repetition is key. Don't be discouraged if you forget a character – that's completely normal!",
-        4: "Day 4 in the bag! ⚡️ You're building a solid foundation right now. Take a short break or start the next round right away!",
-        5: "Five days straight! 🏆 Respect! Notice how it's starting to click? Your eyes are getting faster every day.",
-        6: "Day 6 mastered! 🥋 Very strong! Learning Japanese is a marathon, not a sprint. You're showing exactly the right discipline.",
-        7: "Halfway through Phase 1! 🎌 Day 7 is done. Celebrate this small milestone! Check out our Instagram or TikTok to get real Japan vibes as a reward!",
-        8: "Day 8 done! 🔋 Katakana can be tricky, but you're pushing through perfectly. Jump into the next session if you still have focus!",
-        9: "Day 9 in the box! 🚀 Your brain is getting used to the angular Katakana shapes. Keep it up, you're totally in the flow!",
-        10: "Double digits! Day 10! 🎉 You can be proud of that. Most people quit before this. You are not most people.",
-        11: "Day 11 is history! ⚔️ The home stretch of Phase 1 is in sight. Keep your focus, we still have a bit to go.",
-        12: "Day 12 checked off! 🛡️ You already have so many characters in your arsenal. Trust the process, it's extremely worth it!",
-        13: "Day 13 done! ⏳ Just one day left until the Boss Level. You are perfectly prepared. Gather your strength for the finale!"
+        1: "Day 1 in the books! A strong start. Keep it up!",
+        2: "Great work on Day 2! The patterns are getting familiar.",
+        3: "Day 3 complete! Repetition is key.",
+        4: "Day 4 in the bag! Solid foundation built.",
+        5: "Five days straight! Respect!",
+        6: "Day 6 mastered! Exactly the right discipline.",
+        7: "Halfway through Phase 1! Celebrate this milestone!",
+        8: "Day 8 done! Articulation is getting cleaner.",
+        9: "Day 9 in the box! You are totally in the flow.",
+        10: "Double digits! Day 10! You can be proud.",
+        11: "Day 11 is history! The home stretch is in sight.",
+        12: "Day 12 checked off! Trust the process.",
+        13: "Day 13 done! Gather your strength for the finale!"
+      }
+    },
+    jpn: {
+      back: "デッキ一覧",
+      read: isGermanTarget ? "調音発音" : "読む",
+      write: isGermanTarget ? "V2構文" : "書く",
+      day: "日目",
+      remaining: "残り:",
+      noteLabel: isGermanTarget ? "調音筋肉指導メモ:" : "トレーナーノート:",
+      drawPrompt: isGermanTarget ? "音声を再生して調音点を確認:" : "音声を再生して書く:",
+      listenAction: "単語の音声を聴く",
+      tip: "意味:",
+      clickToReveal: "タップして解説を表示",
+      mnemonicLabel: isGermanTarget ? "物理的調音ポイント・口腔指示" : "記憶のEselsbrücke",
+      placeholder: "自分だけの覚え方メモ...",
+      cancel: "キャンセル",
+      save: "保存",
+      again: "もう一度",
+      gotIt: "習得完了",
+      errorMsg: "データが見つかりません。",
+      finishTitle: "ミッション完了",
+      finishSub: "本日の目標を達成しました！",
+      
+      finishFinalReadTitle: isGermanTarget ? "発音矯正カリキュラム完了！" : "仮名読み取り完了！",
+      finishFinalReadSub: isGermanTarget ? "14日間の調音筋トレ達成！🏆" : "14日間やり切りました！🏆",
+      finishFinalReadDesc: isGermanTarget
+        ? "喉の奥、舌の位置、唇の突き出しが標準ドイツ語仕様に再配線されました。いつでも復習可能です！"
+        : "視覚的な文字認識が完成しました。いつでも復習に戻れます。",
+      finishFinalReadNext: isGermanTarget ? "フェーズ 1 (定動詞第2位コード) へ進む →" : "フェーズ 1 (書く) へ進む →",
+      
+      finishFinalWriteTitle: isGermanTarget ? "V2構文コード完了！" : "仮名筆記完了！",
+      finishFinalWriteSub: "フェーズ 1: 完全クリア！🎖️",
+      finishFinalWriteDesc: isGermanTarget
+        ? "強固な土台が完成しました！定動詞第2位と倒置構文が自動化されました。次はシグナル・パーツへ！"
+        : "文字が完全に定着しました。次は助詞コードへ進みましょう！",
+      finishFinalWriteNext: isGermanTarget ? "6大シグナル・パーツへ進む 🔑" : "助詞コードへ進む 🔑",
+      
+      backToMenu: "デッキ一覧へ戻る",
+
+      motivations: {
+        1: "1日目クリア！⛩️ 素晴らしいスタートです。脳が新しい音響パターンを形成しています。",
+        2: "2日目完了！🔥 音の響きが耳に馴染んできました。その調子です！",
+        3: "3日目達成！🎯 反復こそが言語習得の鍵です。焦らず継続しましょう！",
+        4: "4日目クリア！⚡️️ 確固たる基礎が築かれています。少し休んで次に備えましょう！",
+        5: "5日間継続！🏆 素晴らしい集中力です。発音のコツが掴めてきましたか？",
+        6: "6日目マスター！🥋 言語習得はマラソンです。正しい規律が身についています。",
+        7: "フェーズ1の前半戦クリア！🎌 7日目完了。この小さなマイルストーンを祝いましょう！",
+        8: "8日目完了！🔋 舌の筋肉のコントロールが劇的に正確になっています。",
+        9: "9日目クリア！🚀 脳がドイツ語の音響体系に慣れてきました。完璧なフローです！",
+        10: "ついに2桁、10日目！🎉 誇りに思ってください。大半の学習者がここで脱落します。",
+        11: "11日目達成！⚔️ ゴールラインが見えてきました。集中を維持しましょう。",
+        12: "12日目クリア！🛡️ 膨大な音のストックが頭の中に出来上がっています。",
+        13: "13日目完了！⏳ あと1日で第1フェーズ完全制覇です。最終日に備えて力を蓄えましょう！"
       }
     }
   };
@@ -155,12 +219,15 @@ const KanaCard = ({ day, mode, onBack, language }) => {
     setIsEditing(false);
   };
 
+  // Sprachsynthese: Schaltet dynamisch auf Deutsch bei targetLanguage === 'de'
   const playAudio = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ja-JP';
-      utterance.rate = 0.85; 
+      // IPA-Klammern und Formatierungen entfernen für reine Aussprache
+      const cleanText = text.replace(/\[.*?\]/g, '').replace(/[\/\(\)]/g, ' ').trim();
+      const utterance = new SpeechSynthesisUtterance(cleanText || text);
+      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
+      utterance.rate = isGermanTarget ? 0.88 : 0.85; 
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -168,7 +235,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
   const handleFlip = () => {
     if (!isFlipped && !isWriteMode) {
       setIsFlipped(true);
-      playAudio(currentCharacter.kana);
+      playAudio(currentCharacter.vocab || currentCharacter.kana);
     }
   };
 
@@ -277,7 +344,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
             
             <div className="flex flex-col items-center justify-center gap-3 mb-2">
               <button 
-                onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.kana); }}
+                onClick={(e) => { e.stopPropagation(); playAudio(currentCharacter.vocab || currentCharacter.kana); }}
                 className="w-20 h-20 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 rounded-full flex items-center justify-center text-4xl transition-all shadow-lg active:scale-90 border border-blue-500/30"
               >
                 🔊
@@ -302,13 +369,15 @@ const KanaCard = ({ day, mode, onBack, language }) => {
           >
             {!isFlipped ? (
               <div className="flex flex-col items-center text-center px-4">
-                <h1 className="text-7xl sm:text-8xl font-bold text-white tracking-widest mb-4">{currentCharacter.kana}</h1>
+                <h1 className="text-5xl sm:text-6xl font-bold text-white tracking-wide mb-4 leading-tight">
+                  {currentCharacter.kana}
+                </h1>
                 <p className="text-gray-500 text-xs uppercase tracking-widest">{t.clickToReveal}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center text-center w-full h-full overflow-y-auto scrollbar-hide">
                 <div className="mb-4">
-                  <h2 className="text-5xl font-bold text-green-400 mb-1">{currentCharacter.kana}</h2>
+                  <h2 className="text-4xl font-bold text-green-400 mb-1">{currentCharacter.kana}</h2>
                   <span className="text-gray-400 text-lg uppercase tracking-widest">{currentCharacter.romaji}</span>
                 </div>
                 
@@ -323,7 +392,7 @@ const KanaCard = ({ day, mode, onBack, language }) => {
                         <button 
                           onClick={handleEditClick} 
                           className="w-6 h-6 flex items-center justify-center bg-gray-700/50 hover:bg-gray-600 rounded-md transition-colors"
-                          title="Eigene Eselsbrücke eintragen"
+                          title="Eigene Notiz eintragen"
                         >
                           ✏️
                         </button>
