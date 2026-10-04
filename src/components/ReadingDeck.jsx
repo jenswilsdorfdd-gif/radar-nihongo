@@ -1,47 +1,87 @@
 import React from 'react';
 import { readingData } from '../data/readingData';
+import { deReadingData } from '../data/deReadingData';
 
-const ReadingDeck = ({ currentDay, totalDays, onBackToHome, onStartDay, language }) => {
+const ReadingDeck = ({ currentDay, totalDays, onBackToHome, onStartDay, language, targetLanguage = 'jp' }) => {
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+  const isGermanTarget = targetLanguage === 'de';
+
+  // Dynamische Datenquelle basierend auf Zielsprache
+  const activeDataSource = isGermanTarget ? deReadingData : readingData;
 
   const texts = {
     de: {
       back: "Hauptmenü",
-      title: "KANA FLOW",
-      subtitle: "Flüssiges Lesen für Radar:",
-      day: "Text",
+      title: isGermanTarget ? "SATZKLAMMER FLOW" : "KANA FLOW",
+      subtitle: isGermanTarget ? "Flüssige Satzklammern für Radar:" : "Flüssiges Lesen für Radar:",
+      day: isGermanTarget ? "Satz" : "Text",
       of: "von",
-      briefingTitle: "System-Einweisung",
-      bullet1Title: "▶ Lautes Lesen (Schattenlesen)",
-      bullet1Desc: "Der Text taucht auf. Versuche ihn sofort laut vorzulesen. Es ist egal, ob du ihn übersetzen kannst! Dein Gehirn soll lernen, die Zeichen schnell zu verbinden.",
-      bullet2Title: "▶ Audio-Kontrolle",
-      bullet2Desc: "Klicke auf den Audio-Button, nachdem du gelesen hast. Vergleiche deine Geschwindigkeit und Aussprache mit dem Original. Sprich es noch einmal nach!",
-      bullet3Title: "▶ 3 Radar-Stufen",
-      bullet3Desc: "Level 1 (Kurz), Level 2 (Mittellang), Level 3 (Reale Dialoge). Dies ist die perfekte Brücke, um in Phase 3 (Radar) zu überleben.",
-      lvl1: "Level 1: Grundlagen",
-      lvl2: "Level 2: Erweiterte Texte",
-      lvl3: "Level 3: Reale Dialoge"
+      briefingTitle: isGermanTarget ? "System-Einweisung: Satzklammer-Flow" : "System-Einweisung",
+      bullet1Title: isGermanTarget ? "▶ 6 Signal-Bausteine & V2" : "▶ Lautes Lesen (Schattenlesen)",
+      bullet1Desc: isGermanTarget 
+        ? "Trainiere die Verschmelzung von Präpositionen und Artikeln (ZUM, ZUR, MIT, IM) sowie den strikten Verbanker auf Position 2." 
+        : "Der Text taucht auf. Versuche ihn sofort laut vorzulesen. Es ist egal, ob du ihn übersetzen kannst! Dein Gehirn soll lernen, die Zeichen schnell zu verbinden.",
+      bullet2Title: isGermanTarget ? "▶ 文末ハサミ撃ち (Verb-Klammer)" : "▶ Audio-Kontrolle",
+      bullet2Desc: isGermanTarget 
+        ? "Modalverben, trennbare Verben und das Perfekt spalten den Prädikatsrahmen. Warte geduldig, bis das finale Verb am Satzende einschlägt!" 
+        : "Klicke auf den Audio-Button, nachdem du gelesen hast. Vergleiche deine Geschwindigkeit und Aussprache mit dem Original. Sprich es noch einmal nach!",
+      bullet3Title: isGermanTarget ? "▶ 3 Flow-Stufen" : "▶ 3 Radar-Stufen",
+      bullet3Desc: isGermanTarget 
+        ? "Stufe 1 (Signal-Bausteine), Stufe 2 (Einfache Satzklammern), Stufe 3 (Komplexe Mehrfachklammern & Inversion). Die perfekte Brücke für Phase 3." 
+        : "Level 1 (Kurz), Level 2 (Mittellang), Level 3 (Reale Dialoge). Dies ist die perfekte Brücke, um in Phase 3 (Radar) zu überleben.",
+      lvl1: isGermanTarget ? "Level 1: Die 6 Signal-Bausteine" : "Level 1: Grundlagen",
+      lvl2: isGermanTarget ? "Level 2: Satzklammer-Basis" : "Level 2: Erweiterte Texte",
+      lvl3: isGermanTarget ? "Level 3: Komplexe Klammern & Inversion" : "Level 3: Reale Dialoge"
     },
     en: {
       back: "Main Menu",
-      title: "KANA FLOW",
-      subtitle: "Fluent Reading for Radar:",
-      day: "Text",
+      title: isGermanTarget ? "SENTENCE BRACKET FLOW" : "KANA FLOW",
+      subtitle: isGermanTarget ? "Fluent sentence framing for Radar:" : "Fluent Reading for Radar:",
+      day: isGermanTarget ? "Sentence" : "Text",
       of: "of",
-      briefingTitle: "System Briefing",
-      bullet1Title: "▶ Reading Aloud (Shadowing)",
-      bullet1Desc: "The text appears. Try to read it out loud immediately. It doesn't matter if you can translate it! Your brain needs to learn to connect characters quickly.",
-      bullet2Title: "▶ Audio Check",
-      bullet2Desc: "Click the audio button after reading. Compare your speed and pronunciation with the original. Repeat it out loud!",
-      bullet3Title: "▶ 3 Radar Levels",
-      bullet3Desc: "Level 1 (Short), Level 2 (Medium), Level 3 (Real Dialogues). This is the perfect bridge to survive in Phase 3 (Radar).",
-      lvl1: "Level 1: Basics",
-      lvl2: "Level 2: Extended Texts",
-      lvl3: "Level 3: Real Dialogues"
+      briefingTitle: isGermanTarget ? "System Briefing: Sentence Brackets" : "System Briefing",
+      bullet1Title: isGermanTarget ? "▶ 6 Signal Chunks & V2" : "▶ Reading Aloud (Shadowing)",
+      bullet1Desc: isGermanTarget 
+        ? "Practice fusing prepositions and articles (ZUM, ZUR, MIT, IM) and anchoring the verb strictly on slot 2." 
+        : "The text appears. Try to read it out loud immediately. It doesn't matter if you can translate it! Your brain needs to learn to connect characters quickly.",
+      bullet2Title: isGermanTarget ? "▶ The German Sentence Bracket" : "▶ Audio Check",
+      bullet2Desc: isGermanTarget 
+        ? "Modal verbs, separable verbs, and perfect tense split the predicate. Wait until the final verb element drops at the sentence end!" 
+        : "Click the audio button after reading. Compare your speed and pronunciation with the original. Repeat it out loud!",
+      bullet3Title: isGermanTarget ? "▶ 3 Flow Levels" : "▶ 3 Radar Levels",
+      bullet3Desc: isGermanTarget 
+        ? "Level 1 (Signal Chunks), Level 2 (Basic Brackets), Level 3 (Complex Double-Brackets & Inversion). The bridge to Phase 3." 
+        : "Level 1 (Short), Level 2 (Medium), Level 3 (Real Dialogues). This is the perfect bridge to survive in Phase 3 (Radar).",
+      lvl1: isGermanTarget ? "Level 1: The 6 Signal Chunks" : "Level 1: Basics",
+      lvl2: isGermanTarget ? "Level 2: Basic Brackets" : "Level 2: Extended Texts",
+      lvl3: isGermanTarget ? "Level 3: Complex Brackets & Inversion" : "Level 3: Real Dialogues"
+    },
+    jpn: {
+      back: "メインメニュー",
+      title: isGermanTarget ? "枠構造フロー (Satzklammer)" : "仮名フロー",
+      subtitle: isGermanTarget ? "レーダーへ繋ぐ流暢な文構造:" : "レーダーへの流暢な読解:",
+      day: isGermanTarget ? "構文" : "テキスト",
+      of: "/",
+      briefingTitle: isGermanTarget ? "システム解説: 枠構造とシグナル" : "システム解説",
+      bullet1Title: isGermanTarget ? "▶ 6大シグナル・パーツの自動化" : "▶ 音読（シャドーイング）",
+      bullet1Desc: isGermanTarget 
+        ? "格変化表の計算を捨て、ZUM/ZUR、MIT DEM/DER、IM/IN DER、EINEN などの前置詞融合パーツを瞬時に射出します。" 
+        : "テキストが表示されたら即座に声に出して読んでください。脳が文字を素早く繋ぐ訓練です。",
+      bullet2Title: isGermanTarget ? "▶ 文末ハサミ撃ち（右枠固定）" : "▶ 音声確認",
+      bullet2Desc: isGermanTarget 
+        ? "話法助動詞、分離動詞、現在完了形は文末に本動詞が落ちてきます。文末が聞こえるまで意味を決定しない耳のアンカーを鍛えます。" 
+        : "読んだ後に音声ボタンをクリックし、発音とスピードを比較して復唱してください。",
+      bullet3Title: isGermanTarget ? "▶ 3段階の実戦フロー" : "▶ 3段階のレーダー",
+      bullet3Desc: isGermanTarget 
+        ? "レベル1（シグナル・パーツ）、レベル2（基本枠構造）、レベル3（倒置＋複合枠構造）。フェーズ3（実戦）への架け橋です。" 
+        : "レベル1（短文）、レベル2（中文）、レベル3（実戦対話）。フェーズ3で生き残るための訓練です。",
+      lvl1: isGermanTarget ? "レベル 1: 6大シグナル・パーツ" : "レベル 1: 基礎",
+      lvl2: isGermanTarget ? "レベル 2: 基本枠構造 (助動詞・分離・完了)" : "レベル 2: 拡張テキスト",
+      lvl3: isGermanTarget ? "レベル 3: 複合枠構造＆倒置マスター" : "レベル 3: 実戦対話"
     }
   };
 
-  const t = texts[language] || texts.de;
+  const t = texts[language === 'jpn' ? 'jpn' : (texts[language] ? language : 'de')] || texts.de;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col items-center">
@@ -78,8 +118,8 @@ const ReadingDeck = ({ currentDay, totalDays, onBackToHome, onStartDay, language
           const isCurrent = day === currentDay;
           const isLocked = day > currentDay;
           
-          const deckInfo = readingData[day];
-          const groupTitle = deckInfo?.title && (language === 'en' ? deckInfo.titleEn : deckInfo.title);
+          const deckInfo = activeDataSource[day];
+          const groupTitle = deckInfo?.title && (!isGermanTarget && language === 'en' ? (deckInfo.titleEn || deckInfo.title) : deckInfo.title);
 
           return (
             <React.Fragment key={day}>
