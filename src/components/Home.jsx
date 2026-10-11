@@ -20,7 +20,8 @@ const Home = ({
   onLogout
 }) => {
   const containerRef = useRef(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  // Fahrplan-Modal standardmäßig immer geöffnet als erste Orientierung
+  const [showInfoModal, setShowInfoModal] = useState(true);
   
   // State für das Mobile Hamburger-Menü
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -68,12 +69,8 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
-    // AUTO-POPUP LOGIK FÜR DAS INTRO-MODAL
-    const hasSeenIntro = localStorage.getItem('radar_has_seen_intro');
-    if (!hasSeenIntro) {
-      setShowInfoModal(true);
-      localStorage.setItem('radar_has_seen_intro', 'true');
-    }
+    // Sicherstellen, dass das Modal beim Betreten aktiv eingeblendet wird
+    setShowInfoModal(true);
 
     const fetchDojoCount = async () => {
       const { count, error } = await supabase
