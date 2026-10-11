@@ -17,7 +17,8 @@ const Home = ({
   targetLanguage = 'jp', 
   isDarkMode,
   setIsDarkMode,
-  onLogout
+  onLogout,
+  userEmail = null
 }) => {
   const containerRef = useRef(null);
   // Fahrplan-Modal standardmäßig immer geöffnet als erste Orientierung
@@ -90,6 +91,8 @@ const Home = ({
       reset: "Reset",
       info: "Fahrplan",
       subtitle: "Language Survival System",
+      authCloudActive: "Cloud-Sync aktiv:",
+      authGuestActive: "Gast-Modus (Lokal gesichert)",
       phase1ReadTitle: "Phase 1: Kana (Lesen)",
       phase1ReadDesc: "Visuelles Zeichentraining. Die absolute Basis für das Gehirn.",
       phase1WriteTitle: "Phase 1: Kana (Schreiben)",
@@ -162,6 +165,8 @@ const Home = ({
       reset: "Reset",
       info: "Roadmap",
       subtitle: "Language Survival System",
+      authCloudActive: "Cloud Sync active:",
+      authGuestActive: "Guest Mode (Saved locally)",
       phase1ReadTitle: "Phase 1: Kana (Read)",
       phase1ReadDesc: "Visual character training. The absolute basis for your brain.",
       phase1WriteTitle: "Phase 1: Kana (Write)",
@@ -234,6 +239,8 @@ const Home = ({
       reset: "リセット",
       info: "ロードマップ",
       subtitle: "Language Survival System",
+      authCloudActive: "クラウド同期中:",
+      authGuestActive: "ゲストモード (端末内に保存)",
       phase1ReadTitle: "フェーズ 1: 仮名 (読む)",
       phase1ReadDesc: "視覚的な文字トレーニング。脳の絶対的な基礎。",
       phase1WriteTitle: "フェーズ 1: 仮名 (書く)",
@@ -479,8 +486,8 @@ const Home = ({
         )}
       </div>
 
-      {/* --- HEADER BEREICH MIT LANGUAGE SWITCHER TRIGGER --- */}
-      <div className="mt-16 mb-10 flex flex-col items-center">
+      {/* --- HEADER BEREICH MIT LANGUAGE SWITCHER TRIGGER & AUTH BADGE --- */}
+      <div className="mt-16 mb-8 flex flex-col items-center">
         <button 
           onClick={() => setShowLangSwitcher(true)} 
           className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-all cursor-pointer active:scale-95 focus:outline-none relative group overflow-hidden"
@@ -496,7 +503,23 @@ const Home = ({
         >
           RADAR
         </h1>
-        <p className="text-gray-400 text-xs tracking-widest uppercase">{t.subtitle}</p>
+        <p className="text-gray-400 text-xs tracking-widest uppercase mb-3">{t.subtitle}</p>
+
+        {/* STATUS-BADGE: EINGELOGGT ODER GAST */}
+        <div className="flex items-center gap-2 bg-gray-800/90 border border-gray-700 px-3 py-1.5 rounded-full shadow-md max-w-xs text-[11px] truncate">
+          {userEmail ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0"></span>
+              <span className="text-gray-400 shrink-0 font-medium">{t.authCloudActive}</span>
+              <span className="text-green-400 font-bold truncate" title={userEmail}>{userEmail}</span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+              <span className="text-gray-300 font-medium">{t.authGuestActive}</span>
+            </>
+          )}
+        </div>
         
         {devMode && (
           <span className="text-pink-500 text-[10px] font-bold tracking-widest uppercase mt-2 animate-pulse bg-pink-500/10 px-2 py-1 rounded">
