@@ -12,8 +12,6 @@ import ReadingDeck from './components/ReadingDeck';
 import ReadingCard from './components/ReadingCard';
 import ParticleCrashcourse from './components/ParticleCrashcourse';
 import FinalExam from './components/FinalExam';
-import PremiumWall from './components/PremiumWall';
-import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 
 function App() {
   // --- AUTH & CLOUD STATE ---
@@ -41,21 +39,13 @@ function App() {
     const saved = localStorage.getItem('darkMode');
     return saved !== null ? JSON.parse(saved) : true; 
   });
-  
-  // --- PAYMENT STATES ---
-  const [isLifetime, setIsLifetime] = useState(false);
-  const [accessExpiresAt, setAccessExpiresAt] = useState(null);
-  const [hasBookedDojo, setHasBookedDojo] = useState(false);
-  
-  // State für das Payment-Erfolgs-Overlay
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
   // Zielsprache mit direktem LocalStorage-Fallback
   const [targetLanguage, setTargetLanguage] = useState(() => {
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
-  // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben)
+  // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben oder lokal gepflegt)
   const [currentRadarDay, setCurrentRadarDay] = useState(1);
   const [kanaReadDay, setKanaReadDay] = useState(1);
   const [kanaWriteDay, setKanaWriteDay] = useState(1);
@@ -69,12 +59,6 @@ function App() {
   
   const kanaTotalDays = 14; 
   const readingTotalDays = 21; 
-
-  // PayPal Konfiguration
-  const paypalOptions = {
-    "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
-    currency: "EUR",
-  };
 
   // Synchronisation von targetLanguage in den LocalStorage
   useEffect(() => {
@@ -101,7 +85,7 @@ function App() {
         setActiveView(prev => (prev === 'welcome' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
-        // DEV MODE BYPASS: Direkt zur Home-Ansicht, wenn aktiv
+        // Direkt zur Home-Ansicht, wenn Dev Mode aktiv ist
         if (devModeActive) {
           const savedTarget = localStorage.getItem('radar_target_lang');
           const savedSource = localStorage.getItem('radar_source_lang');
@@ -146,13 +130,7 @@ function App() {
         setKanaWriteDay(data.kana_write_day || 1);
         setReadingDay(data.reading_day || 1);
         setCurrentKanjiDay(data.kanji_day || 1);
-        
-        // PAYMENT DATEN LADEN
-        setIsLifetime(data.is_lifetime || false);
-        setAccessExpiresAt(data.access_expires_at || null);
-        setHasBookedDojo(data.has_booked_dojo || false);
 
-        // --- PRIO 3: DATENBANK-LOCK FÜR DEV MODE ---
         if (!devModeActive) {
           setTargetLanguage(data.target_language || 'jp');
 
@@ -282,36 +260,6 @@ function App() {
     setActiveView('welcome');
   };
 
-  // --- PAYMENT LOGIK & BACKEND VERIFIZIERUNG ---
-  const handlePaymentSuccess = async (orderId) => {
-    setIsCloudLoading(true); 
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('paypal-verify', {
-        body: { orderId: orderId }
-      });
-
-      if (error) throw error;
-      
-      if (session) {
-        await fetchCloudProgress(session.user.id);
-        setShowPaymentSuccess(true);
-        setTimeout(() => {
-          setShowPaymentSuccess(false);
-        }, 5000);
-      }
-      
-    } catch (err) {
-      console.error("Zahlungsverifizierung fehlgeschlagen:", err);
-      alert("Es gab ein Problem bei der Verifizierung der Zahlung. Bitte kontaktiere den Support.");
-    } finally {
-      setIsCloudLoading(false);
-    }
-  };
-
-  // DEV MODE PAYWALL BYPASS
-  const hasValidAccess = devModeActive || isLifetime || (accessExpiresAt && new Date(accessExpiresAt) > new Date());
-
   if (!appLanguage) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
@@ -343,41 +291,6 @@ function App() {
     );
   }
 
-  // --- ERFOLGS-OVERLAY NACH ZAHLUNG ---
-  if (showPaymentSuccess) {
-    const successTexts = {
-      de: {
-        title: "Zahlung erfolgreich!",
-        desc: "Willkommen im Premium-System. Deine Umgebung wird vorbereitet..."
-      },
-      en: {
-        title: "Payment successful!",
-        desc: "Welcome to the premium system. Your environment is being prepared..."
-      },
-      jpn: {
-        title: "支払い成功！",
-        desc: "プレミアムシステムへようこそ。環境を準備しています..."
-      }
-    };
-    
-    const tSuccess = successTexts[appLanguage] || successTexts.de;
-
-    return (
-      <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white animate-fade-in">
-        <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500 flex items-center justify-center shadow-[0_0_50px_rgba(34,197,94,0.4)] mb-8 mx-auto relative overflow-hidden">
-          <div className="absolute inset-0 bg-green-500/20 animate-ping rounded-full"></div>
-          <span className="text-5xl relative z-10">💎</span>
-        </div>
-        <h1 className="text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4 text-center uppercase">
-          {tSuccess.title}
-        </h1>
-        <p className="text-gray-400 text-lg text-center animate-pulse">
-          {tSuccess.desc}
-        </p>
-      </div>
-    );
-  }
-
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
@@ -397,174 +310,163 @@ function App() {
   }
 
   return (
-    <PayPalScriptProvider options={paypalOptions}>
-      <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
-        
-        {activeView === 'welcome' && (
-          <Welcome 
-            onStart={() => {
-              const isDev = localStorage.getItem('radarDevMode') === 'true';
-              if (isDev) {
-                const savedTarget = localStorage.getItem('radar_target_lang');
-                const savedSource = localStorage.getItem('radar_source_lang');
-                if (savedTarget) setTargetLanguage(savedTarget);
-                if (savedSource) {
-                  const mappedLang = savedSource === 'jp' ? 'jpn' : savedSource;
-                  setAppLanguage(mappedLang);
-                }
+    <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
+      
+      {activeView === 'welcome' && (
+        <Welcome 
+          onStart={() => {
+            const isDev = localStorage.getItem('radarDevMode') === 'true';
+            if (isDev) {
+              const savedTarget = localStorage.getItem('radar_target_lang');
+              const savedSource = localStorage.getItem('radar_source_lang');
+              if (savedTarget) setTargetLanguage(savedTarget);
+              if (savedSource) {
+                const mappedLang = savedSource === 'jp' ? 'jpn' : savedSource;
+                setAppLanguage(mappedLang);
               }
-              setActiveView('home');
-            }} 
-            language={appLanguage} 
-          />
-        )}
+            }
+            setActiveView('home');
+          }} 
+          language={appLanguage} 
+        />
+      )}
 
-        {activeView === 'home' && (
-          hasValidAccess ? (
-            <Home 
-              onSelectMode={(mode) => {
-                // Standard-Routing (Japanisch & Englisch)
-                if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
-                if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
-                if (mode === 'reading') setActiveView('reading-deck');
-                if (mode === 'radar') setActiveView('dashboard');
-                if (mode === 'kanji') setActiveView('kanji');
-                if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
-                if (mode === 'final-exam') setActiveView('final-exam');
+      {/* HOME WIRD IMMER DIREKT & OHNE BEZAHLSCHRANKE GERENDERT */}
+      {activeView === 'home' && (
+        <Home 
+          onSelectMode={(mode) => {
+            // Standard-Routing (Japanisch & Englisch)
+            if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
+            if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
+            if (mode === 'reading') setActiveView('reading-deck');
+            if (mode === 'radar') setActiveView('dashboard');
+            if (mode === 'kanji') setActiveView('kanji');
+            if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
+            if (mode === 'final-exam') setActiveView('final-exam');
 
-                // Spezifisches Routing für Deutsch-Lernpfad (HomeDE)
-                if (mode === 'de-phonetik') { setKanaMode('read'); setActiveView('kana-deck'); }
-                if (mode === 'de-v2') { setKanaMode('write'); setActiveView('kana-deck'); }
-                if (mode === 'de-signals') setActiveView('particle-crashcourse');
-                if (mode === 'de-klammer') setActiveView('reading-deck');
-                if (mode === 'de-radar') setActiveView('dashboard');
-                if (mode === 'de-komposita') setActiveView('kanji');
-                if (mode === 'final-exam-de') setActiveView('final-exam');
-              }} 
-              onReset={handleReset} 
-              onGoToWelcome={() => setActiveView('welcome')} 
-              
-              kanaReadDay={kanaReadDay} 
-              setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
-              kanaWriteDay={kanaWriteDay} 
-              setKanaWriteDay={(val) => { setKanaWriteDay(val); updateCloudProgress({ kana_write_day: val }); }}
-              readingDay={readingDay} 
-              setReadingDay={(val) => { setReadingDay(val); updateCloudProgress({ reading_day: val }); }}
-              radarDay={currentRadarDay} 
-              setRadarDay={(val) => { setCurrentRadarDay(val); updateCloudProgress({ radar_day: val }); }}
-              kanjiDay={currentKanjiDay} 
-              setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
-              
-              language={appLanguage}
-              targetLanguage={targetLanguage} 
-              
-              isDarkMode={isDarkMode}
-              setIsDarkMode={setIsDarkMode}
-              onLogout={handleLogout}
-            />
-          ) : (
-            <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
-              <PremiumWall 
-                hasBookedDojo={hasBookedDojo} 
-                onPaymentSuccess={handlePaymentSuccess} 
-                language={appLanguage} 
-              />
-            </div>
-          )
-        )}
-        
-        {/* WEITERE VIEWS MIT DURCHGEREICHTER targetLanguage */}
-        {activeView === 'kana-deck' && (
-          <KanaDeck 
-            currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
-            totalDays={kanaTotalDays} 
-            mode={kanaMode} 
-            onBackToHome={() => setActiveView('home')} 
-            onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'learning-kana' && (
-          <KanaCard 
-            day={learningKanaDay} 
-            mode={kanaMode} 
-            onBack={() => handleFinishKana(learningKanaDay)} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'reading-deck' && (
-          <ReadingDeck 
-            currentDay={readingDay} 
-            totalDays={readingTotalDays} 
-            onBackToHome={() => setActiveView('home')} 
-            onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'learning-reading' && (
-          <ReadingCard 
-            day={learningReadingDay} 
-            onBack={() => handleFinishReading(learningReadingDay)} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'dashboard' && (
-          <Dashboard 
-            currentDay={currentRadarDay} 
-            onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
-            onBackToHome={() => setActiveView('home')} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'learning-radar' && (
-          <Flashcard 
-            day={learningRadarDay} 
-            onBack={() => handleFinishRadar(learningRadarDay)} 
-            onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'kanji' && (
-          <KanjiDeck 
-            currentDay={currentKanjiDay} 
-            onBackToHome={() => setActiveView('home')} 
-            onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        {activeView === 'learning-kanji' && (
-          <KanjiCard 
-            day={learningKanjiDay} 
-            onBack={() => handleFinishKanji(learningKanjiDay)} 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-          />
-        )}
-        
-        {activeView === 'particle-crashcourse' && (
-          <ParticleCrashcourse 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-            onBack={() => setActiveView('home')} 
-          />
-        )}
+            // Spezifisches Routing für Deutsch-Lernpfad (HomeDE)
+            if (mode === 'de-phonetik') { setKanaMode('read'); setActiveView('kana-deck'); }
+            if (mode === 'de-v2') { setKanaMode('write'); setActiveView('kana-deck'); }
+            if (mode === 'de-signals') setActiveView('particle-crashcourse');
+            if (mode === 'de-klammer') setActiveView('reading-deck');
+            if (mode === 'de-radar') setActiveView('dashboard');
+            if (mode === 'de-komposita') setActiveView('kanji');
+            if (mode === 'final-exam-de') setActiveView('final-exam');
+          }} 
+          onReset={handleReset} 
+          onGoToWelcome={() => setActiveView('welcome')} 
+          
+          kanaReadDay={kanaReadDay} 
+          setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
+          kanaWriteDay={kanaWriteDay} 
+          setKanaWriteDay={(val) => { setKanaWriteDay(val); updateCloudProgress({ kana_write_day: val }); }}
+          readingDay={readingDay} 
+          setReadingDay={(val) => { setReadingDay(val); updateCloudProgress({ reading_day: val }); }}
+          radarDay={currentRadarDay} 
+          setRadarDay={(val) => { setCurrentRadarDay(val); updateCloudProgress({ radar_day: val }); }}
+          kanjiDay={currentKanjiDay} 
+          setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
+          
+          language={appLanguage}
+          targetLanguage={targetLanguage} 
+          
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          onLogout={handleLogout}
+        />
+      )}
+      
+      {/* WEITERE VIEWS MIT DURCHGEREICHTER targetLanguage */}
+      {activeView === 'kana-deck' && (
+        <KanaDeck 
+          currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
+          totalDays={kanaTotalDays} 
+          mode={kanaMode} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'learning-kana' && (
+        <KanaCard 
+          day={learningKanaDay} 
+          mode={kanaMode} 
+          onBack={() => handleFinishKana(learningKanaDay)} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'reading-deck' && (
+        <ReadingDeck 
+          currentDay={readingDay} 
+          totalDays={readingTotalDays} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'learning-reading' && (
+        <ReadingCard 
+          day={learningReadingDay} 
+          onBack={() => handleFinishReading(learningReadingDay)} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'dashboard' && (
+        <Dashboard 
+          currentDay={currentRadarDay} 
+          onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
+          onBackToHome={() => setActiveView('home')} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'learning-radar' && (
+        <Flashcard 
+          day={learningRadarDay} 
+          onBack={() => handleFinishRadar(learningRadarDay)} 
+          onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'kanji' && (
+        <KanjiDeck 
+          currentDay={currentKanjiDay} 
+          onBackToHome={() => setActiveView('home')} 
+          onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      {activeView === 'learning-kanji' && (
+        <KanjiCard 
+          day={learningKanjiDay} 
+          onBack={() => handleFinishKanji(learningKanjiDay)} 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+        />
+      )}
+      
+      {activeView === 'particle-crashcourse' && (
+        <ParticleCrashcourse 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+          onBack={() => setActiveView('home')} 
+        />
+      )}
 
-        {activeView === 'final-exam' && (
-          <FinalExam 
-            language={appLanguage} 
-            targetLanguage={targetLanguage}
-            onBack={() => setActiveView('home')} 
-          />
-        )}
-      </div>
-    </PayPalScriptProvider>
+      {activeView === 'final-exam' && (
+        <FinalExam 
+          language={appLanguage} 
+          targetLanguage={targetLanguage}
+          onBack={() => setActiveView('home')} 
+        />
+      )}
+    </div>
   );
 }
 
