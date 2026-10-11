@@ -45,12 +45,22 @@ function App() {
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
-  // Startwerte auf 1 (werden nach Login aus der Cloud überschrieben oder lokal gepflegt)
-  const [currentRadarDay, setCurrentRadarDay] = useState(1);
-  const [kanaReadDay, setKanaReadDay] = useState(1);
-  const [kanaWriteDay, setKanaWriteDay] = useState(1);
-  const [readingDay, setReadingDay] = useState(1);
-  const [currentKanjiDay, setCurrentKanjiDay] = useState(1);
+  // Startwerte mit direktem LocalStorage-Fallback für Gast-Nutzer
+  const [currentRadarDay, setCurrentRadarDay] = useState(() => {
+    return Number(localStorage.getItem('radar_day')) || 1;
+  });
+  const [kanaReadDay, setKanaReadDay] = useState(() => {
+    return Number(localStorage.getItem('kana_read_day')) || 1;
+  });
+  const [kanaWriteDay, setKanaWriteDay] = useState(() => {
+    return Number(localStorage.getItem('kana_write_day')) || 1;
+  });
+  const [readingDay, setReadingDay] = useState(() => {
+    return Number(localStorage.getItem('reading_day')) || 1;
+  });
+  const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
+    return Number(localStorage.getItem('kanji_day')) || 1;
+  });
 
   const [learningRadarDay, setLearningRadarDay] = useState(1);
   const [learningKanaDay, setLearningKanaDay] = useState(1);
@@ -125,11 +135,24 @@ function App() {
       const sourceLangUpdate = localStorage.getItem('radar_source_lang');
 
       if (data) {
-        setCurrentRadarDay(data.radar_day || 1);
-        setKanaReadDay(data.kana_read_day || 1);
-        setKanaWriteDay(data.kana_write_day || 1);
-        setReadingDay(data.reading_day || 1);
-        setCurrentKanjiDay(data.kanji_day || 1);
+        const rDay = data.radar_day || 1;
+        const krDay = data.kana_read_day || 1;
+        const kwDay = data.kana_write_day || 1;
+        const rdDay = data.reading_day || 1;
+        const kjDay = data.kanji_day || 1;
+
+        setCurrentRadarDay(rDay);
+        setKanaReadDay(krDay);
+        setKanaWriteDay(kwDay);
+        setReadingDay(rdDay);
+        setCurrentKanjiDay(kjDay);
+
+        // Lokalen Cache für Offline/Fallback aktualisieren
+        localStorage.setItem('radar_day', String(rDay));
+        localStorage.setItem('kana_read_day', String(krDay));
+        localStorage.setItem('kana_write_day', String(kwDay));
+        localStorage.setItem('reading_day', String(rdDay));
+        localStorage.setItem('kanji_day', String(kjDay));
 
         if (!devModeActive) {
           setTargetLanguage(data.target_language || 'jp');
@@ -154,10 +177,16 @@ function App() {
           const initialTargetLang = targetLangUpdate || 'jp';
           setTargetLanguage(initialTargetLang);
           
-          await supabase.from('user_progress').insert([{ 
+          // Initialen Eintrag per upsert absichern
+          await supabase.from('user_progress').upsert([{ 
             id: userId,
             target_language: initialTargetLang,
-            source_language: sourceLangUpdate || 'de'
+            source_language: sourceLangUpdate || 'de',
+            radar_day: currentRadarDay,
+            kana_read_day: kanaReadDay,
+            kana_write_day: kanaWriteDay,
+            reading_day: readingDay,
+            kanji_day: currentKanjiDay
           }]);
 
           localStorage.removeItem('radar_target_lang');
@@ -173,19 +202,34 @@ function App() {
     }
   };
 
+  // Persistenz-Funktion: Sichert in Supabase (per upsert) UND im LocalStorage
   const updateCloudProgress = async (updates) => {
+    // 1. Immer lokal persistieren (für Gast und als Offline-Fallback)
+    Object.entries(updates).forEach(([key, val]) => {
+      localStorage.setItem(key, String(val));
+    });
+
     if (devModeActive) {
       console.log("Dev Mode Aktiv: Cloud-Update blockiert (Bypass Modus)", updates);
       return;
     }
 
     if (!session) return;
-    const { error } = await supabase
-      .from('user_progress')
-      .update(updates)
-      .eq('id', session.user.id);
-      
-    if (error) console.error("Cloud-Save Error:", error);
+
+    try {
+      // 2. Garantiertes Sichern in Supabase per upsert
+      const { error } = await supabase
+        .from('user_progress')
+        .upsert({
+          id: session.user.id,
+          ...updates,
+          updated_at: new Date().toISOString()
+        });
+        
+      if (error) console.error("Cloud-Save Error:", error);
+    } catch (err) {
+      console.error("Unexpected Cloud Save Error:", err);
+    }
   };
 
   // --- PROGRESS HANDLER MIT CLOUD-UPDATE ---
@@ -331,7 +375,7 @@ function App() {
         />
       )}
 
-      {/* HOME WIRD IMMER DIREKT & OHNE BEZAHLSCHRANKE GERENDERT */}
+      {/* HOME WIRD IMMER DIREKT GERENDERT & ERHÄLT DIE USER-EMAIL ALS PROP */}
       {activeView === 'home' && (
         <Home 
           onSelectMode={(mode) => {
@@ -373,6 +417,7 @@ function App() {
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
           onLogout={handleLogout}
+          userEmail={session?.user?.email || null}
         />
       )}
       
