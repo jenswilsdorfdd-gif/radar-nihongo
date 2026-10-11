@@ -21,22 +21,30 @@ const Home = ({
   userEmail = null
 }) => {
   const containerRef = useRef(null);
-  // Fahrplan-Modal standardmäßig immer geöffnet als erste Orientierung
-  const [showInfoModal, setShowInfoModal] = useState(true);
+  
+  // Modals standardmäßig geschlossen halten (verhindert Aufploppen beim Navigieren zwischen Decks)
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showRegModal, setShowRegModal] = useState(false);
   
   // State für das Mobile Hamburger-Menü
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // REGISTRIERUNG & LIVE-COUNTER
-  const [showRegModal, setShowRegModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [dojoCount, setDojoCount] = useState(7); 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
-    email: ''
+    email: userEmail || ''
   });
+
+  // E-Mail synchronisieren, wenn userEmail nachträglich geladen wird
+  useEffect(() => {
+    if (userEmail && !formData.email) {
+      setFormData(prev => ({ ...prev, email: userEmail }));
+    }
+  }, [userEmail]);
 
   // --- LANGUAGE SWITCHER STATES ---
   const [showLangSwitcher, setShowLangSwitcher] = useState(false);
@@ -70,8 +78,23 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
-    // Sicherstellen, dass das Modal beim Betreten aktiv eingeblendet wird
-    setShowInfoModal(true);
+    // --- POPUP-GESTEUERTER SESSION-TRIGGER ---
+    // Verhindert das Wiederaufploppen bei jedem Deck-Wechsel innerhalb derselben Sitzung
+    const sessionPopupShown = sessionStorage.getItem('radar_session_popup_shown');
+    if (!sessionPopupShown) {
+      sessionStorage.setItem('radar_session_popup_shown', 'true');
+      
+      const currentVisits = parseInt(localStorage.getItem('radar_visit_count') || '0', 10) + 1;
+      localStorage.setItem('radar_visit_count', String(currentVisits));
+
+      if (currentVisits === 1) {
+        // 1. Anmeldung / 1. Besuch: Fahrplan als Orientierung
+        setShowInfoModal(true);
+      } else {
+        // Ab der 2. Anmeldung: Werbe-Modal für das Live Dojo
+        setShowRegModal(true);
+      }
+    }
 
     const fetchDojoCount = async () => {
       const { count, error } = await supabase
@@ -348,8 +371,13 @@ const Home = ({
     setShowRegModal(false);
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ firstName: '', lastName: '', phone: '', email: '' });
+      setFormData({ firstName: '', lastName: '', phone: '', email: userEmail || '' });
     }, 300);
+  };
+
+  const handleLogoutClick = () => {
+    sessionStorage.removeItem('radar_session_popup_shown');
+    if (onLogout) onLogout();
   };
 
   // Hilfsfunktion für Flaggen (UI)
@@ -426,7 +454,7 @@ const Home = ({
           </button>
 
           <button 
-            onClick={onLogout} 
+            onClick={handleLogoutClick} 
             className="w-10 h-10 flex items-center justify-center bg-red-900/30 text-red-500 rounded-full border border-red-500/50 shadow-lg hover:scale-110 transition-transform focus:outline-none" 
             title={t.logoutBtn}
           >
@@ -476,7 +504,7 @@ const Home = ({
             <div className="h-px bg-gray-700 my-1 mx-2"></div>
             
             <button 
-              onClick={() => { onLogout(); setIsMobileMenuOpen(false); }} 
+              onClick={() => { handleLogoutClick(); setIsMobileMenuOpen(false); }} 
               className="flex items-center justify-between p-3.5 hover:bg-red-900/30 rounded-xl text-red-500 text-sm font-bold tracking-widest uppercase transition-colors"
             >
               <span>{t.logoutBtn}</span>
@@ -752,7 +780,7 @@ const Home = ({
         </div>
       )}
 
-      {/* REGISTRATION MODAL */}
+      {/* REGISTRATION MODAL (LIVE DOJO WERBUNG) */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
