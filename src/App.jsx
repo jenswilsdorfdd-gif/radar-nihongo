@@ -21,15 +21,19 @@ function App() {
   // DEV MODE CHECK
   const devModeActive = localStorage.getItem('radarDevMode') === 'true';
 
+  // Standardsprache: Immer direkt belegt, damit kein störender Alt-Bildschirm blockiert
   const [appLanguage, setAppLanguage] = useState(() => {
-    // Im Dev Mode synchronisieren wir die App-Sprache direkt mit der gespeicherten Quellsprache (source_lang)
     if (devModeActive) {
       const savedSource = localStorage.getItem('radar_source_lang');
       if (savedSource === 'jp') return 'jpn';
       if (savedSource === 'de') return 'de';
       if (savedSource === 'en') return 'en';
     }
-    return localStorage.getItem('appLanguage') || null;
+    const saved = localStorage.getItem('appLanguage');
+    if (saved) return saved;
+    const sourceSaved = localStorage.getItem('radar_source_lang');
+    if (sourceSaved) return sourceSaved === 'jp' ? 'jpn' : sourceSaved;
+    return 'de';
   });
 
   const [activeView, setActiveView] = useState('welcome'); 
@@ -303,37 +307,6 @@ function App() {
     await supabase.auth.signOut();
     setActiveView('welcome');
   };
-
-  if (!appLanguage) {
-    return (
-      <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-        <div className="w-24 h-24 bg-gray-900 rounded-full border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)] mb-8 mx-auto relative overflow-hidden">
-          <div className="absolute inset-0 bg-green-500/10 animate-ping opacity-20 rounded-full"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 text-green-400 relative z-10">
-            <circle cx="12" cy="12" r="2"></circle>
-            <path d="M8.5 8.5a5 5 0 0 0 0 7"></path>
-            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
-            <path d="M5 5a10 10 0 0 0 0 14"></path>
-            <path d="M19 5a10 10 0 0 1 0 14"></path>
-          </svg>
-        </div>
-        <h1 className="text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8 text-center uppercase">RADAR Lernplattform</h1>
-        <h2 className="text-xl mb-6 text-gray-300 text-center">Wähle deine Sprache / Select Language / 言語を選択</h2>
-        
-        <div className="flex gap-4 flex-wrap justify-center">
-          <button onClick={() => setAppLanguage('de')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-green-500 shadow-sm flex items-center justify-center bg-gray-900 text-green-400 text-xl">DE</div>Deutsch
-          </button>
-          <button onClick={() => setAppLanguage('en')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-blue-500 shadow-sm flex items-center justify-center bg-gray-900 text-blue-400 text-xl">EN</div>English
-          </button>
-          <button onClick={() => setAppLanguage('jpn')} className="bg-gray-800 hover:bg-gray-700 px-6 py-4 rounded-xl text-lg font-bold border border-gray-700 transition-transform active:scale-95 flex flex-col items-center w-32 cursor-pointer">
-            <div className="w-12 h-12 mb-2 rounded-full overflow-hidden border-2 border-red-500 shadow-sm flex items-center justify-center bg-gray-900 text-red-400 text-xl">JP</div>日本語
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   if (isCloudLoading) {
     return (
