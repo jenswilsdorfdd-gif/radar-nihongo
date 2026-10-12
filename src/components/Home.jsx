@@ -78,21 +78,25 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
-    // --- POPUP-GESTEUERTER SESSION-TRIGGER ---
+    // --- POPUP-GESTEUERTER SESSION-TRIGGER (Strikt entkoppelt) ---
     // Verhindert das Wiederaufploppen bei jedem Deck-Wechsel innerhalb derselben Sitzung
     const sessionPopupShown = sessionStorage.getItem('radar_session_popup_shown');
+    
     if (!sessionPopupShown) {
+      // 1. Sofort im Session-Storage blockieren (verhindert React 18 Strict Mode Double-Mounting)
       sessionStorage.setItem('radar_session_popup_shown', 'true');
       
-      const currentVisits = parseInt(localStorage.getItem('radar_visit_count') || '0', 10) + 1;
-      localStorage.setItem('radar_visit_count', String(currentVisits));
+      // 2. Echten Visit-Count auslesen (ohne ihn vorher blind zu erhöhen)
+      const previousVisits = parseInt(localStorage.getItem('radar_visit_count') || '0', 10);
 
-      if (currentVisits === 1) {
-        // 1. Anmeldung / 1. Besuch: Fahrplan als Orientierung
+      if (previousVisits === 0) {
+        // Besuch 1 (Erstanmeldung / Frischer Einstieg) -> Fahrplan
         setShowInfoModal(true);
+        localStorage.setItem('radar_visit_count', '1');
       } else {
-        // Ab der 2. Anmeldung: Werbe-Modal für das Live Dojo
+        // Besuch 2 und folgende -> Live Dojo Werbung
         setShowRegModal(true);
+        localStorage.setItem('radar_visit_count', String(previousVisits + 1));
       }
     }
 
@@ -299,7 +303,7 @@ const Home = ({
       modalTitle: "8週間ロードマップ",
       modalIntro: "このシステムは従来の単語帳ではなく、現実の日常生活のための戦術的ブートキャンプです。理論より実践！",
       modalW1Title: "第1〜2週: 基礎",
-      modalW1Desc: "毎日1回 フェーズ1（読む）、続いてフェーズ1（書く）。14日後には絶対的な基礎が完全に定着します。",
+      modalW1Desc: "毎日1回 フェーズ1（読む）、続いてフェーズ1（書く）。14日後には絶対的な基礎が定着します。",
       modalW3Title: "第3〜5週: ミッション",
       modalW3Desc: "フェーズ2（フロー）とフェーズ3（レーダー）を並行して実行！テキストで準備運動をし、その日のレーダーミッションを完了します。",
       modalW6Title: "第6〜8週: 仕上げ",
@@ -424,7 +428,6 @@ const Home = ({
       }
     }
     
-    // Hard-Reload zwingt App.jsx dazu, die neuen Werte aus Storage & DB frisch zu mounten
     window.location.reload();
   };
 
@@ -434,7 +437,6 @@ const Home = ({
       {/* VEREINTES TOP-MENÜ */}
       <div className="absolute top-6 right-6 z-50">
         
-        {/* Desktop Ansicht: Inline Menü */}
         <div className="hidden md:flex gap-3 items-center">
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -462,7 +464,6 @@ const Home = ({
           </button>
         </div>
 
-        {/* Mobile Ansicht: Hamburger Button */}
         <div className="md:hidden flex items-center">
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -474,7 +475,6 @@ const Home = ({
           </button>
         </div>
 
-        {/* Mobile Ansicht: Dropdown Overlay */}
         {isMobileMenuOpen && (
           <div className="absolute top-16 right-0 w-56 bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl flex flex-col p-2 gap-2 md:hidden animate-fade-in">
             <button 
@@ -514,7 +514,7 @@ const Home = ({
         )}
       </div>
 
-      {/* --- HEADER BEREICH MIT LANGUAGE SWITCHER TRIGGER & AUTH BADGE --- */}
+      {/* --- HEADER BEREICH --- */}
       <div className="mt-16 mb-8 flex flex-col items-center">
         <button 
           onClick={() => setShowLangSwitcher(true)} 
@@ -533,7 +533,7 @@ const Home = ({
         </h1>
         <p className="text-gray-400 text-xs tracking-widest uppercase mb-3">{t.subtitle}</p>
 
-        {/* STATUS-BADGE: EINGELOGGT ODER GAST */}
+        {/* STATUS-BADGE */}
         <div className="flex items-center gap-2 bg-gray-800/90 border border-gray-700 px-3 py-1.5 rounded-full shadow-md max-w-xs text-[11px] truncate">
           {userEmail ? (
             <>
@@ -558,7 +558,6 @@ const Home = ({
 
       <div className="w-full max-w-sm space-y-4 pb-12">
         
-        {/* DEV TOOLS ADMIN PANEL */}
         {devMode && (
           <div className="w-full bg-black/60 border-2 border-pink-500/50 rounded-2xl p-4 mb-6 shadow-[0_0_20px_rgba(236,72,153,0.15)]">
             <h3 className="text-pink-400 font-bold text-xs tracking-widest uppercase mb-4 text-center flex items-center justify-center gap-2">
@@ -632,7 +631,6 @@ const Home = ({
         )}
 
         {targetLanguage !== 'jp' && targetLanguage !== 'en' && targetLanguage !== 'de' && (
-          /* --- ALTERNATIVER FAHRPLAN (PLATZHALTER FÜR WEITERE SPRACHEN) --- */
           <div className="w-full bg-gray-800/80 p-8 rounded-3xl border border-gray-700 text-center relative overflow-hidden shadow-xl mb-4">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
