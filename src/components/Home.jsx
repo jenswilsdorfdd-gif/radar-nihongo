@@ -407,7 +407,7 @@ const Home = ({
     return String(langCode || '').toUpperCase();
   };
 
-  // --- NEUE SPRACH-DUO-ANZEIGE (BASE -> TARGET) ---
+  // --- SPRACH-DUO-ANZEIGE (BASE -> TARGET) ---
   const renderLanguagePairBadge = () => {
     const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
     const sourceCode = language === 'jpn' ? 'jp' : (language || 'de');
@@ -663,6 +663,7 @@ const Home = ({
             kanjiDay={kanjiDay}
             devMode={devMode}
             t={t}
+            language={language}
           />
         )}
 
