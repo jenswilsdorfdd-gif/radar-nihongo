@@ -80,141 +80,183 @@ const HomeEN = ({
 
   return (
     <>
-      {/* PHASE 1 (Immer frei) */}
-      <button onClick={() => onSelectMode('kana-read')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all group text-left relative overflow-hidden">
+      {/* PHASE 1: GRAMMAR (GEROUTET AUF DE-PHONETIK, GELBER TRACER) */}
+      <button 
+        onClick={() => onSelectMode('de-phonetik')} 
+        className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border-2 border-yellow-500/50 hover:border-yellow-400 transition-all group text-left relative overflow-hidden"
+      >
         <div className="flex justify-between items-end mb-2">
-          <h2 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">{enTexts.phase1GrammarTitle}</h2>
-          <span className="text-green-500 text-sm font-bold">{t.day} {kanaReadDay}/14</span>
+          <h2 className="text-xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors">
+            🇬🇧 {enTexts.phase1GrammarTitle}
+          </h2>
+          <span className="text-yellow-400 text-sm font-bold">{t.day} {kanaReadDay}/14</span>
         </div>
-        <p className="text-gray-400 text-sm mb-4">{enTexts.phase1GrammarDesc}</p>
-        <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${(kanaReadDay / 14) * 100}%` }}></div></div>
+        <p className="text-yellow-200/80 text-sm mb-4">{enTexts.phase1GrammarDesc}</p>
+        <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+          <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(kanaReadDay / 14) * 100}%` }}></div>
+        </div>
       </button>
 
-      <button onClick={() => onSelectMode('kana-write')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-blue-500/50 transition-all group text-left relative overflow-hidden">
+      {/* PHASE 1: VOCABULARY (GEROUTET AUF DE-V2, GELBER TRACER) */}
+      <button 
+        onClick={() => onSelectMode('de-v2')} 
+        className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border-2 border-yellow-500/50 hover:border-yellow-400 transition-all group text-left relative overflow-hidden"
+      >
         <div className="flex justify-between items-end mb-2">
-          <h2 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{enTexts.phase1VocabTitle}</h2>
-          <span className="text-blue-500 text-sm font-bold">{t.day} {kanaWriteDay}/14</span>
+          <h2 className="text-xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors">
+            🇬🇧 {enTexts.phase1VocabTitle}
+          </h2>
+          <span className="text-yellow-400 text-sm font-bold">{t.day} {kanaWriteDay}/14</span>
         </div>
-        <p className="text-gray-400 text-sm mb-4">{enTexts.phase1VocabDesc}</p>
-        <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div></div>
+        <p className="text-yellow-200/80 text-sm mb-4">{enTexts.phase1VocabDesc}</p>
+        <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+          <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(kanaWriteDay / 14) * 100}%` }}></div>
+        </div>
       </button>
 
       <div className="py-2">
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent"></div>
       </div>
 
-      {/* SPECIAL CRASHKURS BUTTON (Zeiten-Matrix) */}
+      {/* SPECIAL CRASHKURS BUTTON (Zeiten-Matrix -> GEROUTET AUF DE-SIGNALS, GELBER TRACER) */}
       {isTenseUnlocked ? (
-        <button onClick={() => onSelectMode('particle-crashcourse')} className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] hover:border-orange-400 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95">
-          <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all"></div>
+        <button 
+          onClick={() => onSelectMode('de-signals')} 
+          className="w-full bg-gray-900 p-5 rounded-2xl border-2 border-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.35)] hover:border-yellow-300 transition-all group text-left relative overflow-hidden flex items-center justify-between active:scale-95"
+        >
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition-all"></div>
           <div>
-            <h2 className="text-xl font-extrabold text-orange-400 tracking-wider uppercase mb-1 flex items-center gap-2">
-              <span>⏱️</span> {enTexts.tenseTitle}
+            <h2 className="text-xl font-extrabold text-yellow-400 tracking-wider uppercase mb-1 flex items-center gap-2">
+              <span>🇬🇧 ⏱️</span> {enTexts.tenseTitle}
             </h2>
-            <p className="text-gray-400 text-sm italic">{enTexts.tenseDesc}</p>
+            <p className="text-yellow-200/80 text-sm italic">{enTexts.tenseDesc}</p>
           </div>
-          <div className="text-orange-500/50 group-hover:text-orange-400 transition-colors">
+          <div className="text-yellow-400 group-hover:text-yellow-300 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           </div>
         </button>
       ) : (
-        <div className="w-full bg-gray-900/50 p-5 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
-          <h2 className="text-xl font-extrabold text-gray-500 tracking-wider uppercase mb-1 flex items-center gap-2">
-            <span>🔒</span> {enTexts.tenseTitle}
+        <div className="w-full bg-gray-900/50 p-5 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
+          <h2 className="text-xl font-extrabold text-yellow-500/70 tracking-wider uppercase mb-1 flex items-center gap-2">
+            <span>🔒 🇬🇧</span> {enTexts.tenseTitle}
           </h2>
-          <p className="text-gray-500 text-sm italic">{enTexts.tenseLockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic">{enTexts.tenseLockedDesc}</p>
         </div>
       )}
 
       <div className="py-2">
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent"></div>
       </div>
 
-      {/* PHASE 2 */}
+      {/* PHASE 2 (GEROUTET AUF DE-KLAMMER, GELBER TRACER) */}
       {isPhase2Unlocked ? (
-        <button onClick={() => onSelectMode('reading')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500/50 transition-all group text-left relative overflow-hidden">
+        <button 
+          onClick={() => onSelectMode('de-klammer')} 
+          className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border-2 border-yellow-500/50 hover:border-yellow-400 transition-all group text-left relative overflow-hidden"
+        >
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{enTexts.phase2PhrasalTitle}</h2>
-            <span className="text-cyan-500 text-sm font-bold">{t.day} {readingDay}/21</span>
+            <h2 className="text-xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors">
+              🇬🇧 {enTexts.phase2PhrasalTitle}
+            </h2>
+            <span className="text-yellow-400 text-sm font-bold">{t.day} {readingDay}/21</span>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{enTexts.phase2PhrasalDesc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div></div>
+          <p className="text-yellow-200/80 text-sm mb-4">{enTexts.phase2PhrasalDesc}</p>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(readingDay / 21) * 100}%` }}></div>
+          </div>
         </button>
       ) : (
-        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
-              <span>🔒</span> {enTexts.phase2PhrasalTitle}
+            <h2 className="text-xl font-bold text-yellow-500/70 flex items-center gap-2">
+              <span>🔒 🇬🇧</span> {enTexts.phase2PhrasalTitle}
             </h2>
           </div>
-          <p className="text-gray-500 text-sm italic mb-4">{enTexts.phase2LockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic mb-4">{enTexts.phase2LockedDesc}</p>
           <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
         </div>
       )}
 
-      {/* PHASE 3 */}
+      {/* PHASE 3 (GEROUTET AUF DE-RADAR, GELBER TRACER) */}
       {isPhase3Unlocked ? (
-        <button onClick={() => onSelectMode('radar')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all group text-left relative overflow-hidden">
+        <button 
+          onClick={() => onSelectMode('de-radar')} 
+          className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border-2 border-yellow-500/50 hover:border-yellow-400 transition-all group text-left relative overflow-hidden"
+        >
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{enTexts.phase3Title}</h2>
-            <span className="text-yellow-500 text-sm font-bold">{t.day} {radarDay}/21</span>
+            <h2 className="text-xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors">
+              🇬🇧 {enTexts.phase3Title}
+            </h2>
+            <span className="text-yellow-400 text-sm font-bold">{t.day} {radarDay}/21</span>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{enTexts.phase3Desc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-yellow-500 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div></div>
+          <p className="text-yellow-200/80 text-sm mb-4">{enTexts.phase3Desc}</p>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(radarDay / 21) * 100}%` }}></div>
+          </div>
         </button>
       ) : (
-        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
-              <span>🔒</span> {enTexts.phase3Title}
+            <h2 className="text-xl font-bold text-yellow-500/70 flex items-center gap-2">
+              <span>🔒 🇬🇧</span> {enTexts.phase3Title}
             </h2>
           </div>
-          <p className="text-gray-500 text-sm italic mb-4">{t.phase3LockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic mb-4">{t.phase3LockedDesc}</p>
           <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
         </div>
       )}
 
-      {/* PHASE 4 */}
+      {/* PHASE 4 (GEROUTET AUF DE-KOMPOSITA, GELBER TRACER) */}
       {isPhase4Unlocked ? (
-        <button onClick={() => onSelectMode('kanji')} className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all group text-left relative overflow-hidden">
+        <button 
+          onClick={() => onSelectMode('de-komposita')} 
+          className="w-full bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border-2 border-yellow-500/50 hover:border-yellow-400 transition-all group text-left relative overflow-hidden"
+        >
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{enTexts.phase4Title}</h2>
-            <span className="text-purple-500 text-sm font-bold">{t.day} {kanjiDay}/21</span>
+            <h2 className="text-xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors">
+              🇬🇧 {enTexts.phase4Title}
+            </h2>
+            <span className="text-yellow-400 text-sm font-bold">{t.day} {kanjiDay}/21</span>
           </div>
-          <p className="text-gray-400 text-sm mb-4">{enTexts.phase4Desc}</p>
-          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden"><div className="bg-purple-500 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div></div>
+          <p className="text-yellow-200/80 text-sm mb-4">{enTexts.phase4Desc}</p>
+          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(kanjiDay / 21) * 100}%` }}></div>
+          </div>
         </button>
       ) : (
-        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
+        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
           <div className="flex justify-between items-end mb-2">
-            <h2 className="text-xl font-bold text-gray-500 flex items-center gap-2">
-              <span>🔒</span> {enTexts.phase4Title}
+            <h2 className="text-xl font-bold text-yellow-500/70 flex items-center gap-2">
+              <span>🔒 🇬🇧</span> {enTexts.phase4Title}
             </h2>
           </div>
-          <p className="text-gray-500 text-sm italic mb-4">{enTexts.phase4LockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic mb-4">{enTexts.phase4LockedDesc}</p>
           <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
         </div>
       )}
 
       <div className="py-2">
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent"></div>
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent"></div>
       </div>
 
-      {/* PRÜFUNGS BUTTON */}
+      {/* PRÜFUNGS BUTTON (GEROUTET AUF FINAL-EXAM-DE, GELBER TRACER) */}
       {isExamUnlocked ? (
-        <button onClick={() => onSelectMode('final-exam')} className="w-full bg-red-900/40 p-6 rounded-2xl border-2 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:border-red-400 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/30 transition-all"></div>
-          <h2 className="text-2xl font-extrabold text-red-400 tracking-widest uppercase mb-2 flex items-center gap-3">
-            <span>🎓</span> {t.examTitle}
+        <button 
+          onClick={() => onSelectMode('final-exam-de')} 
+          className="w-full bg-yellow-900/30 p-6 rounded-2xl border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:border-yellow-300 transition-all group text-left relative overflow-hidden flex flex-col justify-center active:scale-95"
+        >
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-yellow-500/20 rounded-full blur-2xl group-hover:bg-yellow-500/30 transition-all"></div>
+          <h2 className="text-2xl font-extrabold text-yellow-400 tracking-widest uppercase mb-2 flex items-center gap-3">
+            <span>🎓 🇬🇧</span> {t.examTitle}
           </h2>
-          <p className="text-gray-300 text-sm italic">{t.examDesc}</p>
+          <p className="text-yellow-200/90 text-sm italic">{t.examDesc}</p>
         </button>
       ) : (
-        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-gray-700 opacity-60 flex flex-col justify-center cursor-not-allowed">
-          <h2 className="text-xl font-extrabold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-3">
-            <span>🔒</span> {t.examLockedTitle}
+        <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
+          <h2 className="text-xl font-extrabold text-yellow-500/70 tracking-widest uppercase mb-2 flex items-center gap-3">
+            <span>🔒 🇬🇧</span> {t.examLockedTitle}
           </h2>
-          <p className="text-gray-500 text-sm italic">{t.examLockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic">{t.examLockedDesc}</p>
         </div>
       )}
     </>
