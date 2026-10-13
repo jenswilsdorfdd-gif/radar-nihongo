@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 import HomeJP from './HomeJP'; 
+import HomeEN from './HomeEN';
 import HomeDE from './HomeDE';
 
 const Home = ({ 
@@ -21,10 +22,14 @@ const Home = ({
 }) => {
   const containerRef = useRef(null);
   
+  // Modals standardmäßig geschlossen halten (verhindert Aufploppen beim Navigieren zwischen Decks)
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showRegModal, setShowRegModal] = useState(false);
+  
+  // State für das Mobile Hamburger-Menü
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // REGISTRIERUNG & LIVE-COUNTER
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [dojoCount, setDojoCount] = useState(7); 
   const [formData, setFormData] = useState({
@@ -34,17 +39,29 @@ const Home = ({
     email: userEmail || ''
   });
 
+  // E-Mail synchronisieren, wenn userEmail nachträglich geladen wird
   useEffect(() => {
     if (userEmail && !formData.email) {
       setFormData(prev => ({ ...prev, email: userEmail }));
     }
   }, [userEmail]);
 
+  // --- LANGUAGE SWITCHER STATES ---
   const [showLangSwitcher, setShowLangSwitcher] = useState(false);
-  const [tempSource, setTempSource] = useState(language === 'jpn' ? 'jp' : language || 'en');
+  const [tempSource, setTempSource] = useState(language === 'jpn' ? 'jp' : language || 'de');
   const [tempTarget, setTempTarget] = useState(targetLanguage || 'jp');
   const [isUpdatingLang, setIsUpdatingLang] = useState(false);
 
+  // Sync für die Dropdowns, falls sich Props ändern
+  useEffect(() => {
+    setTempSource(language === 'jpn' ? 'jp' : language || 'de');
+  }, [language]);
+
+  useEffect(() => {
+    setTempTarget(targetLanguage || 'jp');
+  }, [targetLanguage]);
+
+  // --- GOD MODE / DEV MODE ---
   const [devMode, setDevMode] = useState(() => {
     return localStorage.getItem('radarDevMode') === 'true';
   });
@@ -70,6 +87,7 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
+    // --- POPUP-GESTEUERTER SESSION-TRIGGER (Strikt entkoppelt) ---
     const sessionPopupShown = sessionStorage.getItem('radar_session_popup_shown');
     
     if (!sessionPopupShown) {
@@ -265,7 +283,7 @@ const Home = ({
       phase2LockedDesc: "このミッションをアンロックするには、フェーズ1をクリアしてください。",
       phase3Title: "フェーズ 3: 21日間レーダー",
       phase3Desc: "日常サバイバルのためのストレステスト、語彙、反応力。",
-      phase3LockedDesc: "レーダーをアンロックするには、レーダーをアンロックするには、フェーズ2（仮名フロー）をクリアしてください。",
+      phase3LockedDesc: "レーダーをアンロックするには、フェーズ2（仮名フロー）をクリアしてください。",
       phase4Title: "フェーズ 4: 漢字 N5",
       phase4Desc: "複雑な文字の意味、読み方、応用を学ぶ。",
       phase4LockedDesc: "漢字トレーニングをアンロックするには、フェーズ3（レーダー）をクリアしてください。",
@@ -323,7 +341,9 @@ const Home = ({
     }
   };
 
-  const t = texts[language === 'jpn' ? 'jp' : language] || texts.de;
+  // Korrekte Auflösung für 'jpn' UND 'jp' auf das 'jpn'-Objekt in texts
+  const normalizedBaseKey = (language === 'jp' || language === 'jpn') ? 'jpn' : language;
+  const t = texts[normalizedBaseKey] || texts.de;
 
   const handleInputChange = (e) => {
     setFormData({
@@ -369,6 +389,7 @@ const Home = ({
     if (onLogout) onLogout();
   };
 
+  // Hilfsfunktion für Flaggen (UI)
   const getFlagUrl = (langCode) => {
     switch(langCode) {
       case 'jp': return "https://flagcdn.com/w80/jp.png";
@@ -379,19 +400,52 @@ const Home = ({
     }
   };
 
-  const getTargetLanguageIcon = () => {
-    const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
-    const url = getFlagUrl(targetLanguage);
-    
-    if(url) {
-      return <img src={url} alt="Flag" className="w-10 rounded-sm shadow-sm" style={revertFilter} />;
-    }
-    return <span className="text-5xl" style={revertFilter}>🏳️</span>;
+  const getShortCode = (langCode) => {
+    if (langCode === 'jp' || langCode === 'jpn') return 'JP';
+    if (langCode === 'en') return 'EN';
+    if (langCode === 'de') return 'DE';
+    return String(langCode || '').toUpperCase();
   };
 
+  // --- NEUE SPRACH-DUO-ANZEIGE (BASE -> TARGET) ---
+  const renderLanguagePairBadge = () => {
+    const revertFilter = !isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {};
+    const sourceCode = language === 'jpn' ? 'jp' : (language || 'de');
+    const targetCode = targetLanguage || 'jp';
+
+    const sourceUrl = getFlagUrl(sourceCode);
+    const targetUrl = getFlagUrl(targetCode);
+
+    return (
+      <div className="flex items-center gap-3 px-4 py-2">
+        <div className="flex flex-col items-center gap-1">
+          {sourceUrl ? (
+            <img src={sourceUrl} alt="Base Flag" className="w-8 h-6 object-cover rounded-sm shadow-sm border border-white/10" style={revertFilter} />
+          ) : (
+            <span className="text-2xl" style={revertFilter}>🏳️</span>
+          )}
+          <span className="text-[10px] font-extrabold text-gray-300 tracking-wider">{getShortCode(sourceCode)}</span>
+        </div>
+
+        <span className="text-green-400 font-black text-xl leading-none mb-3">➔</span>
+
+        <div className="flex flex-col items-center gap-1">
+          {targetUrl ? (
+            <img src={targetUrl} alt="Target Flag" className="w-8 h-6 object-cover rounded-sm shadow-sm border border-white/10" style={revertFilter} />
+          ) : (
+            <span className="text-2xl" style={revertFilter}>🏳️</span>
+          )}
+          <span className="text-[10px] font-extrabold text-green-400 tracking-wider">{getShortCode(targetCode)}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // --- LANGUAGE SWITCH HANDLER ---
   const handleSaveLanguages = async () => {
     setIsUpdatingLang(true);
     
+    // Alle drei Speicher synchron setzen
     localStorage.setItem('radar_target_lang', tempTarget);
     localStorage.setItem('radar_source_lang', tempSource);
     localStorage.setItem('appLanguage', tempSource === 'jp' ? 'jpn' : tempSource);
@@ -416,31 +470,6 @@ const Home = ({
   return (
     <div ref={containerRef} className="flex-1 bg-gray-900 flex flex-col items-center p-6 text-white min-h-screen relative overflow-y-auto scrollbar-hide">
       
-      {/* --- GIGANTISCHE NUKE CACHE BAR (SICHTBAR FÜR TESTZWECKE GANZ OBEN) --- */}
-      <button 
-        onClick={() => {
-          if (window.confirm("Bist du sicher? Das nuked alle Sprach- und Session-Caches und erzwingt einen Hard-Reload!")) {
-            localStorage.removeItem('appLanguage');
-            localStorage.removeItem('radar_source_lang');
-            localStorage.removeItem('radar_target_lang');
-            sessionStorage.removeItem('radar_session_popup_shown');
-            
-            localStorage.setItem('radar_visit_count', '0');
-            localStorage.setItem('radar_day', '1');
-            localStorage.setItem('kana_read_day', '1');
-            localStorage.setItem('kana_write_day', '1');
-            localStorage.setItem('reading_day', '1');
-            localStorage.setItem('kanji_day', '1');
-            
-            window.location.reload(true);
-          }
-        }}
-        className="w-full max-w-sm mb-6 py-3 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-sm rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] border-2 border-red-400 active:scale-95 transition-all flex items-center justify-center gap-2 mt-4"
-        title="Setzt die gesamte Umgebung auf Werkseinstellungen zurück"
-      >
-        <span className="text-xl">☢️</span> NUKE CACHE & RELOAD
-      </button>
-
       {/* VEREINTES TOP-MENÜ */}
       <div className="absolute top-6 right-6 z-50">
         
@@ -521,15 +550,15 @@ const Home = ({
         )}
       </div>
 
-      {/* --- HEADER BEREICH --- */}
-      <div className="mt-8 mb-8 flex flex-col items-center">
+      {/* --- HEADER BEREICH MIT SPRACH-DUO-BUTTON --- */}
+      <div className="mt-16 mb-8 flex flex-col items-center">
         <button 
           onClick={() => setShowLangSwitcher(true)} 
-          className="w-20 h-20 bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-all cursor-pointer active:scale-95 focus:outline-none relative group overflow-hidden"
+          className="bg-gray-800 rounded-3xl border border-green-500/30 hover:border-green-400 flex items-center justify-center shadow-lg shadow-green-500/10 mb-4 transition-all cursor-pointer active:scale-95 focus:outline-none relative group overflow-hidden"
           title={t.langSwitchTitle}
         >
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          {getTargetLanguageIcon()}
+          {renderLanguagePairBadge()}
         </button>
         
         <h1 
@@ -540,6 +569,7 @@ const Home = ({
         </h1>
         <p className="text-gray-400 text-xs tracking-widest uppercase mb-3">{t.subtitle}</p>
 
+        {/* STATUS-BADGE */}
         <div className="flex items-center gap-2 bg-gray-800/90 border border-gray-700 px-3 py-1.5 rounded-full shadow-md max-w-xs text-[11px] truncate">
           {userEmail ? (
             <>
@@ -609,6 +639,20 @@ const Home = ({
           />
         )}
 
+        {targetLanguage === 'en' && (
+          <HomeEN 
+            onSelectMode={onSelectMode}
+            kanaReadDay={kanaReadDay}
+            kanaWriteDay={kanaWriteDay}
+            readingDay={readingDay}
+            radarDay={radarDay}
+            kanjiDay={kanjiDay}
+            devMode={devMode}
+            t={t}
+            language={language}
+          />
+        )}
+
         {targetLanguage === 'de' && (
           <HomeDE 
             onSelectMode={onSelectMode}
@@ -622,8 +666,7 @@ const Home = ({
           />
         )}
 
-        {/* --- BAUSTELLEN-FALLBACK FÜR ENGLISCH UND ZUKÜNFTIGE SPRACHEN --- */}
-        {targetLanguage !== 'jp' && targetLanguage !== 'de' && (
+        {targetLanguage !== 'jp' && targetLanguage !== 'en' && targetLanguage !== 'de' && (
           <div className="w-full bg-gray-800/80 p-8 rounded-3xl border border-gray-700 text-center relative overflow-hidden shadow-xl mb-4">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
@@ -771,7 +814,7 @@ const Home = ({
         </div>
       )}
 
-      {/* REGISTRATION MODAL */}
+      {/* REGISTRATION MODAL (LIVE DOJO WERBUNG) */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
