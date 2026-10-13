@@ -138,7 +138,15 @@ function App() {
         .single();
 
       const targetLangUpdate = localStorage.getItem('radar_target_lang');
-      const sourceLangUpdate = localStorage.getItem('radar_source_lang');
+      let sourceLangUpdate = localStorage.getItem('radar_source_lang');
+      
+      // Fallback: Welcome.jsx speichert die Base-Language oft in 'appLanguage'
+      if (!sourceLangUpdate) {
+        const fallbackAppLang = localStorage.getItem('appLanguage');
+        if (fallbackAppLang) {
+          sourceLangUpdate = fallbackAppLang === 'jpn' ? 'jp' : fallbackAppLang;
+        }
+      }
 
       if (data) {
         const rDay = data.radar_day || 1;
