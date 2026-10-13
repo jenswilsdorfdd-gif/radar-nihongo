@@ -21,7 +21,8 @@ function App() {
   // DEV MODE CHECK
   const devModeActive = localStorage.getItem('radarDevMode') === 'true';
 
-  // Standardsprache: Immer direkt belegt, damit kein störender Alt-Bildschirm blockiert
+  // --- HIER IST DIE KORREKTUR: PRIORITÄT UMKEHREN ---
+  // radar_source_lang schlägt immer appLanguage!
   const [appLanguage, setAppLanguage] = useState(() => {
     if (devModeActive) {
       const savedSource = localStorage.getItem('radar_source_lang');
@@ -29,10 +30,16 @@ function App() {
       if (savedSource === 'de') return 'de';
       if (savedSource === 'en') return 'en';
     }
-    const saved = localStorage.getItem('appLanguage');
-    if (saved) return saved;
+    
+    // 1. Höchste Priorität: Der neue Switcher-Key
     const sourceSaved = localStorage.getItem('radar_source_lang');
     if (sourceSaved) return sourceSaved === 'jp' ? 'jpn' : sourceSaved;
+
+    // 2. Zweite Priorität: Der alte Fallback (z.B. vom Welcome Screen)
+    const saved = localStorage.getItem('appLanguage');
+    if (saved) return saved;
+    
+    // 3. Fallback
     return 'de';
   });
 
@@ -44,15 +51,12 @@ function App() {
     return saved !== null ? JSON.parse(saved) : true; 
   });
 
-  // Zielsprache mit direktem LocalStorage-Fallback
   const [targetLanguage, setTargetLanguage] = useState(() => {
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
-  // --- SPRACHWECHSEL-KONFLIKT STATE ---
   const [langConflict, setLangConflict] = useState(null);
 
-  // Startwerte mit direktem LocalStorage-Fallback für Gast-Nutzer
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
     return Number(localStorage.getItem('radar_day')) || 1;
   });
@@ -77,14 +81,12 @@ function App() {
   const kanaTotalDays = 14; 
   const readingTotalDays = 21; 
 
-  // Synchronisation von targetLanguage in den LocalStorage
   useEffect(() => {
     if (targetLanguage) {
       localStorage.setItem('radar_target_lang', targetLanguage);
     }
   }, [targetLanguage]);
 
-  // Synchronisation von appLanguage & Theme
   useEffect(() => { 
     if (appLanguage) localStorage.setItem('appLanguage', appLanguage); 
   }, [appLanguage]);
@@ -93,7 +95,6 @@ function App() {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); 
   }, [isDarkMode]);
 
-  // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -140,7 +141,6 @@ function App() {
       const targetLangUpdate = localStorage.getItem('radar_target_lang');
       let sourceLangUpdate = localStorage.getItem('radar_source_lang');
       
-      // Fallback: Welcome.jsx speichert die Base-Language oft in 'appLanguage'
       if (!sourceLangUpdate) {
         const fallbackAppLang = localStorage.getItem('appLanguage');
         if (fallbackAppLang) {
@@ -171,12 +171,10 @@ function App() {
           const dbTarget = data.target_language || 'jp';
           const dbSource = data.source_language || 'de';
 
-          // Prüfen, ob eine Abweichung zwischen lokaler Wahl und Cloud vorliegt
           const hasTargetMismatch = targetLangUpdate && targetLangUpdate !== dbTarget;
           const hasSourceMismatch = sourceLangUpdate && sourceLangUpdate !== dbSource;
 
           if (hasTargetMismatch || hasSourceMismatch) {
-            // Konflikt-Dialog triggern
             setLangConflict({
               userId,
               dbTarget,
@@ -185,7 +183,6 @@ function App() {
               newSource: sourceLangUpdate || dbSource
             });
           } else {
-            // Kein Konflikt: Cloud-Stand übernehmen
             setTargetLanguage(dbTarget);
             setAppLanguage(dbSource === 'jp' ? 'jpn' : dbSource);
             localStorage.removeItem('radar_target_lang');
@@ -222,7 +219,6 @@ function App() {
     }
   };
 
-  // --- KONFLIKT RESOLVER HANDLER ---
   const handleKeepCloudLanguage = () => {
     if (!langConflict) return;
     setTargetLanguage(langConflict.dbTarget);
@@ -252,7 +248,6 @@ function App() {
     setLangConflict(null);
   };
 
-  // Persistenz-Funktion
   const updateCloudProgress = async (updates) => {
     Object.entries(updates).forEach(([key, val]) => {
       localStorage.setItem(key, String(val));
@@ -374,7 +369,6 @@ function App() {
   return (
     <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       
-      {/* SPRACHWECHSEL-BESTÄTIGUNGSDIALOG */}
       {langConflict && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-cyan-500/40 shadow-2xl overflow-hidden p-6 text-white text-center">
