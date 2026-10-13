@@ -21,25 +21,14 @@ function App() {
   // DEV MODE CHECK
   const devModeActive = localStorage.getItem('radarDevMode') === 'true';
 
-  // --- HIER IST DIE KORREKTUR: PRIORITÄT UMKEHREN ---
-  // radar_source_lang schlägt immer appLanguage!
+  // Standardsprache: radar_source_lang hat immer oberste Priorität
   const [appLanguage, setAppLanguage] = useState(() => {
-    if (devModeActive) {
-      const savedSource = localStorage.getItem('radar_source_lang');
-      if (savedSource === 'jp') return 'jpn';
-      if (savedSource === 'de') return 'de';
-      if (savedSource === 'en') return 'en';
-    }
-    
-    // 1. Höchste Priorität: Der neue Switcher-Key
     const sourceSaved = localStorage.getItem('radar_source_lang');
-    if (sourceSaved) return sourceSaved === 'jp' ? 'jpn' : sourceSaved;
-
-    // 2. Zweite Priorität: Der alte Fallback (z.B. vom Welcome Screen)
+    if (sourceSaved) {
+      return sourceSaved === 'jp' ? 'jpn' : sourceSaved;
+    }
     const saved = localStorage.getItem('appLanguage');
     if (saved) return saved;
-    
-    // 3. Fallback
     return 'de';
   });
 
@@ -51,12 +40,15 @@ function App() {
     return saved !== null ? JSON.parse(saved) : true; 
   });
 
+  // Zielsprache mit direktem LocalStorage-Fallback
   const [targetLanguage, setTargetLanguage] = useState(() => {
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
+  // --- SPRACHWECHSEL-KONFLIKT STATE ---
   const [langConflict, setLangConflict] = useState(null);
 
+  // Startwerte mit direktem LocalStorage-Fallback für Gast-Nutzer
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
     return Number(localStorage.getItem('radar_day')) || 1;
   });
@@ -81,20 +73,26 @@ function App() {
   const kanaTotalDays = 14; 
   const readingTotalDays = 21; 
 
+  // Synchronisation von targetLanguage in den LocalStorage
   useEffect(() => {
     if (targetLanguage) {
       localStorage.setItem('radar_target_lang', targetLanguage);
     }
   }, [targetLanguage]);
 
+  // Synchronisation von appLanguage & radar_source_lang
   useEffect(() => { 
-    if (appLanguage) localStorage.setItem('appLanguage', appLanguage); 
+    if (appLanguage) {
+      localStorage.setItem('appLanguage', appLanguage);
+      localStorage.setItem('radar_source_lang', appLanguage === 'jpn' ? 'jp' : appLanguage);
+    }
   }, [appLanguage]);
 
   useEffect(() => { 
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); 
   }, [isDarkMode]);
 
+  // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -103,13 +101,13 @@ function App() {
         setActiveView(prev => (prev === 'welcome' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
-        if (devModeActive) {
-          const savedTarget = localStorage.getItem('radar_target_lang');
-          const savedSource = localStorage.getItem('radar_source_lang');
-          if (savedTarget) setTargetLanguage(savedTarget);
-          if (savedSource) {
-            setAppLanguage(savedSource === 'jp' ? 'jpn' : savedSource);
-          }
+        const savedTarget = localStorage.getItem('radar_target_lang');
+        const savedSource = localStorage.getItem('radar_source_lang');
+        if (savedTarget) setTargetLanguage(savedTarget);
+        if (savedSource) {
+          setAppLanguage(savedSource === 'jp' ? 'jpn' : savedSource);
+        }
+        if (devModeActive || savedTarget || savedSource) {
           setActiveView('home');
         }
       }
@@ -138,13 +136,13 @@ function App() {
         .eq('id', userId)
         .single();
 
-      const targetLangUpdate = localStorage.getItem('radar_target_lang');
-      let sourceLangUpdate = localStorage.getItem('radar_source_lang');
+      const localTarget = localStorage.getItem('radar_target_lang');
+      let localSource = localStorage.getItem('radar_source_lang');
       
-      if (!sourceLangUpdate) {
+      if (!localSource) {
         const fallbackAppLang = localStorage.getItem('appLanguage');
         if (fallbackAppLang) {
-          sourceLangUpdate = fallbackAppLang === 'jpn' ? 'jp' : fallbackAppLang;
+          localSource = fallbackAppLang === 'jpn' ? 'jp' : fallbackAppLang;
         }
       }
 
@@ -167,47 +165,44 @@ function App() {
         localStorage.setItem('reading_day', String(rdDay));
         localStorage.setItem('kanji_day', String(kjDay));
 
-        if (!devModeActive) {
-          const dbTarget = data.target_language || 'jp';
-          const dbSource = data.source_language || 'de';
+        const dbTarget = data.target_language || 'jp';
+        const dbSource = data.source_language || 'de';
 
-          const hasTargetMismatch = targetLangUpdate && targetLangUpdate !== dbTarget;
-          const hasSourceMismatch = sourceLangUpdate && sourceLangUpdate !== dbSource;
+        // Lokale Auswahl hat Vorrang (verhindert das Zurückspringen auf alte Cloud-Werte beim Testen)
+        const effectiveTarget = localTarget || dbTarget;
+        const effectiveSource = localSource || dbSource;
 
-          if (hasTargetMismatch || hasSourceMismatch) {
-            setLangConflict({
-              userId,
-              dbTarget,
-              dbSource,
-              newTarget: targetLangUpdate || dbTarget,
-              newSource: sourceLangUpdate || dbSource
-            });
-          } else {
-            setTargetLanguage(dbTarget);
-            setAppLanguage(dbSource === 'jp' ? 'jpn' : dbSource);
-            localStorage.removeItem('radar_target_lang');
-            localStorage.removeItem('radar_source_lang');
-          }
+        setTargetLanguage(effectiveTarget);
+        setAppLanguage(effectiveSource === 'jp' ? 'jpn' : effectiveSource);
+        localStorage.setItem('radar_target_lang', effectiveTarget);
+        localStorage.setItem('radar_source_lang', effectiveSource);
+        localStorage.setItem('appLanguage', effectiveSource === 'jp' ? 'jpn' : effectiveSource);
+
+        // Falls lokal eine andere Sprache gewählt wurde als in der Cloud steht -> Cloud direkt synchronisieren
+        if (!devModeActive && (effectiveTarget !== dbTarget || effectiveSource !== dbSource)) {
+          await supabase.from('user_progress').update({
+            target_language: effectiveTarget,
+            source_language: effectiveSource
+          }).eq('id', userId);
         }
 
       } else if (error && error.code === 'PGRST116') {
+        const initialTargetLang = localTarget || 'jp';
+        const initialSourceLang = localSource || 'de';
+        setTargetLanguage(initialTargetLang);
+        setAppLanguage(initialSourceLang === 'jp' ? 'jpn' : initialSourceLang);
+        
         if (!devModeActive) {
-          const initialTargetLang = targetLangUpdate || 'jp';
-          setTargetLanguage(initialTargetLang);
-          
           await supabase.from('user_progress').upsert([{ 
             id: userId,
             target_language: initialTargetLang,
-            source_language: sourceLangUpdate || 'de',
+            source_language: initialSourceLang,
             radar_day: currentRadarDay,
             kana_read_day: kanaReadDay,
             kana_write_day: kanaWriteDay,
             reading_day: readingDay,
             kanji_day: currentKanjiDay
           }]);
-
-          localStorage.removeItem('radar_target_lang');
-          localStorage.removeItem('radar_source_lang');
         }
       } else if (error) {
         console.error("Supabase Database Error:", error);
@@ -219,12 +214,14 @@ function App() {
     }
   };
 
+  // --- KONFLIKT RESOLVER HANDLER ---
   const handleKeepCloudLanguage = () => {
     if (!langConflict) return;
     setTargetLanguage(langConflict.dbTarget);
     setAppLanguage(langConflict.dbSource === 'jp' ? 'jpn' : langConflict.dbSource);
-    localStorage.removeItem('radar_target_lang');
-    localStorage.removeItem('radar_source_lang');
+    localStorage.setItem('radar_target_lang', langConflict.dbTarget);
+    localStorage.setItem('radar_source_lang', langConflict.dbSource);
+    localStorage.setItem('appLanguage', langConflict.dbSource === 'jp' ? 'jpn' : langConflict.dbSource);
     setLangConflict(null);
   };
 
@@ -233,6 +230,9 @@ function App() {
     
     setTargetLanguage(langConflict.newTarget);
     setAppLanguage(langConflict.newSource === 'jp' ? 'jpn' : langConflict.newSource);
+    localStorage.setItem('radar_target_lang', langConflict.newTarget);
+    localStorage.setItem('radar_source_lang', langConflict.newSource);
+    localStorage.setItem('appLanguage', langConflict.newSource === 'jp' ? 'jpn' : langConflict.newSource);
 
     try {
       await supabase.from('user_progress').update({
@@ -243,11 +243,10 @@ function App() {
       console.error("Fehler beim Aktualisieren der Sprache:", err);
     }
 
-    localStorage.removeItem('radar_target_lang');
-    localStorage.removeItem('radar_source_lang');
     setLangConflict(null);
   };
 
+  // Persistenz-Funktion
   const updateCloudProgress = async (updates) => {
     Object.entries(updates).forEach(([key, val]) => {
       localStorage.setItem(key, String(val));
@@ -348,6 +347,9 @@ function App() {
     return code;
   };
 
+  // Wenn Target 'en' (Britisch) ist, nutzen die Übungs-Decks vorübergehend den deutschen Content ('de')
+  const deckTargetLanguage = targetLanguage === 'en' ? 'de' : targetLanguage;
+
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
@@ -369,6 +371,7 @@ function App() {
   return (
     <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       
+      {/* SPRACHWECHSEL-BESTÄTIGUNGSDIALOG */}
       {langConflict && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-cyan-500/40 shadow-2xl overflow-hidden p-6 text-white text-center">
@@ -406,15 +409,14 @@ function App() {
       {activeView === 'welcome' && (
         <Welcome 
           onStart={() => {
-            const isDev = localStorage.getItem('radarDevMode') === 'true';
-            if (isDev) {
-              const savedTarget = localStorage.getItem('radar_target_lang');
-              const savedSource = localStorage.getItem('radar_source_lang');
-              if (savedTarget) setTargetLanguage(savedTarget);
-              if (savedSource) {
-                const mappedLang = savedSource === 'jp' ? 'jpn' : savedSource;
-                setAppLanguage(mappedLang);
-              }
+            const savedTarget = localStorage.getItem('radar_target_lang');
+            const savedSource = localStorage.getItem('radar_source_lang');
+            const savedAppLang = localStorage.getItem('appLanguage');
+            if (savedTarget) setTargetLanguage(savedTarget);
+            if (savedSource) {
+              setAppLanguage(savedSource === 'jp' ? 'jpn' : savedSource);
+            } else if (savedAppLang) {
+              setAppLanguage(savedAppLang);
             }
             setActiveView('home');
           }} 
@@ -465,6 +467,7 @@ function App() {
         />
       )}
       
+      {/* WEITERE VIEWS NUTZEN deckTargetLanguage (leitet 'en' auf deutschen Ersatz-Content 'de' um) */}
       {activeView === 'kana-deck' && (
         <KanaDeck 
           currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
@@ -473,7 +476,7 @@ function App() {
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'learning-kana' && (
@@ -482,7 +485,7 @@ function App() {
           mode={kanaMode} 
           onBack={() => handleFinishKana(learningKanaDay)} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'reading-deck' && (
@@ -492,7 +495,7 @@ function App() {
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'learning-reading' && (
@@ -500,7 +503,7 @@ function App() {
           day={learningReadingDay} 
           onBack={() => handleFinishReading(learningReadingDay)} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'dashboard' && (
@@ -509,7 +512,7 @@ function App() {
           onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
           onBackToHome={() => setActiveView('home')} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'learning-radar' && (
@@ -518,7 +521,7 @@ function App() {
           onBack={() => handleFinishRadar(learningRadarDay)} 
           onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'kanji' && (
@@ -527,7 +530,7 @@ function App() {
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       {activeView === 'learning-kanji' && (
@@ -535,14 +538,14 @@ function App() {
           day={learningKanjiDay} 
           onBack={() => handleFinishKanji(learningKanjiDay)} 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
         />
       )}
       
       {activeView === 'particle-crashcourse' && (
         <ParticleCrashcourse 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
           onBack={() => setActiveView('home')} 
         />
       )}
@@ -550,7 +553,7 @@ function App() {
       {activeView === 'final-exam' && (
         <FinalExam 
           language={appLanguage} 
-          targetLanguage={targetLanguage}
+          targetLanguage={deckTargetLanguage}
           onBack={() => setActiveView('home')} 
         />
       )}
