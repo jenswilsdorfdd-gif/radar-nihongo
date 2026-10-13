@@ -540,8 +540,69 @@ const Home = ({
 
       <div className="w-full max-w-sm space-y-4 pb-12">
         
-        {devMode && (
-          <div className="w-full bg-black/60 border-2 border-pink-500/50 rounded-2xl p-4 mb-6 shadow-[0_0_20px_rgba(236,72,153,0.15)]">
+      {devMode && (
+          <div className="w-full bg-black/60 border-2 border-pink-500/50 rounded-2xl p-4 mb-6 shadow-[0_0_20px_rgba(236,72,153,0.15)] animate-fade-in">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-pink-400 font-bold text-xs tracking-widest uppercase flex items-center gap-2">
+                <span>🛠</span> Level Selector
+              </h3>
+              
+              {/* --- NEU: DER NUKE BUTTON --- */}
+              <button 
+                onClick={() => {
+                  if (window.confirm("Bist du sicher? Das nuked alle Sprach- und Session-Caches und erzwingt einen Hard-Reload!")) {
+                    // 1. Alle Sprach-Einstellungen killen
+                    localStorage.removeItem('appLanguage');
+                    localStorage.removeItem('radar_source_lang');
+                    localStorage.removeItem('radar_target_lang');
+                    
+                    // 2. Den Session-Lock für Popups killen
+                    sessionStorage.removeItem('radar_session_popup_shown');
+                    
+                    // 3. (Optional) Gast-Lernstand auf Tag 1 zurücksetzen
+                    localStorage.setItem('radar_visit_count', '0');
+                    localStorage.setItem('radar_day', '1');
+                    localStorage.setItem('kana_read_day', '1');
+                    localStorage.setItem('kana_write_day', '1');
+                    localStorage.setItem('reading_day', '1');
+                    localStorage.setItem('kanji_day', '1');
+                    
+                    // 4. Hard Reload auslösen
+                    window.location.reload(true);
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded shadow-lg active:scale-95 transition-all flex items-center gap-1"
+                title="Setzt die gesamte Umgebung auf Werkseinstellungen zurück"
+              >
+                <span>☢️</span> NUKE CACHE
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-green-400 font-bold uppercase tracking-wider">Kana Read</label>
+                <input type="number" min="1" max="14" value={kanaReadDay} onChange={(e) => setKanaReadDay && setKanaReadDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-blue-400 font-bold uppercase tracking-wider">Kana Write</label>
+                <input type="number" min="1" max="14" value={kanaWriteDay} onChange={(e) => setKanaWriteDay && setKanaWriteDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-cyan-400 font-bold uppercase tracking-wider">Kana Flow</label>
+                <input type="number" min="1" max="21" value={readingDay} onChange={(e) => setReadingDay && setReadingDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-yellow-400 font-bold uppercase tracking-wider">Radar</label>
+                <input type="number" min="1" max="21" value={radarDay} onChange={(e) => setRadarDay && setRadarDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+              <div className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+                <label className="text-xs text-purple-400 font-bold uppercase tracking-wider">Kanji N5</label>
+                <input type="number" min="1" max="21" value={kanjiDay} onChange={(e) => setKanjiDay && setKanjiDay(Number(e.target.value))} className="w-14 bg-gray-900 text-white text-sm text-center py-1 rounded border border-gray-600 focus:border-pink-500 outline-none" />
+              </div>
+            </div>
+            <p className="text-gray-500 text-[10px] mt-3 text-center uppercase tracking-widest">Die Änderungen sind sofort live.</p>
+          </div>
+        )}
             <h3 className="text-pink-400 font-bold text-xs tracking-widest uppercase mb-4 text-center flex items-center justify-center gap-2">
               <span>🛠</span> Level Selector
             </h3>
