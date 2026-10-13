@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 import HomeJP from './HomeJP'; 
-import HomeEN from './HomeEN';
 import HomeDE from './HomeDE';
 
 const Home = ({ 
@@ -22,14 +21,10 @@ const Home = ({
 }) => {
   const containerRef = useRef(null);
   
-  // Modals standardmäßig geschlossen halten (verhindert Aufploppen beim Navigieren zwischen Decks)
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showRegModal, setShowRegModal] = useState(false);
-  
-  // State für das Mobile Hamburger-Menü
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // REGISTRIERUNG & LIVE-COUNTER
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [dojoCount, setDojoCount] = useState(7); 
   const [formData, setFormData] = useState({
@@ -39,20 +34,17 @@ const Home = ({
     email: userEmail || ''
   });
 
-  // E-Mail synchronisieren, wenn userEmail nachträglich geladen wird
   useEffect(() => {
     if (userEmail && !formData.email) {
       setFormData(prev => ({ ...prev, email: userEmail }));
     }
   }, [userEmail]);
 
-  // --- LANGUAGE SWITCHER STATES ---
   const [showLangSwitcher, setShowLangSwitcher] = useState(false);
   const [tempSource, setTempSource] = useState(language === 'jpn' ? 'jp' : language || 'en');
   const [tempTarget, setTempTarget] = useState(targetLanguage || 'jp');
   const [isUpdatingLang, setIsUpdatingLang] = useState(false);
 
-  // --- GOD MODE / DEV MODE ---
   const [devMode, setDevMode] = useState(() => {
     return localStorage.getItem('radarDevMode') === 'true';
   });
@@ -78,23 +70,16 @@ const Home = ({
       containerRef.current.scrollTop = 0;
     }
 
-    // --- POPUP-GESTEUERTER SESSION-TRIGGER (Strikt entkoppelt) ---
-    // Verhindert das Wiederaufploppen bei jedem Deck-Wechsel innerhalb derselben Sitzung
     const sessionPopupShown = sessionStorage.getItem('radar_session_popup_shown');
     
     if (!sessionPopupShown) {
-      // 1. Sofort im Session-Storage blockieren (verhindert React 18 Strict Mode Double-Mounting)
       sessionStorage.setItem('radar_session_popup_shown', 'true');
-      
-      // 2. Echten Visit-Count auslesen (ohne ihn vorher blind zu erhöhen)
       const previousVisits = parseInt(localStorage.getItem('radar_visit_count') || '0', 10);
 
       if (previousVisits === 0) {
-        // Besuch 1 (Erstanmeldung / Frischer Einstieg) -> Fahrplan
         setShowInfoModal(true);
         localStorage.setItem('radar_visit_count', '1');
       } else {
-        // Besuch 2 und folgende -> Live Dojo Werbung
         setShowRegModal(true);
         localStorage.setItem('radar_visit_count', String(previousVisits + 1));
       }
@@ -384,7 +369,6 @@ const Home = ({
     if (onLogout) onLogout();
   };
 
-  // Hilfsfunktion für Flaggen (UI)
   const getFlagUrl = (langCode) => {
     switch(langCode) {
       case 'jp': return "https://flagcdn.com/w80/jp.png";
@@ -405,15 +389,12 @@ const Home = ({
     return <span className="text-5xl" style={revertFilter}>🏳️</span>;
   };
 
-  // --- LANGUAGE SWITCH HANDLER ---
   const handleSaveLanguages = async () => {
     setIsUpdatingLang(true);
     
-    // In LocalStorage sichern, damit App.jsx es beim Reload als neues Default nimmt
     localStorage.setItem('radar_target_lang', tempTarget);
     localStorage.setItem('radar_source_lang', tempSource);
     
-    // Direkt an Supabase senden, falls nicht im Dev Mode (und Session vorhanden)
     if (!devMode) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -533,7 +514,6 @@ const Home = ({
         </h1>
         <p className="text-gray-400 text-xs tracking-widest uppercase mb-3">{t.subtitle}</p>
 
-        {/* STATUS-BADGE */}
         <div className="flex items-center gap-2 bg-gray-800/90 border border-gray-700 px-3 py-1.5 rounded-full shadow-md max-w-xs text-[11px] truncate">
           {userEmail ? (
             <>
@@ -603,20 +583,6 @@ const Home = ({
           />
         )}
 
-        {targetLanguage === 'en' && (
-          <HomeEN 
-            onSelectMode={onSelectMode}
-            kanaReadDay={kanaReadDay}
-            kanaWriteDay={kanaWriteDay}
-            readingDay={readingDay}
-            radarDay={radarDay}
-            kanjiDay={kanjiDay}
-            devMode={devMode}
-            t={t}
-            language={language}
-          />
-        )}
-
         {targetLanguage === 'de' && (
           <HomeDE 
             onSelectMode={onSelectMode}
@@ -630,7 +596,8 @@ const Home = ({
           />
         )}
 
-        {targetLanguage !== 'jp' && targetLanguage !== 'en' && targetLanguage !== 'de' && (
+        {/* --- BAUSTELLEN-FALLBACK FÜR ENGLISCH UND ZUKÜNFTIGE SPRACHEN --- */}
+        {targetLanguage !== 'jp' && targetLanguage !== 'de' && (
           <div className="w-full bg-gray-800/80 p-8 rounded-3xl border border-gray-700 text-center relative overflow-hidden shadow-xl mb-4">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
@@ -778,7 +745,7 @@ const Home = ({
         </div>
       )}
 
-      {/* REGISTRATION MODAL (LIVE DOJO WERBUNG) */}
+      {/* REGISTRATION MODAL */}
       {showRegModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.2)] overflow-hidden flex flex-col">
