@@ -392,8 +392,10 @@ const Home = ({
   const handleSaveLanguages = async () => {
     setIsUpdatingLang(true);
     
+    // HIER IST DIE KORREKTUR: ALLE DREI SPEICHER WERDEN SYNCHRON ÜBERSCHRIEBEN
     localStorage.setItem('radar_target_lang', tempTarget);
     localStorage.setItem('radar_source_lang', tempSource);
+    localStorage.setItem('appLanguage', tempSource === 'jp' ? 'jpn' : tempSource);
     
     if (!devMode) {
       try {
