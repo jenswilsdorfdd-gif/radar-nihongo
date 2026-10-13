@@ -49,6 +49,9 @@ function App() {
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
+  // --- SPRACHWECHSEL-KONFLIKT STATE ---
+  const [langConflict, setLangConflict] = useState(null);
+
   // Startwerte mit direktem LocalStorage-Fallback für Gast-Nutzer
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
     return Number(localStorage.getItem('radar_day')) || 1;
@@ -99,7 +102,6 @@ function App() {
         setActiveView(prev => (prev === 'welcome' ? 'home' : prev));
       } else {
         setIsCloudLoading(false);
-        // Direkt zur Home-Ansicht, wenn Dev Mode aktiv ist
         if (devModeActive) {
           const savedTarget = localStorage.getItem('radar_target_lang');
           const savedSource = localStorage.getItem('radar_source_lang');
@@ -151,7 +153,6 @@ function App() {
         setReadingDay(rdDay);
         setCurrentKanjiDay(kjDay);
 
-        // Lokalen Cache für Offline/Fallback aktualisieren
         localStorage.setItem('radar_day', String(rDay));
         localStorage.setItem('kana_read_day', String(krDay));
         localStorage.setItem('kana_write_day', String(kwDay));
@@ -159,18 +160,26 @@ function App() {
         localStorage.setItem('kanji_day', String(kjDay));
 
         if (!devModeActive) {
-          setTargetLanguage(data.target_language || 'jp');
+          const dbTarget = data.target_language || 'jp';
+          const dbSource = data.source_language || 'de';
 
-          if (targetLangUpdate || sourceLangUpdate) {
-            const updates = {};
-            if (targetLangUpdate) {
-              updates.target_language = targetLangUpdate;
-              setTargetLanguage(targetLangUpdate);
-            }
-            if (sourceLangUpdate) updates.source_language = sourceLangUpdate;
-            
-            await supabase.from('user_progress').update(updates).eq('id', userId);
-            
+          // Prüfen, ob eine Abweichung zwischen lokaler Wahl und Cloud vorliegt
+          const hasTargetMismatch = targetLangUpdate && targetLangUpdate !== dbTarget;
+          const hasSourceMismatch = sourceLangUpdate && sourceLangUpdate !== dbSource;
+
+          if (hasTargetMismatch || hasSourceMismatch) {
+            // Konflikt-Dialog triggern
+            setLangConflict({
+              userId,
+              dbTarget,
+              dbSource,
+              newTarget: targetLangUpdate || dbTarget,
+              newSource: sourceLangUpdate || dbSource
+            });
+          } else {
+            // Kein Konflikt: Cloud-Stand übernehmen
+            setTargetLanguage(dbTarget);
+            setAppLanguage(dbSource === 'jp' ? 'jpn' : dbSource);
             localStorage.removeItem('radar_target_lang');
             localStorage.removeItem('radar_source_lang');
           }
@@ -181,7 +190,6 @@ function App() {
           const initialTargetLang = targetLangUpdate || 'jp';
           setTargetLanguage(initialTargetLang);
           
-          // Initialen Eintrag per upsert absichern
           await supabase.from('user_progress').upsert([{ 
             id: userId,
             target_language: initialTargetLang,
@@ -206,22 +214,45 @@ function App() {
     }
   };
 
-  // Persistenz-Funktion: Sichert in Supabase (per upsert) UND im LocalStorage
+  // --- KONFLIKT RESOLVER HANDLER ---
+  const handleKeepCloudLanguage = () => {
+    if (!langConflict) return;
+    setTargetLanguage(langConflict.dbTarget);
+    setAppLanguage(langConflict.dbSource === 'jp' ? 'jpn' : langConflict.dbSource);
+    localStorage.removeItem('radar_target_lang');
+    localStorage.removeItem('radar_source_lang');
+    setLangConflict(null);
+  };
+
+  const handleSwitchToNewLanguage = async () => {
+    if (!langConflict) return;
+    
+    setTargetLanguage(langConflict.newTarget);
+    setAppLanguage(langConflict.newSource === 'jp' ? 'jpn' : langConflict.newSource);
+
+    try {
+      await supabase.from('user_progress').update({
+        target_language: langConflict.newTarget,
+        source_language: langConflict.newSource
+      }).eq('id', langConflict.userId);
+    } catch (err) {
+      console.error("Fehler beim Aktualisieren der Sprache:", err);
+    }
+
+    localStorage.removeItem('radar_target_lang');
+    localStorage.removeItem('radar_source_lang');
+    setLangConflict(null);
+  };
+
+  // Persistenz-Funktion
   const updateCloudProgress = async (updates) => {
-    // 1. Immer lokal persistieren (für Gast und als Offline-Fallback)
     Object.entries(updates).forEach(([key, val]) => {
       localStorage.setItem(key, String(val));
     });
 
-    if (devModeActive) {
-      console.log("Dev Mode Aktiv: Cloud-Update blockiert (Bypass Modus)", updates);
-      return;
-    }
-
-    if (!session) return;
+    if (devModeActive || !session) return;
 
     try {
-      // 2. Garantiertes Sichern in Supabase per upsert
       const { error } = await supabase
         .from('user_progress')
         .upsert({
@@ -236,7 +267,6 @@ function App() {
     }
   };
 
-  // --- PROGRESS HANDLER MIT CLOUD-UPDATE ---
   const handleReset = () => {
     const confirmMsg = appLanguage === 'en' 
       ? "Danger! Do you really want to reset all your progress to Day 1?" 
@@ -308,6 +338,13 @@ function App() {
     setActiveView('welcome');
   };
 
+  const getLangName = (code) => {
+    if (code === 'de') return 'Deutsch';
+    if (code === 'en') return 'Englisch';
+    if (code === 'jp' || code === 'jpn') return 'Japanisch';
+    return code;
+  };
+
   if (isCloudLoading) {
     return (
       <div className="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-green-400 font-bold tracking-widest uppercase text-sm animate-pulse">
@@ -329,6 +366,41 @@ function App() {
   return (
     <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       
+      {/* SPRACHWECHSEL-BESTÄTIGUNGSDIALOG */}
+      {langConflict && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-cyan-500/40 shadow-2xl overflow-hidden p-6 text-white text-center">
+            <div className="w-14 h-14 bg-cyan-900/40 border border-cyan-500/50 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
+              🌐
+            </div>
+            
+            <h2 className="text-xl font-extrabold tracking-wide uppercase text-cyan-400 mb-2">
+              Lernstand gefunden
+            </h2>
+            
+            <p className="text-gray-300 text-xs leading-relaxed mb-6">
+              Du hast auf dem Startbildschirm <span className="text-cyan-300 font-bold">{getLangName(langConflict.newSource)} → {getLangName(langConflict.newTarget)}</span> gewählt. In der Cloud ist dein aktueller Lernstand auf <span className="text-green-400 font-bold">{getLangName(langConflict.dbSource)} → {getLangName(langConflict.dbTarget)}</span> eingestellt.
+            </p>
+
+            <div className="space-y-3">
+              <button 
+                onClick={handleKeepCloudLanguage}
+                className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 rounded-xl font-bold text-white uppercase tracking-wider text-xs shadow-lg active:scale-95 transition-all"
+              >
+                Mit Cloud-Sprache weiterlernen ({getLangName(langConflict.dbTarget)})
+              </button>
+
+              <button 
+                onClick={handleSwitchToNewLanguage}
+                className="w-full py-3.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-xl font-bold text-gray-200 uppercase tracking-wider text-xs active:scale-95 transition-all"
+              >
+                Cloud auf neue Sprache umstellen ({getLangName(langConflict.newTarget)})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeView === 'welcome' && (
         <Welcome 
           onStart={() => {
@@ -348,11 +420,9 @@ function App() {
         />
       )}
 
-      {/* HOME WIRD IMMER DIREKT GERENDERT & ERHÄLT DIE USER-EMAIL ALS PROP */}
       {activeView === 'home' && (
         <Home 
           onSelectMode={(mode) => {
-            // Standard-Routing (Japanisch & Englisch)
             if (mode === 'kana-read') { setKanaMode('read'); setActiveView('kana-deck'); }
             if (mode === 'kana-write') { setKanaMode('write'); setActiveView('kana-deck'); }
             if (mode === 'reading') setActiveView('reading-deck');
@@ -361,7 +431,6 @@ function App() {
             if (mode === 'particle-crashcourse') setActiveView('particle-crashcourse');
             if (mode === 'final-exam') setActiveView('final-exam');
 
-            // Spezifisches Routing für Deutsch-Lernpfad (HomeDE)
             if (mode === 'de-phonetik') { setKanaMode('read'); setActiveView('kana-deck'); }
             if (mode === 'de-v2') { setKanaMode('write'); setActiveView('kana-deck'); }
             if (mode === 'de-signals') setActiveView('particle-crashcourse');
@@ -394,7 +463,6 @@ function App() {
         />
       )}
       
-      {/* WEITERE VIEWS MIT DURCHGEREICHTER targetLanguage */}
       {activeView === 'kana-deck' && (
         <KanaDeck 
           currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
