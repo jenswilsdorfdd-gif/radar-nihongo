@@ -12,7 +12,8 @@ const HomeEN = ({
   language // Wird zur Ermittlung der Muttersprache genutzt
 }) => {
   // Erkennung der UI-Sprache (Fallback über 't', falls 'language' aus Home.jsx nicht übergeben wird)
-  const currentLang = language || (t.day === 'Day' ? 'en' : (t.day === '日' ? 'jpn' : 'de'));
+  const normalizedLang = (language === 'jp' || language === 'jpn') ? 'jpn' : language;
+  const currentLang = normalizedLang || (t?.day === 'Day' ? 'en' : (t?.day === '日' ? 'jpn' : 'de'));
 
   // LOCK MECHANISMUS (Berücksichtigt den Dev Mode)
   const isTenseUnlocked = devMode || (kanaReadDay >= 14 && kanaWriteDay >= 14);
@@ -21,7 +22,7 @@ const HomeEN = ({
   const isPhase4Unlocked = devMode || (isPhase3Unlocked && radarDay >= 21);
   const isExamUnlocked = devMode || (isPhase4Unlocked && kanjiDay >= 21);
 
-  // ENGLISCH-SPEZIFISCHE TEXTE (Überschreiben die Texte aus dem Haupt-Dictionary für dieses Modul)
+  // LOKALES FALLBACK-WÖRTERBUCH FÜR ENGLISCH (Überschrieben durch Supabase 't', sobald geladen)
   const texts = {
     de: {
       phase1GrammarTitle: "Phase 1: Core Grammar",
@@ -36,9 +37,14 @@ const HomeEN = ({
       phase2LockedDesc: "Schließe Phase 1 ab, um diese Mission freizuschalten.",
       phase3Title: "Phase 3: 21-Day Radar",
       phase3Desc: "Stresstest, Hörverstehen und Reaktion für das Überleben in englischsprachigen Ländern.",
+      phase3LockedDesc: "Schließe Phase 2 ab, um das Radar freizuschalten.",
       phase4Title: "Phase 4: Advanced Fluency",
       phase4Desc: "Business English, komplexe Ausdrucksweisen und Verhandlungsgeschick.",
-      phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Advanced-Training freizuschalten."
+      phase4LockedDesc: "Schließe Phase 3 (Radar) ab, um das Advanced-Training freizuschalten.",
+      examTitle: "Abschluss-Prüfung",
+      examDesc: "Der finale 30-Fragen Stresstest. Beweise, was du gelernt hast.",
+      examLockedTitle: "Prüfung Gesperrt",
+      examLockedDesc: "Schließe alle Phasen komplett ab, um den finalen Test freizuschalten."
     },
     en: {
       phase1GrammarTitle: "Phase 1: Core Grammar",
@@ -53,9 +59,14 @@ const HomeEN = ({
       phase2LockedDesc: "Complete Phase 1 to unlock this mission.",
       phase3Title: "Phase 3: 21-Day Radar",
       phase3Desc: "Stress test, listening comprehension, and reaction for surviving in English-speaking countries.",
+      phase3LockedDesc: "Complete Phase 2 to unlock the Radar.",
       phase4Title: "Phase 4: Advanced Fluency",
       phase4Desc: "Business English, complex expressions, and negotiation skills.",
-      phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Advanced Training."
+      phase4LockedDesc: "Complete Phase 3 (Radar) to unlock Advanced Training.",
+      examTitle: "Final Exam",
+      examDesc: "The ultimate 30-question stress test. Prove your skills.",
+      examLockedTitle: "Exam Locked",
+      examLockedDesc: "Complete all phases entirely to unlock the final test."
     },
     jpn: {
       phase1GrammarTitle: "フェーズ 1: コア文法 (Core Grammar)",
@@ -70,13 +81,23 @@ const HomeEN = ({
       phase2LockedDesc: "このミッションをアンロックするには、フェーズ1をクリアしてください。",
       phase3Title: "フェーズ 3: 21日間レーダー (21-Day Radar)",
       phase3Desc: "英語圏で生き残るためのストレステスト、リスニング理解、そして反応力。",
+      phase3LockedDesc: "レーダーをアンロックするには、フェーズ2をクリアしてください。",
       phase4Title: "フェーズ 4: 上級の流暢さ (Advanced Fluency)",
       phase4Desc: "ビジネス英語、複雑な表現、交渉スキル。",
-      phase4LockedDesc: "上級トレーニングをアンロックするには、フェーズ3（レーダー）をクリアしてください。"
+      phase4LockedDesc: "上級トレーニングをアンロックするには、フェーズ3（レーダー）をクリアしてください。",
+      examTitle: "最終試験",
+      examDesc: "究極の30問ストレステスト。実力を証明しよう。",
+      examLockedTitle: "試験ロック中",
+      examLockedDesc: "最終テストをアンロックするには、すべてのフェーズを完全にクリアしてください。"
     }
   };
 
-  const enTexts = texts[currentLang] || texts.de;
+  const localFallback = texts[currentLang] || texts.de;
+  // Supabase-Manifest (via Prop 't') hat Vorrang vor dem lokalen Fallback
+  const enTexts = {
+    ...localFallback,
+    ...(t || {})
+  };
 
   return (
     <>
@@ -201,7 +222,7 @@ const HomeEN = ({
               <span>🔒 🇬🇧</span> {enTexts.phase3Title}
             </h2>
           </div>
-          <p className="text-yellow-200/60 text-sm italic mb-4">{t.phase3LockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic mb-4">{enTexts.phase3LockedDesc}</p>
           <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"></div>
         </div>
       )}
@@ -247,16 +268,16 @@ const HomeEN = ({
         >
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-yellow-500/20 rounded-full blur-2xl group-hover:bg-yellow-500/30 transition-all"></div>
           <h2 className="text-2xl font-extrabold text-yellow-400 tracking-widest uppercase mb-2 flex items-center gap-3">
-            <span>🎓 🇬🇧</span> {t.examTitle}
+            <span>🎓 🇬🇧</span> {enTexts.examTitle}
           </h2>
-          <p className="text-yellow-200/90 text-sm italic">{t.examDesc}</p>
+          <p className="text-yellow-200/90 text-sm italic">{enTexts.examDesc}</p>
         </button>
       ) : (
         <div className="w-full bg-gray-900/50 p-6 rounded-2xl border-2 border-yellow-500/30 opacity-60 flex flex-col justify-center cursor-not-allowed">
           <h2 className="text-xl font-extrabold text-yellow-500/70 tracking-widest uppercase mb-2 flex items-center gap-3">
-            <span>🔒 🇬🇧</span> {t.examLockedTitle}
+            <span>🔒 🇬🇧</span> {enTexts.examLockedTitle}
           </h2>
-          <p className="text-yellow-200/60 text-sm italic">{t.examLockedDesc}</p>
+          <p className="text-yellow-200/60 text-sm italic">{enTexts.examLockedDesc}</p>
         </div>
       )}
     </>
