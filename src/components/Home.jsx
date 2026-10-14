@@ -61,6 +61,82 @@ const Home = ({
     setTempTarget(targetLanguage || 'jp');
   }, [targetLanguage]);
 
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+
+  // --- SUPABASE TEXT-PAKE-STATES (MIT LOCALSTORAGE-CACHE-FALLBACK) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Abruf von ui_translations & course_manifests aus Supabase bei Sprachwechsel
+  useEffect(() => {
+    let isMounted = true;
+
+    // 1. Sofort aus LocalStorage laden, falls vorhanden
+    try {
+      const cachedUi = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      if (cachedUi && isMounted) setDbUiTexts(JSON.parse(cachedUi));
+
+      const cachedManifest = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      if (cachedManifest && isMounted) setDbCourseManifest(JSON.parse(cachedManifest));
+    } catch (e) {
+      console.error("Cache-Lesefehler:", e);
+    }
+
+    // 2. Frische Daten aus Supabase ziehen und Cache aktualisieren
+    const fetchLanguagePackages = async () => {
+      try {
+        const [uiRes, manifestRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Sprachpakete aus Supabase:", err);
+      }
+    };
+
+    fetchLanguagePackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang]);
+
   // --- GOD MODE / DEV MODE ---
   const [devMode, setDevMode] = useState(() => {
     return localStorage.getItem('radarDevMode') === 'true';
@@ -116,6 +192,7 @@ const Home = ({
     fetchDojoCount();
   }, []);
 
+  // Lokales Fallback-Wörterbuch (greift sofort, falls Offline oder vor dem ersten DB-Fetch)
   const texts = {
     de: {
       reset: "Reset",
@@ -341,9 +418,28 @@ const Home = ({
     }
   };
 
-  // Korrekte Auflösung für 'jpn' UND 'jp' auf das 'jpn'-Objekt in texts
+  // Korrekte Auflösung für 'jpn' UND 'jp' auf das lokale Fallback-Objekt
   const normalizedBaseKey = (language === 'jp' || language === 'jpn') ? 'jpn' : language;
-  const t = texts[normalizedBaseKey] || texts.de;
+  const fallbackT = texts[normalizedBaseKey] || texts.de;
+
+  // Zusammenführung: Lokaler Fallback + Supabase ui_translations + Supabase course_manifests
+  const t = {
+    ...fallbackT,
+    ...(dbUiTexts || {}),
+    ...(dbCourseManifest || {}),
+    langs: {
+      ...fallbackT.langs,
+      ...(dbUiTexts?.langs || {})
+    }
+  };
+
+  // Falls socialDescLine1/Line2 aus der DB geladen wurden, sauber mit Zeilenumbruch rendern
+  const renderedSocialDesc = (dbUiTexts?.socialDescLine1 && dbUiTexts?.socialDescLine2) ? (
+    <>
+      {dbUiTexts.socialDescLine1}<br />
+      {dbUiTexts.socialDescLine2}
+    </>
+  ) : t.socialDesc;
 
   const handleInputChange = (e) => {
     setFormData({
@@ -700,7 +796,7 @@ const Home = ({
         {/* SOCIAL MEDIA FOOTER */}
         <div className="mt-8 pt-8 border-t border-gray-800 text-center pb-6">
           <h3 className="text-gray-400 font-bold uppercase tracking-widest mb-3 text-sm">{t.socialTitle}</h3>
-          <p className="text-gray-500 text-xs mb-6 px-4 leading-relaxed">{t.socialDesc}</p>
+          <p className="text-gray-500 text-xs mb-6 px-4 leading-relaxed">{renderedSocialDesc}</p>
           
           <div className="flex justify-center gap-4">
             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 text-white">
