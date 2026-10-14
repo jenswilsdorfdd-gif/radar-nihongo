@@ -73,6 +73,55 @@ function App() {
   const kanaTotalDays = 14; 
   const readingTotalDays = 21; 
 
+  // Normierter Sprach-Key für Supabase ('de', 'en', 'jp')
+  const dbSourceLang = (appLanguage === 'jpn' || appLanguage === 'jp') ? 'jp' : (appLanguage || 'de');
+
+  // --- SUPABASE STATE FÜR GLOBALE SYSTEMTEXTE (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      if (cached && isMounted) {
+        setDbUiTexts(JSON.parse(cached));
+      }
+    } catch {
+      // Cache-Fehler ignorieren
+    }
+
+    const fetchGlobalUiTexts = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('ui_translations')
+          .select('content')
+          .eq('lang_code', dbSourceLang)
+          .single();
+
+        if (!fetchError && data?.content && isMounted) {
+          setDbUiTexts(data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(data.content));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der globalen Systemtexte aus Supabase:", err);
+      }
+    };
+
+    fetchGlobalUiTexts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang]);
+
   // Synchronisation von targetLanguage in den LocalStorage
   useEffect(() => {
     if (targetLanguage) {
@@ -270,9 +319,12 @@ function App() {
   };
 
   const handleReset = () => {
-    const confirmMsg = appLanguage === 'en' 
+    const fallbackConfirm = appLanguage === 'en' 
       ? "Danger! Do you really want to reset all your progress to Day 1?" 
-      : "Gefahr! Willst du deinen gesamten Lern-Fortschritt wirklich auf Tag 1 zurücksetzen?";
+      : (appLanguage === 'jpn' || appLanguage === 'jp'
+          ? "警告！学習進捗をすべて1日目にリセットしてもよろしいですか？"
+          : "Gefahr! Willst du deinen gesamten Lern-Fortschritt wirklich auf Tag 1 zurücksetzen?");
+    const confirmMsg = dbUiTexts?.appConfirmReset || fallbackConfirm;
       
     if (window.confirm(confirmMsg)) {
       setCurrentRadarDay(1);
@@ -341,14 +393,23 @@ function App() {
   };
 
   const getLangName = (code) => {
+    const normalized = code === 'jpn' ? 'jp' : code;
+    if (dbUiTexts?.welcomeLangs?.[normalized]) {
+      return dbUiTexts.welcomeLangs[normalized];
+    }
     if (code === 'de') return 'Deutsch';
     if (code === 'en') return 'Englisch';
     if (code === 'jp' || code === 'jpn') return 'Japanisch';
     return code;
   };
 
-  // Wenn Target 'en' (Britisch) ist, nutzen die Übungs-Decks vorübergehend den deutschen Content ('de')
-  const deckTargetLanguage = targetLanguage === 'en' ? 'de' : targetLanguage;
+  // Direkte Weitergabe der gewählten Zielsprache ('jp', 'de', 'en') an alle Module
+  const deckTargetLanguage = targetLanguage;
+
+  const loadingText = dbUiTexts?.appLoadingText || (appLanguage === 'en' ? 'System working...' : (appLanguage === 'jpn' ? 'システム起動中...' : 'System arbeitet...'));
+  const conflictTitle = dbUiTexts?.appConflictTitle || 'Lernstand gefunden';
+  const conflictKeepBtn = dbUiTexts?.appConflictKeepBtn || 'Mit Cloud-Sprache weiterlernen';
+  const conflictSwitchBtn = dbUiTexts?.appConflictSwitchBtn || 'Cloud auf neue Sprache umstellen';
 
   if (isCloudLoading) {
     return (
@@ -363,7 +424,7 @@ function App() {
             <path d="M19 5a10 10 0 0 1 0 14"></path>
           </svg>
         </div>
-        System arbeitet...
+        {loadingText}
       </div>
     );
   }
@@ -380,7 +441,7 @@ function App() {
             </div>
             
             <h2 className="text-xl font-extrabold tracking-wide uppercase text-cyan-400 mb-2">
-              Lernstand gefunden
+              {conflictTitle}
             </h2>
             
             <p className="text-gray-300 text-xs leading-relaxed mb-6">
@@ -392,14 +453,14 @@ function App() {
                 onClick={handleKeepCloudLanguage}
                 className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 rounded-xl font-bold text-white uppercase tracking-wider text-xs shadow-lg active:scale-95 transition-all"
               >
-                Mit Cloud-Sprache weiterlernen ({getLangName(langConflict.dbTarget)})
+                {conflictKeepBtn} ({getLangName(langConflict.dbTarget)})
               </button>
 
               <button 
                 onClick={handleSwitchToNewLanguage}
                 className="w-full py-3.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-xl font-bold text-gray-200 uppercase tracking-wider text-xs active:scale-95 transition-all"
               >
-                Cloud auf neue Sprache umstellen ({getLangName(langConflict.newTarget)})
+                {conflictSwitchBtn} ({getLangName(langConflict.newTarget)})
               </button>
             </div>
           </div>
@@ -467,7 +528,7 @@ function App() {
         />
       )}
       
-      {/* WEITERE VIEWS NUTZEN deckTargetLanguage (leitet 'en' auf deutschen Ersatz-Content 'de' um) */}
+      {/* ALLE VIEWS NUTZEN DIE ECHTE GEWÄHLTE ZIELSPRACHE (deckTargetLanguage) */}
       {activeView === 'kana-deck' && (
         <KanaDeck 
           currentDay={kanaMode === 'read' ? kanaReadDay : kanaWriteDay} 
