@@ -22,7 +22,7 @@ const HomeDE = ({
   const isPhase4Unlocked = devMode || (isPhase3Unlocked && radarDay >= 21);
   const isExamUnlocked = devMode || (isPhase4Unlocked && kanjiDay >= 21);
 
-  // SPRACH-WÖRTERBUCH FÜR DAS DEUTSCH-DASHBOARD (Base: EN, JPN, DE)
+  // LOKALES FALLBACK-WÖRTERBUCH FÜR DAS DEUTSCH-DASHBOARD (Base: EN, JPN, DE)
   const texts = {
     en: {
       phase1PhonetikTitle: "Phase 1: Phonetics & Articulation (Phonetik)",
@@ -92,7 +92,12 @@ const HomeDE = ({
     }
   };
 
-  const deTexts = texts[currentLang] || texts.en;
+  const localFallback = texts[currentLang] || texts.en;
+  // Supabase-Manifest (via Prop 't') hat Vorrang vor dem lokalen Fallback
+  const deTexts = {
+    ...localFallback,
+    ...(t || {})
+  };
 
   return (
     <>
