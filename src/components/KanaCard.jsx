@@ -1,22 +1,129 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import { kanaData } from '../data/kanaData';
 import { dePhonetikData } from '../data/dePhonetikData';
 import DrawCanvas from './DrawCanvas'; 
 
 const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
   const isGermanTarget = targetLanguage === 'de';
-  const activeDataSource = isGermanTarget ? dePhonetikData : kanaData;
-  const deckInfo = activeDataSource[day];
-  
+  const isEnglishTarget = targetLanguage === 'en';
+  const isWriteMode = mode === 'write';
+
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = isWriteMode ? 'phase1_write' : 'phase1_read';
+
+  // Lokale Fallback-Datenquelle
+  const localDataSource = (isGermanTarget || isEnglishTarget) ? dePhonetikData : kanaData;
+
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbDayDeck, setDbDayDeck] = useState(() => {
+    try {
+      const cachedMap = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      if (cachedMap) {
+        const parsed = JSON.parse(cachedMap);
+        return parsed?.[day] || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Aktives Tages-Deck (Vorrang für Supabase course_decks, sonst lokaler Fallback)
+  const deckInfo = dbDayDeck || localDataSource[day];
+
   const [queue, setQueue] = useState(() => {
     return deckInfo && deckInfo.cards ? [...deckInfo.cards] : [];
   });
   
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  
+
+  // Abruf von ui_translations, course_manifests & course_decks (für diesen Tag) aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCardData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', day)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        if (deckRes.data?.content && isMounted) {
+          setDbDayDeck(deckRes.data.content);
+          if (deckRes.data.content.cards) {
+            setQueue([...deckRes.data.content.cards]);
+          }
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Karten-Daten aus Supabase:", err);
+      }
+    };
+
+    fetchCardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey, day]);
+
+  // Queue zurücksetzen, wenn sich Tag oder Zielsprache ändert
+  useEffect(() => {
+    const activeDeck = dbDayDeck || localDataSource[day];
+    setQueue(activeDeck && activeDeck.cards ? [...activeDeck.cards] : []);
+    setIsFlipped(false);
+    setIsFinished(false);
+  }, [day, dbTargetLang, isWriteMode, dbDayDeck, localDataSource]);
+
   const currentCharacter = queue[0];
-  const isWriteMode = mode === 'write';
 
   const [customMnemonics, setCustomMnemonics] = useState(() => {
     const saved = localStorage.getItem('customKanaMnemonics');
@@ -25,21 +132,20 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
 
-  const currentLang = language || 'de';
-
+  // LOKALES FALLBACK-WÖRTERBUCH
   const texts = {
     de: {
       back: "Deck",
-      read: isGermanTarget ? "Lautbildung" : "Lesen",
-      write: isGermanTarget ? "V2-Code" : "Schreiben",
+      read: isGermanTarget ? "Lautbildung" : (isEnglishTarget ? "Core Grammar" : "Lesen"),
+      write: isGermanTarget ? "V2-Code" : (isEnglishTarget ? "Core Vocabulary" : "Schreiben"),
       day: "Tag",
       remaining: "Übrig:",
-      noteLabel: isGermanTarget ? "Trainer-Notiz (Phonetik):" : "Trainer-Notiz:",
-      drawPrompt: isGermanTarget ? "Audio abspielen & Lautform einprägen:" : "Audio abspielen & Zeichnen:",
+      noteLabel: isGermanTarget ? "Trainer-Notiz (Phonetik):" : (isEnglishTarget ? "Trainer-Notiz (Core English):" : "Trainer-Notiz:"),
+      drawPrompt: isGermanTarget ? "Audio abspielen & Lautform einprägen:" : (isEnglishTarget ? "Audio abspielen & Muster prüfen:" : "Audio abspielen & Zeichnen:"),
       listenAction: "Wort anhören",
       tip: "Bedeutung:",
       clickToReveal: "Klicken zum Aufdecken",
-      mnemonicLabel: isGermanTarget ? "Physische Mundstellung" : "Eselsbrücke",
+      mnemonicLabel: isGermanTarget ? "Physische Mundstellung" : (isEnglishTarget ? "Struktur-Regel & Eselsbrücke" : "Eselsbrücke"),
       placeholder: "Deine eigene Notiz...",
       cancel: "Abbrechen",
       save: "Speichern",
@@ -49,19 +155,23 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
       finishTitle: "Mission Abgeschlossen",
       finishSub: "Tagesziel erreicht!",
       
-      finishFinalReadTitle: isGermanTarget ? "Lautbildung Komplett!" : "Kana Lesen Komplett!",
-      finishFinalReadSub: isGermanTarget ? "14 Tage Phonetik gemeistert! 🏆" : "Wahnsinn! 🏆 14 Tage eisern geblieben.",
+      finishFinalReadTitle: isGermanTarget ? "Lautbildung Komplett!" : (isEnglishTarget ? "Core Grammar Komplett!" : "Kana Lesen Komplett!"),
+      finishFinalReadSub: isGermanTarget ? "14 Tage Phonetik gemeistert! 🏆" : (isEnglishTarget ? "14 Tage Satzarchitektur gemeistert! 🏆" : "Wahnsinn! 🏆 14 Tage eisern geblieben."),
       finishFinalReadDesc: isGermanTarget 
         ? "Deine Mundmuskeln und dein Gehör sind auf Standard-Hochdeutsch kalibriert. Wiederhole alte Decks jederzeit nach Bedarf!"
-        : "Dein Auge ist geschärft. Du kannst jederzeit alte Decks wiederholen, falls du merkst, dass du etwas hängst. Und vergiss nicht: Hol dir auf TikTok oder Insta deine tägliche Dosis Tokio-Vibes ab! Auf zur Schreib-Mission!",
-      finishFinalReadNext: isGermanTarget ? "Weiter zu Phase 1 (V2-Code) →" : "Weiter zu Phase 1 (Schreiben) →",
+        : (isEnglishTarget
+            ? "Die englische SVO-Struktur, Fragen und Verneinungen sitzen felsenfest. Weiter geht es mit dem aktiven Grundwortschatz!"
+            : "Dein Auge ist geschärft. Du kannst jederzeit alte Decks wiederholen, falls du merkst, dass du etwas hängst. Und vergiss nicht: Hol dir auf TikTok oder Insta deine tägliche Dosis Tokio-Vibes ab! Auf zur Schreib-Mission!"),
+      finishFinalReadNext: isGermanTarget ? "Weiter zu Phase 1 (V2-Code) →" : (isEnglishTarget ? "Weiter zu Phase 1 (Core Vocabulary) →" : "Weiter zu Phase 1 (Schreiben) →"),
       
-      finishFinalWriteTitle: isGermanTarget ? "V2-Code Komplett!" : "Kana Schreiben Komplett!",
+      finishFinalWriteTitle: isGermanTarget ? "V2-Code Komplett!" : (isEnglishTarget ? "Core Vocabulary Komplett!" : "Kana Schreiben Komplett!"),
       finishFinalWriteSub: "Phase 1: ABGESCHLOSSEN! 🎖️",
       finishFinalWriteDesc: isGermanTarget
         ? "Fundament gegossen! Die Verb-Zweit-Regel sitzt blind. Bereit für die Signal-Bausteine?"
-        : "Fundament gegossen! Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Folge uns auf Insta für den täglichen Boost und dann ab in den Partikel-Code!",
-      finishFinalWriteNext: isGermanTarget ? "Weiter zu den Signal-Bausteinen 🔑" : "Weiter zum Partikel-Code 🔑",
+        : (isEnglishTarget
+            ? "Fundament gegossen! Dein britischer Grundwortschatz sitzt. Bereit für die Zeiten-Matrix?"
+            : "Fundament gegossen! Du kennst die Zeichen jetzt blind. Komm jederzeit für ein Warm-Up zurück. Bereit für den echten Einsatz? Folge uns auf Insta für den täglichen Boost und dann ab in den Partikel-Code!"),
+      finishFinalWriteNext: isGermanTarget ? "Weiter zu den Signal-Bausteinen 🔑" : (isEnglishTarget ? "Weiter zur Zeiten-Matrix 🔑" : "Weiter zum Partikel-Code 🔑"),
       
       backToMenu: "Zurück zum Deck",
 
@@ -83,16 +193,16 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
     },
     en: {
       back: "Deck",
-      read: isGermanTarget ? "Phonetics" : "Read",
-      write: isGermanTarget ? "V2 Structure" : "Write",
+      read: isGermanTarget ? "Phonetics" : (isEnglishTarget ? "Core Grammar" : "Read"),
+      write: isGermanTarget ? "V2 Structure" : (isEnglishTarget ? "Core Vocabulary" : "Write"),
       day: "Day",
       remaining: "Remaining:",
-      noteLabel: isGermanTarget ? "Trainer Note (Phonetics):" : "Trainer Note:",
-      drawPrompt: isGermanTarget ? "Play audio & memorize sound pattern:" : "Play audio & draw:",
+      noteLabel: isGermanTarget ? "Trainer Note (Phonetics):" : (isEnglishTarget ? "Trainer Note (Core English):" : "Trainer Note:"),
+      drawPrompt: isGermanTarget ? "Play audio & memorize sound pattern:" : (isEnglishTarget ? "Play audio & verify pattern:" : "Play audio & draw:"),
       listenAction: "Listen to word",
       tip: "Meaning:",
       clickToReveal: "Click to reveal",
-      mnemonicLabel: isGermanTarget ? "Mouth Articulation" : "Mnemonic",
+      mnemonicLabel: isGermanTarget ? "Mouth Articulation" : (isEnglishTarget ? "Structure Rule & Mnemonic" : "Mnemonic"),
       placeholder: "Your own notes...",
       cancel: "Cancel",
       save: "Save",
@@ -102,19 +212,23 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
       finishTitle: "Mission Completed",
       finishSub: "Daily goal reached!",
       
-      finishFinalReadTitle: isGermanTarget ? "Phonetics Complete!" : "Kana Reading Complete!",
-      finishFinalReadSub: isGermanTarget ? "14 Days of Phonetics mastered! 🏆" : "Amazing! 🏆 14 days going strong.",
+      finishFinalReadTitle: isGermanTarget ? "Phonetics Complete!" : (isEnglishTarget ? "Core Grammar Complete!" : "Kana Reading Complete!"),
+      finishFinalReadSub: isGermanTarget ? "14 Days of Phonetics mastered! 🏆" : (isEnglishTarget ? "14 Days of Core Grammar mastered! 🏆" : "Amazing! 🏆 14 days going strong."),
       finishFinalReadDesc: isGermanTarget
         ? "Your articulation and auditory perception are now calibrated to Standard German."
-        : "Your eyes are sharp. You can always repeat old decks if you feel stuck.",
-      finishFinalReadNext: isGermanTarget ? "Continue to Phase 1 (V2 Structure) →" : "Continue to Phase 1 (Write) →",
+        : (isEnglishTarget
+            ? "Your English SVO architecture, questions, and negations are rock solid."
+            : "Your eyes are sharp. You can always repeat old decks if you feel stuck."),
+      finishFinalReadNext: isGermanTarget ? "Continue to Phase 1 (V2 Structure) →" : (isEnglishTarget ? "Continue to Phase 1 (Core Vocabulary) →" : "Continue to Phase 1 (Write) →"),
       
-      finishFinalWriteTitle: isGermanTarget ? "V2 Structure Complete!" : "Kana Writing Complete!",
+      finishFinalWriteTitle: isGermanTarget ? "V2 Structure Complete!" : (isEnglishTarget ? "Core Vocabulary Complete!" : "Kana Writing Complete!"),
       finishFinalWriteSub: "Phase 1: COMPLETED! 🎖️",
       finishFinalWriteDesc: isGermanTarget
         ? "Foundation built! Verb-second rule is locked in. Ready for Signal Chunks?"
-        : "Foundation built! You know the characters blindly now.",
-      finishFinalWriteNext: isGermanTarget ? "Continue to Signal Chunks 🔑" : "Continue to Particle Code 🔑",
+        : (isEnglishTarget
+            ? "Foundation built! Essential British vocabulary is locked in. Ready for the Tense Matrix?"
+            : "Foundation built! You know the characters blindly now."),
+      finishFinalWriteNext: isGermanTarget ? "Continue to Signal Chunks 🔑" : (isEnglishTarget ? "Continue to Tense Matrix 🔑" : "Continue to Particle Code 🔑"),
       
       backToMenu: "Back to Deck",
 
@@ -136,16 +250,16 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
     },
     jpn: {
       back: "デッキ一覧",
-      read: isGermanTarget ? "調音発音" : "読む",
-      write: isGermanTarget ? "V2構文" : "書く",
+      read: isGermanTarget ? "調音発音" : (isEnglishTarget ? "コア文法" : "読む"),
+      write: isGermanTarget ? "V2構文" : (isEnglishTarget ? "コア語彙" : "書く"),
       day: "日目",
       remaining: "残り:",
-      noteLabel: isGermanTarget ? "調音筋肉指導メモ:" : "トレーナーノート:",
-      drawPrompt: isGermanTarget ? "音声を再生して調音点を確認:" : "音声を再生して書く:",
+      noteLabel: isGermanTarget ? "調音筋肉指導メモ:" : (isEnglishTarget ? "トレーナーメモ (英語コア):" : "トレーナーノート:"),
+      drawPrompt: isGermanTarget ? "音声を再生して調音点を確認:" : (isEnglishTarget ? "音声を再生してパターンを確認:" : "音声を再生して書く:"),
       listenAction: "単語の音声を聴く",
       tip: "意味:",
       clickToReveal: "タップして解説を表示",
-      mnemonicLabel: isGermanTarget ? "物理的調音ポイント・口腔指示" : "記憶のEselsbrücke",
+      mnemonicLabel: isGermanTarget ? "物理的調音ポイント・口腔指示" : (isEnglishTarget ? "構造ルール＆記憶のヒント" : "記憶のEselsbrücke"),
       placeholder: "自分だけの覚え方メモ...",
       cancel: "キャンセル",
       save: "保存",
@@ -155,19 +269,23 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
       finishTitle: "ミッション完了",
       finishSub: "本日の目標を達成しました！",
       
-      finishFinalReadTitle: isGermanTarget ? "発音矯正カリキュラム完了！" : "仮名読み取り完了！",
-      finishFinalReadSub: isGermanTarget ? "14日間の調音筋トレ達成！🏆" : "14日間やり切りました！🏆",
+      finishFinalReadTitle: isGermanTarget ? "発音矯正カリキュラム完了！" : (isEnglishTarget ? "コア文法カリキュラム完了！" : "仮名読み取り完了！"),
+      finishFinalReadSub: isGermanTarget ? "14日間の調音筋トレ達成！🏆" : (isEnglishTarget ? "14日間の文構造トレーニング達成！🏆" : "14日間やり切りました！🏆"),
       finishFinalReadDesc: isGermanTarget
         ? "喉の奥、舌の位置、唇の突き出しが標準ドイツ語仕様に再配線されました。いつでも復習可能です！"
-        : "視覚的な文字認識が完成しました。いつでも復習に戻れます。",
-      finishFinalReadNext: isGermanTarget ? "フェーズ 1 (定動詞第2位コード) へ進む →" : "フェーズ 1 (書く) へ進む →",
+        : (isEnglishTarget
+            ? "英語の基本語順（SVO）、疑問文、否定文の骨格が自動化されました。次はコア語彙へ進みましょう！"
+            : "視覚的な文字認識が完成しました。いつでも復習に戻れます。"),
+      finishFinalReadNext: isGermanTarget ? "フェーズ 1 (定動詞第2位コード) へ進む →" : (isEnglishTarget ? "フェーズ 1 (コア語彙) へ進む →" : "フェーズ 1 (書く) へ進む →"),
       
-      finishFinalWriteTitle: isGermanTarget ? "V2構文コード完了！" : "仮名筆記完了！",
+      finishFinalWriteTitle: isGermanTarget ? "V2構文コード完了！" : (isEnglishTarget ? "コア語彙完了！" : "仮名筆記完了！"),
       finishFinalWriteSub: "フェーズ 1: 完全クリア！🎖️",
       finishFinalWriteDesc: isGermanTarget
         ? "強固な土台が完成しました！定動詞第2位と倒置構文が自動化されました。次はシグナル・パーツへ！"
-        : "文字が完全に定着しました。次は助詞コードへ進みましょう！",
-      finishFinalWriteNext: isGermanTarget ? "6大シグナル・パーツへ進む 🔑" : "助詞コードへ進む 🔑",
+        : (isEnglishTarget
+            ? "強固な土台が完成しました！必須のイギリス英語語彙が定着しました。次は時制マトリックスへ！"
+            : "文字が完全に定着しました。次は助詞コードへ進みましょう！"),
+      finishFinalWriteNext: isGermanTarget ? "6大シグナル・パーツへ進む 🔑" : (isEnglishTarget ? "時制マトリックスへ進む 🔑" : "助詞コードへ進む 🔑"),
       
       backToMenu: "デッキ一覧へ戻る",
 
@@ -175,12 +293,12 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
         1: "1日目クリア！⛩️ 素晴らしいスタートです。脳が新しい音響パターンを形成しています。",
         2: "2日目完了！🔥 音の響きが耳に馴染んできました。その調子です！",
         3: "3日目達成！🎯 反復こそが言語習得の鍵です。焦らず継続しましょう！",
-        4: "4日目クリア！⚡️️ 確固たる基礎が築かれています。少し休んで次に備えましょう！",
+        4: "4日目クリア！⚡ 確固たる基礎が築かれています。少し休んで次に備えましょう！",
         5: "5日間継続！🏆 素晴らしい集中力です。発音のコツが掴めてきましたか？",
         6: "6日目マスター！🥋 言語習得はマラソンです。正しい規律が身についています。",
         7: "フェーズ1の前半戦クリア！🎌 7日目完了。この小さなマイルストーンを祝いましょう！",
         8: "8日目完了！🔋 舌の筋肉のコントロールが劇的に正確になっています。",
-        9: "9日目クリア！🚀 脳がドイツ語の音響体系に慣れてきました。完璧なフローです！",
+        9: "9日目クリア！🚀 脳が音響体系に慣れてきました。完璧なフローです！",
         10: "ついに2桁、10日目！🎉 誇りに思ってください。大半の学習者がここで脱落します。",
         11: "11日目達成！⚔️ ゴールラインが見えてきました。集中を維持しましょう。",
         12: "12日目クリア！🛡️ 膨大な音のストックが頭の中に出来上がっています。",
@@ -189,7 +307,44 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
     }
   };
 
-  const t = texts[currentLang] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
+
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    back: dbUiTexts?.cardBack || fallbackT.back,
+    day: dbUiTexts?.day || fallbackT.day,
+    remaining: dbUiTexts?.remaining || fallbackT.remaining,
+    listenAction: dbUiTexts?.listenAction || fallbackT.listenAction,
+    tip: dbUiTexts?.tip || fallbackT.tip,
+    clickToReveal: dbUiTexts?.clickToReveal || fallbackT.clickToReveal,
+    placeholder: dbUiTexts?.placeholder || fallbackT.placeholder,
+    cancel: dbUiTexts?.cancel || fallbackT.cancel,
+    save: dbUiTexts?.save || fallbackT.save,
+    again: dbUiTexts?.again || fallbackT.again,
+    gotIt: dbUiTexts?.gotIt || fallbackT.gotIt,
+    errorMsg: dbUiTexts?.errorMsg || fallbackT.errorMsg,
+    finishTitle: dbUiTexts?.finishTitle || fallbackT.finishTitle,
+    finishSub: dbUiTexts?.finishSub || fallbackT.finishSub,
+    backToMenu: dbUiTexts?.backToMenu || fallbackT.backToMenu,
+    motivations: {
+      ...fallbackT.motivations,
+      ...(dbUiTexts?.motivationsPhase1 || {})
+    },
+    read: dbCourseManifest?.card1ReadMode || fallbackT.read,
+    write: dbCourseManifest?.card1WriteMode || fallbackT.write,
+    noteLabel: dbCourseManifest?.card1NoteLabel || fallbackT.noteLabel,
+    drawPrompt: dbCourseManifest?.card1DrawPrompt || fallbackT.drawPrompt,
+    mnemonicLabel: dbCourseManifest?.card1MnemonicLabel || fallbackT.mnemonicLabel,
+    finishFinalReadTitle: dbCourseManifest?.card1FinishReadTitle || fallbackT.finishFinalReadTitle,
+    finishFinalReadSub: dbCourseManifest?.card1FinishReadSub || fallbackT.finishFinalReadSub,
+    finishFinalReadDesc: dbCourseManifest?.card1FinishReadDesc || fallbackT.finishFinalReadDesc,
+    finishFinalReadNext: dbCourseManifest?.card1FinishReadNext || fallbackT.finishFinalReadNext,
+    finishFinalWriteTitle: dbCourseManifest?.card1FinishWriteTitle || fallbackT.finishFinalWriteTitle,
+    finishFinalWriteSub: dbCourseManifest?.card1FinishWriteSub || fallbackT.finishFinalWriteSub,
+    finishFinalWriteDesc: dbCourseManifest?.card1FinishWriteDesc || fallbackT.finishFinalWriteDesc,
+    finishFinalWriteNext: dbCourseManifest?.card1FinishWriteNext || fallbackT.finishFinalWriteNext
+  };
 
   const displayMnemonic = currentCharacter ? (customMnemonics[currentCharacter.kana] || currentCharacter.mnemonic) : "";
 
@@ -219,15 +374,15 @@ const KanaCard = ({ day, mode, onBack, language, targetLanguage = 'jp' }) => {
     setIsEditing(false);
   };
 
-  // Sprachsynthese: Schaltet dynamisch auf Deutsch bei targetLanguage === 'de'
+  // Sprachsynthese: Schaltet dynamisch auf Deutsch ('de-DE'), Britisches Englisch ('en-GB') oder Japanisch ('ja-JP')
   const playAudio = (text) => {
-    if ('speechSynthesis' in window) {
+    if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
       // IPA-Klammern und Formatierungen entfernen für reine Aussprache
       const cleanText = text.replace(/\[.*?\]/g, '').replace(/[\/\(\)]/g, ' ').trim();
       const utterance = new SpeechSynthesisUtterance(cleanText || text);
-      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
-      utterance.rate = isGermanTarget ? 0.88 : 0.85; 
+      utterance.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP');
+      utterance.rate = isGermanTarget ? 0.88 : (isEnglishTarget ? 0.90 : 0.85); 
       window.speechSynthesis.speak(utterance);
     }
   };
