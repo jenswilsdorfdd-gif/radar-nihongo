@@ -1,33 +1,170 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import { readingData } from '../data/readingData';
 import { deReadingData } from '../data/deReadingData';
 
 const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
   const isGermanTarget = targetLanguage === 'de';
-  const currentLang = language || 'de';
-  
-  // Dynamische Zuweisung des Deck-Inhalts basierend auf der Zielsprache
-  const deckInfo = isGermanTarget ? deReadingData[day] : readingData[day];
+  const isEnglishTarget = targetLanguage === 'en';
+  const isDeOrEnTarget = isGermanTarget || isEnglishTarget;
 
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = 'phase2';
+
+  // Dynamische lokale Fallback-Datenquelle basierend auf der Zielsprache
+  const localDeck = isDeOrEnTarget ? deReadingData[day] : readingData[day];
+
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbDayDeck, setDbDayDeck] = useState(() => {
+    try {
+      const cachedMap = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      if (cachedMap) {
+        const parsed = JSON.parse(cachedMap);
+        return parsed?.[day] || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Aktives Tages-Deck (Vorrang für Supabase course_decks, sonst lokaler Fallback)
+  const deckInfo = dbDayDeck || localDeck;
+
+  // Hilfsfunktion zum Extrahieren der Queue (unterstützt sowohl sentences-Arrays als auch strukturierte Einzel-Szenarien)
+  const buildQueueFromDeck = (deck) => {
+    if (!deck) return [];
+    if (Array.isArray(deck.sentences)) {
+      return [...deck.sentences];
+    }
+    if (deck.german || deck.english || deck.text) {
+      return [{
+        text: deck.text || deck.german || deck.english,
+        translation: deck.translation || deck.japanese,
+        translationDe: deck.translationDe || deck.translation,
+        translationEn: deck.translationEn || deck.translation,
+        breakdown: deck.breakdown,
+        title: deck.title,
+        context: deck.context
+      }];
+    }
+    if (Array.isArray(deck.cards)) {
+      return [...deck.cards];
+    }
+    return [];
+  };
+
+  const [queue, setQueue] = useState(() => buildQueueFromDeck(deckInfo));
+  const [isFinished, setIsFinished] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
+
+  // Abruf von ui_translations, course_manifests & course_decks (für diesen Tag) aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCardData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', day)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        if (deckRes.data?.content && isMounted) {
+          setDbDayDeck(deckRes.data.content);
+          const loadedQueue = buildQueueFromDeck(deckRes.data.content);
+          if (loadedQueue.length > 0) {
+            setQueue(loadedQueue);
+          }
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Phase-2-Kartendaten aus Supabase:", err);
+      }
+    };
+
+    fetchCardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey, day]);
+
+  // Queue zurücksetzen, wenn sich Tag oder Deck ändert
+  useEffect(() => {
+    const activeDeck = dbDayDeck || localDeck;
+    setQueue(buildQueueFromDeck(activeDeck));
+    setIsFinished(false);
+    setShowTranslation(false);
+  }, [day, dbTargetLang, dbDayDeck, localDeck]);
+
+  // LOKALES FALLBACK-WÖRTERBUCH
   const texts = {
     de: {
-      back: isGermanTarget ? "Satzklammer-Deck" : "Flow-Deck",
+      back: isGermanTarget ? "Satzklammer-Deck" : (isEnglishTarget ? "Connected-Speech-Deck" : "Flow-Deck"),
       remaining: "Übrig:",
       revealTrans: "Übersetzung aufdecken",
-      next: isGermanTarget ? "Nächster Satz" : "Nächster Text",
-      finishTitle: isGermanTarget ? "Satzanalyse abgeschlossen" : "Szenario abgeschlossen",
-      finishSub: isGermanTarget ? "Hervorragend analysiert!" : "Hervorragend gelesen!",
+      next: isGermanTarget ? "Nächster Satz" : (isEnglishTarget ? "Nächste Einheit" : "Nächster Text"),
+      finishTitle: isGermanTarget ? "Satzanalyse abgeschlossen" : (isEnglishTarget ? "Satz-Flow abgeschlossen" : "Szenario abgeschlossen"),
+      finishSub: isGermanTarget ? "Hervorragend analysiert!" : (isEnglishTarget ? "Hervorragend gemeistert!" : "Hervorragend gelesen!"),
       backToMenu: "Zurück zum Deck",
       error: "Keine Daten gefunden.",
       contextLabel: "Kontext & Signal:",
       breakdownTitle: "Satzklammer- & Signal-Analyse:",
       
-      finishFinalTitle: isGermanTarget ? "Phase 2 Komplett!" : "Phase 2 Komplett!",
-      finishFinalSub: isGermanTarget ? "Satzklammer Flow ABGESCHLOSSEN! 🎯" : "Kana Flow ABGESCHLOSSEN! 🎯",
+      finishFinalTitle: "Phase 2 Komplett!",
+      finishFinalSub: isGermanTarget ? "Satzklammer Flow ABGESCHLOSSEN! 🎯" : (isEnglishTarget ? "Connected Speech Flow ABGESCHLOSSEN! 🎯" : "Kana Flow ABGESCHLOSSEN! 🎯"),
       finishFinalDesc: isGermanTarget 
         ? "Du beherrschst die 6 Signal-Bausteine und scannst deutsche Satzklammern ohne Verzögerung. Mach dich bereit für Phase 3: Das 21-Tage D/A/CH-Survival-Radar!"
-        : "Du hast gelernt, japanische Sätze fließend zu scannen. Wahnsinnsleistung! Komm jederzeit zurück, um dein Lese-Tempo frisch zu halten. Vergiss nicht, uns auf Insta & TikTok für tägliche Hacks zu folgen. Mach dich bereit für Phase 3: Das Radar!",
-      finishFinalNext: isGermanTarget ? "Weiter ins D/A/CH-Radar 📡" : "Weiter ins Radar-Training 📡",
+        : (isEnglishTarget
+            ? "Du beherrschst die wichtigsten Phrasal Verbs, Zeiten-Trigger und den natürlichen britischen Satzfluss. Mach dich bereit für Phase 3: Das 21-Tage UK-Survival-Radar!"
+            : "Du hast gelernt, japanische Sätze fließend zu scannen. Wahnsinnsleistung! Komm jederzeit zurück, um dein Lese-Tempo frisch zu halten. Vergiss nicht, uns auf Insta & TikTok für tägliche Hacks zu folgen. Mach dich bereit für Phase 3: Das Radar!"),
+      finishFinalNext: isGermanTarget ? "Weiter ins D/A/CH-Radar 📡" : (isEnglishTarget ? "Weiter ins UK-Radar 📡" : "Weiter ins Radar-Training 📡"),
 
       motivations: {
         1: "Signal-Bausteine gemeistert! ZUM und ZUR sitzen ohne Zögern. Dranbleiben!",
@@ -54,23 +191,25 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
       }
     },
     en: {
-      back: isGermanTarget ? "Sentence Bracket Deck" : "Flow Deck",
+      back: isGermanTarget ? "Sentence Bracket Deck" : (isEnglishTarget ? "Connected Speech Deck" : "Flow Deck"),
       remaining: "Remaining:",
       revealTrans: "Reveal translation",
-      next: isGermanTarget ? "Next Sentence" : "Next Text",
-      finishTitle: isGermanTarget ? "Sentence analysis complete" : "Scenario completed",
-      finishSub: isGermanTarget ? "Excellent analysis!" : "Excellent reading!",
+      next: isGermanTarget ? "Next Sentence" : (isEnglishTarget ? "Next Unit" : "Next Text"),
+      finishTitle: isGermanTarget ? "Sentence analysis complete" : (isEnglishTarget ? "Flow analysis complete" : "Scenario completed"),
+      finishSub: isGermanTarget ? "Excellent analysis!" : (isEnglishTarget ? "Excellent mastery!" : "Excellent reading!"),
       backToMenu: "Back to Deck",
       error: "No data found.",
       contextLabel: "Context & Signal:",
       breakdownTitle: "Sentence Bracket & Signal Analysis:",
       
       finishFinalTitle: "Phase 2 Complete!",
-      finishFinalSub: isGermanTarget ? "Sentence Bracket Flow COMPLETED! 🎯" : "Kana Flow COMPLETED! 🎯",
+      finishFinalSub: isGermanTarget ? "Sentence Bracket Flow COMPLETED! 🎯" : (isEnglishTarget ? "Connected Speech Flow COMPLETED! 🎯" : "Kana Flow COMPLETED! 🎯"),
       finishFinalDesc: isGermanTarget
         ? "You have mastered the 6 Signal Chunks and sentence brackets without delay. Get ready for Phase 3: The 21-Day D/A/CH Survival Radar!"
-        : "You've learned to scan Japanese sentences fluently. Amazing achievement! Come back anytime to keep your reading speed fresh. Don't forget to follow us on Insta & TikTok for daily hacks. Get ready for Phase 3: The Radar!",
-      finishFinalNext: isGermanTarget ? "Continue to D/A/CH Radar 📡" : "Continue to Radar Training 📡",
+        : (isEnglishTarget
+            ? "You have mastered key phrasal verbs, tense triggers, and natural British sentence flow. Get ready for Phase 3: The 21-Day UK Survival Radar!"
+            : "You've learned to scan Japanese sentences fluently. Amazing achievement! Come back anytime to keep your reading speed fresh. Don't forget to follow us on Insta & TikTok for daily hacks. Get ready for Phase 3: The Radar!"),
+      finishFinalNext: isGermanTarget ? "Continue to D/A/CH Radar 📡" : (isEnglishTarget ? "Continue to UK Radar 📡" : "Continue to Radar Training 📡"),
 
       motivations: {
         1: "Signal Chunks locked in! ZUM and ZUR executed smoothly.",
@@ -97,23 +236,25 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
       }
     },
     jpn: {
-      back: isGermanTarget ? "枠構造デッキ" : "フローデッキ",
+      back: isGermanTarget ? "枠構造デッキ" : (isEnglishTarget ? "リンキング・デッキ" : "フローデッキ"),
       remaining: "残り:",
       revealTrans: "日本語訳・構造を表示",
-      next: isGermanTarget ? "次の構文へ" : "次のテキスト",
-      finishTitle: isGermanTarget ? "構文分析ミッション完了" : "シナリオ完了",
-      finishSub: isGermanTarget ? "素晴らしい分析力です！" : "素晴らしい読解力です！",
+      next: isGermanTarget ? "次の構文へ" : (isEnglishTarget ? "次のユニットへ" : "次のテキスト"),
+      finishTitle: isGermanTarget ? "構文分析ミッション完了" : (isEnglishTarget ? "音声連結ミッション完了" : "シナリオ完了"),
+      finishSub: isGermanTarget ? "素晴らしい分析力です！" : (isEnglishTarget ? "素晴らしい分析と発音です！" : "素晴らしい読解力です！"),
       backToMenu: "デッキ一覧へ戻る",
       error: "データが見つかりません。",
       contextLabel: "現場文脈・シグナル:",
       breakdownTitle: "枠構造・シグナル形態素解体:",
       
       finishFinalTitle: "第2フェーズ完全制覇！",
-      finishFinalSub: isGermanTarget ? "枠構造フロー修了！🎯" : "仮名フロー修了！🎯",
+      finishFinalSub: isGermanTarget ? "枠構造フロー修了！🎯" : (isEnglishTarget ? "英語リンキング・フロー修了！🎯" : "仮名フロー修了！🎯"),
       finishFinalDesc: isGermanTarget 
         ? "6大シグナル・パーツと文末ハサミ撃ち（枠構造）が完全に身体に定着しました。次は第3フェーズ：21日間実戦D/A/CHサバイバルレーダーへ突入します！"
-        : "日本語の文を流暢にスキャンできるようになりました。素晴らしい成果です！いつでも復習に戻れます。次は第3フェーズ（レーダー）へ進みましょう！",
-      finishFinalNext: isGermanTarget ? "実戦D/A/CHレーダーへ進む 📡" : "レーダートレーニングへ進む 📡",
+        : (isEnglishTarget
+            ? "必須の句動詞（Phrasal Verbs）と時制の使い分け、イギリス英語の自然な音声連結が完全に定着しました。次は第3フェーズ：21日間実戦UKサバイバルレーダーへ突入します！"
+            : "日本語の文を流暢にスキャンできるようになりました。素晴らしい成果です！いつでも復習に戻れます。次は第3フェーズ（レーダー）へ進みましょう！"),
+      finishFinalNext: isGermanTarget ? "実戦D/A/CHレーダーへ進む 📡" : (isEnglishTarget ? "実戦UKレーダーへ進む 📡" : "レーダートレーニングへ進む 📡"),
 
       motivations: {
         1: "目的地シグナル完了！ZUMとZURが反射的に口から出るようになりました。",
@@ -141,18 +282,41 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
     }
   };
 
-  const t = texts[currentLang === 'jpn' ? 'jpn' : (texts[currentLang] ? currentLang : 'de')] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
 
-  const particleInfo = {
-    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
-    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
-    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)" },
-    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)" },
-    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)" },
-    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)" },
-    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)" },
-    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)" },
-    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    remaining: dbUiTexts?.remaining || fallbackT.remaining,
+    revealTrans: dbUiTexts?.revealTrans || fallbackT.revealTrans,
+    backToMenu: dbUiTexts?.backToMenu || fallbackT.backToMenu,
+    error: dbUiTexts?.errorMsg || fallbackT.error,
+    contextLabel: dbUiTexts?.contextLabel || fallbackT.contextLabel,
+    breakdownTitle: dbUiTexts?.breakdownTitle || fallbackT.breakdownTitle,
+    motivations: {
+      ...fallbackT.motivations,
+      ...(dbUiTexts?.motivationsPhase2 || {})
+    },
+    back: dbCourseManifest?.card2BackDeck || fallbackT.back,
+    next: dbCourseManifest?.card2NextBtn || fallbackT.next,
+    finishTitle: dbCourseManifest?.card2FinishTitle || fallbackT.finishTitle,
+    finishSub: dbCourseManifest?.card2FinishSub || fallbackT.finishSub,
+    finishFinalTitle: dbCourseManifest?.card2FinishFinalTitle || fallbackT.finishFinalTitle,
+    finishFinalSub: dbCourseManifest?.card2FinishFinalSub || fallbackT.finishFinalSub,
+    finishFinalDesc: dbCourseManifest?.card2FinishFinalDesc || fallbackT.finishFinalDesc,
+    finishFinalNext: dbCourseManifest?.card2FinishFinalNext || fallbackT.finishFinalNext
+  };
+
+  const fallbackParticleInfo = {
+    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')", jpn: "主題（〜は）" },
+    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)", jpn: "目的語（〜を）" },
+    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)", jpn: "到着点・時間（〜に）" },
+    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)", jpn: "場所・手段（〜で）" },
+    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)", jpn: "主語（〜が）" },
+    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)", jpn: "共同・並列（〜と）" },
+    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)", jpn: "方向（〜へ）" },
+    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)", jpn: "起点（〜から）" },
+    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)", jpn: "終点（〜まで）" }
   };
 
   const particleRegex = /(から|まで|を|は(?![いじんらかきし])|が(?![っつお])|に(?![くもちほんぎ])|で(?![すしんき])|と(?![もてけきこ])|へ)/g;
@@ -161,51 +325,18 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
     return <div className="text-white text-center mt-20">{t.error}</div>;
   }
 
-  // Warteschlange: Bei Deutsch wird das strukturierte Tages-Szenario geladen, bei Japanisch das sentences-Array
-  const [queue, setQueue] = useState(() => {
-    if (isGermanTarget) {
-      return [{
-        text: deckInfo.german,
-        translation: deckInfo.japanese,
-        breakdown: deckInfo.breakdown,
-        title: deckInfo.title,
-        context: deckInfo.context
-      }];
-    }
-    return deckInfo.sentences ? [...deckInfo.sentences] : [];
-  });
-
-  const [isFinished, setIsFinished] = useState(false);
-  const [showTranslation, setShowTranslation] = useState(false);
-
-  useEffect(() => {
-    if (isGermanTarget) {
-      setQueue([{
-        text: deckInfo.german,
-        translation: deckInfo.japanese,
-        breakdown: deckInfo.breakdown,
-        title: deckInfo.title,
-        context: deckInfo.context
-      }]);
-    } else {
-      setQueue(deckInfo.sentences ? [...deckInfo.sentences] : []);
-    }
-    setIsFinished(false);
-    setShowTranslation(false);
-  }, [day, deckInfo, isGermanTarget]);
-
   const currentSentence = queue[0];
 
-  // Sprachsynthese: Dynamische Weiche für Deutsch ('de-DE') vs. Japanisch ('ja-JP')
+  // Sprachsynthese: Dynamische Weiche für Deutsch ('de-DE'), Britisches Englisch ('en-GB') & Japanisch ('ja-JP')
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      const cleanText = isGermanTarget
+      const cleanText = isDeOrEnTarget
         ? text.replace(/\[.*?\]/g, '').trim()
         : text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
-      utterance.rate = isGermanTarget ? 0.90 : 0.85; 
+      utterance.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP');
+      utterance.rate = isDeOrEnTarget ? 0.90 : 0.85; 
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -238,13 +369,14 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
       
       const subParts = part.split(particleRegex);
       return subParts.map((sub, j) => {
-        if (particleInfo[sub]) {
+        if (fallbackParticleInfo[sub]) {
+          const tooltipText = dbUiTexts?.particleInfo?.[sub] || fallbackParticleInfo[sub][currentLang] || fallbackParticleInfo[sub].de;
           return (
             <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-extrabold mx-[2px] transition-colors hover:text-orange-300">
               {sub}
               <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-gray-200 text-xs sm:text-sm p-3 rounded-xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed font-sans font-normal whitespace-normal block">
                 <span className="block text-orange-400 font-bold mb-1 border-b border-gray-700 pb-1 text-lg leading-none">{sub}</span>
-                {particleInfo[sub][currentLang]}
+                {tooltipText}
                 <span className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-orange-500/50"></span>
               </span>
             </span>
@@ -296,9 +428,9 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
   }
 
   // Übersetzungsauswahl
-  const translationText = isGermanTarget
-    ? currentSentence.translation
-    : (currentLang === 'en' ? currentSentence.translationEn : currentSentence.translationDe);
+  const translationText = isDeOrEnTarget
+    ? (currentSentence.translation || (currentLang === 'en' ? currentSentence.translationEn : currentSentence.translationDe))
+    : (currentLang === 'en' ? (currentSentence.translationEn || currentSentence.translation) : (currentSentence.translationDe || currentSentence.translation));
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -313,8 +445,8 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
 
       <div className="w-full max-w-md mx-auto mt-12 flex flex-col items-center">
         
-        {/* Kontext-Box für die Zielsprache Deutsch */}
-        {isGermanTarget && currentSentence.context && (
+        {/* Kontext-Box für die Zielsprache Deutsch / Englisch */}
+        {isDeOrEnTarget && currentSentence.context && (
           <div className="w-full bg-cyan-950/40 border border-cyan-500/40 rounded-2xl p-4 mb-4 text-left shadow-lg">
             <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider block mb-1">
               💡 {t.contextLabel}
@@ -331,7 +463,7 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
           <div className="text-center w-full flex-1 flex flex-col items-center justify-center">
             
             {/* Satzanzeige */}
-            {isGermanTarget ? (
+            {isDeOrEnTarget ? (
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-relaxed tracking-wide mb-6 text-center">
                 {currentSentence.text}
               </h2>
@@ -365,8 +497,8 @@ const ReadingCard = ({ day, onBack, language, targetLanguage = 'jp' }) => {
                     "{translationText}"
                   </p>
 
-                  {/* Satzklammer-Aufschlüsselung (Breakdown) für Deutsch */}
-                  {isGermanTarget && currentSentence.breakdown && (
+                  {/* Satzklammer- & Signal-Aufschlüsselung (Breakdown) */}
+                  {isDeOrEnTarget && currentSentence.breakdown && (
                     <div className="w-full bg-gray-900/80 rounded-2xl p-4 border border-cyan-500/30 text-left mt-4">
                       <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider block mb-2 border-b border-gray-700 pb-1">
                         {t.breakdownTitle}
