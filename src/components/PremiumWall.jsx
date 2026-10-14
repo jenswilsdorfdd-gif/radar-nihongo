@@ -1,9 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PayPalButtons } from "@paypal/react-paypal-js";
+import { supabase } from '../supabaseClient';
 
 const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+
+  // --- SUPABASE STATE (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Abruf von ui_translations aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPaywallTexts = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('ui_translations')
+          .select('content')
+          .eq('lang_code', dbSourceLang)
+          .single();
+
+        if (!fetchError && data?.content && isMounted) {
+          setDbUiTexts(data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(data.content));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Paywall-Texte aus Supabase:", err);
+      }
+    };
+
+    fetchPaywallTexts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang]);
 
   const texts = {
     de: {
@@ -38,7 +81,20 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
     }
   };
 
-  const t = texts[language] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
+
+  // Zusammenführung: Supabase-Werte aus ui_translations haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    titleStandard: dbUiTexts?.paywallTitleStandard || fallbackT.titleStandard,
+    descStandard: dbUiTexts?.paywallDescStandard || fallbackT.descStandard,
+    priceStandard: dbUiTexts?.paywallPriceStandard || fallbackT.priceStandard,
+    titleUpsell: dbUiTexts?.paywallTitleUpsell || fallbackT.titleUpsell,
+    descUpsell: dbUiTexts?.paywallDescUpsell || fallbackT.descUpsell,
+    priceUpsell: dbUiTexts?.paywallPriceUpsell || fallbackT.priceUpsell,
+    errorMsg: dbUiTexts?.paywallErrorMsg || fallbackT.errorMsg,
+    processing: dbUiTexts?.paywallProcessing || fallbackT.processing
+  };
 
   // Dynamische Anpassung basierend auf dem Dojo-Status
   const currentTitle = hasBookedDojo ? t.titleUpsell : t.titleStandard;
@@ -53,7 +109,7 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
           description: currentTitle,
           amount: {
             currency_code: "EUR",
-            value: currentPrice,
+            value: String(currentPrice).replace(',', '.'),
           },
         },
       ],
@@ -103,7 +159,7 @@ const PremiumWall = ({ hasBookedDojo, onPaymentSuccess, language = 'de' }) => {
         </p>
         
         <div className="text-4xl font-black text-white">
-          {currentPrice.replace('.', ',')} €
+          {String(currentPrice).replace('.', ',')} €
         </div>
       </div>
       
