@@ -1,43 +1,168 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../supabaseClient';
 import { kanjiData } from '../data/kanjiData';
 import { deKompositaData } from '../data/deKompositaData';
 
 const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp' }) => {
   const isGermanTarget = targetLanguage === 'de';
-  const currentLang = language || 'de';
+  const isEnglishTarget = targetLanguage === 'en';
+  const isDeOrEnTarget = isGermanTarget || isEnglishTarget;
 
-  // Datenquelle dynamisch selektieren
-  const currentDeck = isGermanTarget ? deKompositaData[day] : kanjiData[day];
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = 'phase4';
+
+  // Lokale Fallback-Datenquelle
+  const localDeck = isDeOrEnTarget ? deKompositaData[day] : kanjiData[day];
+
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbDayDeck, setDbDayDeck] = useState(() => {
+    try {
+      const cachedMap = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      if (cachedMap) {
+        const parsed = JSON.parse(cachedMap);
+        return parsed?.[day] || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Aktives Tages-Deck (Vorrang für Supabase course_decks, sonst lokaler Fallback)
+  const currentDeck = dbDayDeck || localDeck;
+
+  // Hilfsfunktion zur Extraktion des Karten-Arrays (fängt sowohl { cards: [...] } als auch direkte Arrays ab)
+  const extractCardsArray = (deck) => {
+    if (!deck) return [];
+    if (Array.isArray(deck)) return [...deck];
+    if (Array.isArray(deck.cards)) return [...deck.cards];
+    return [];
+  };
+
+  const [queue, setQueue] = useState(() => extractCardsArray(currentDeck));
+  const [isFinished, setIsFinished] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
   
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  // Abruf von ui_translations, course_manifests & course_decks (für diesen Tag) aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCardData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', day)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        if (deckRes.data?.content && isMounted) {
+          setDbDayDeck(deckRes.data.content);
+          const loadedCards = extractCardsArray(deckRes.data.content);
+          if (loadedCards.length > 0) {
+            setQueue(loadedCards);
+          }
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Phase-4-Kartendaten aus Supabase:", err);
+      }
+    };
+
+    fetchCardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey, day]);
+
+  // Queue zurücksetzen, wenn sich Tag oder Deck ändert
+  useEffect(() => {
+    const activeDeck = dbDayDeck || localDeck;
+    setQueue(extractCardsArray(activeDeck));
+    setIsFinished(false);
+    setIsRevealed(false);
+  }, [day, dbTargetLang, dbDayDeck, localDeck]);
+
+  // LOKALES FALLBACK-WÖRTERBUCH
   const texts = {
     de: {
       error1: "Fehler: Keine Daten für Tag",
       error2: "gefunden.",
       backMenu: "Zurück zum Menü",
-      backDeck: isGermanTarget ? "Komposita-Deck" : "Kanji-Deck",
+      backDeck: isGermanTarget ? "Komposita-Deck" : (isEnglishTarget ? "Fluency-Deck" : "Kanji-Deck"),
       backBtnSuccess: "Zurück zum Deck",
       remaining: "Übrig:",
-      read: "Lesen & Scannen",
+      read: isEnglishTarget ? "Analyse & Nuancen" : "Lesen & Scannen",
       write: "Schreiben",
-      hintRead: isGermanTarget ? "Bestandteile, Genus & Bedeutung?" : "Laut, Bedeutung & Satz?",
+      hintRead: isGermanTarget ? "Bestandteile, Genus & Bedeutung?" : (isEnglishTarget ? "Bedeutung, Register & Struktur?" : "Laut, Bedeutung & Satz?"),
       solution: "Die Lösung & Dekomposition:",
       clear: "Löschen",
       reveal: "Aufdecken & Zerlegen",
       again: "Nochmal",
       gotIt: "Sitzt",
-      mnemonicTitle: isGermanTarget ? "Morphologische Zerlegung (Dekomposition)" : "Eselsbrücke",
+      mnemonicTitle: isGermanTarget ? "Morphologische Zerlegung (Dekomposition)" : (isEnglishTarget ? "Struktur-Zerlegung & Nuance" : "Eselsbrücke"),
       headWordLabel: "Grundwort (bestimmt Genus):",
       elementsTitle: "Einzelbausteine & Bedeutung:",
       ruleTitle: "Morphologische Regel:",
-      day: isGermanTarget ? "Thema" : "Tag",
+      day: isDeOrEnTarget ? "Thema" : "Tag",
       perfect: "Tagesziel erreicht!",
       finishTitle: "Deck Abgeschlossen",
       
-      finishFinalTitle: isGermanTarget ? "Phase 4 Komplett!" : "Phase 4 Komplett!",
-      finishFinalSub: isGermanTarget ? "Komposita-Scan MEISTERKLASSE! 🏛️" : "Meisterklasse BESTANDEN! 🏯",
+      finishFinalTitle: "Phase 4 Komplett!",
+      finishFinalSub: isGermanTarget ? "Komposita-Scan MEISTERKLASSE! 🏛️" : (isEnglishTarget ? "Advanced Fluency MEISTERKLASSE! 🏛️" : "Meisterklasse BESTANDEN! 🏯"),
       finishFinalDesc: isGermanTarget
         ? "Du hast alle 21 Tage des Komposita-Trainings durchgezogen. Selbst die längsten deutschen Bandwurmwörter scannst du jetzt mühelos von links nach rechts und bestimmst das Genus am Grundwort. Das gesamte RADAR-System ist damit vollständig gemeistert!"
-        : "Du hast alle 21 Tage Kanji-Training durchgezogen. Das ist der Moment, an dem 95% aller Lernenden scheitern. Du nicht! Du hast dir ein massives Arsenal an Wissen aufgebaut. Ruh dich aus, feier dich selbst, bleib über Social Media mit uns connectet und dann... auf zur finalen Prüfung!",
+        : (isEnglishTarget
+            ? "Du hast alle 21 Tage des Advanced-Fluency-Trainings durchgezogen. Business-Ausdrücke, britisches Understatement und komplexe Verhandlungsstrukturen sitzen perfekt!"
+            : "Du hast alle 21 Tage Kanji-Training durchgezogen. Das ist der Moment, an dem 95% aller Lernenden scheitern. Du nicht! Du hast dir ein massives Arsenal an Wissen aufgebaut. Ruh dich aus, feier dich selbst, bleib über Social Media mit uns connectet und dann... auf zur finalen Prüfung!"),
       finishFinalNext: isGermanTarget ? "Zurück zum Hauptmenü 🎓" : "Zur Abschluss-Prüfung 🎓",
 
       motivations: {
@@ -68,30 +193,32 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
       error1: "Error: No data found for Day",
       error2: ".",
       backMenu: "Back to Menu",
-      backDeck: isGermanTarget ? "Compounds Deck" : "Kanji Deck",
+      backDeck: isGermanTarget ? "Compounds Deck" : (isEnglishTarget ? "Fluency Deck" : "Kanji Deck"),
       backBtnSuccess: "Back to Deck",
       remaining: "Remaining:",
-      read: "Read & Scan",
+      read: isEnglishTarget ? "Scan & Nuance" : "Read & Scan",
       write: "Write",
-      hintRead: isGermanTarget ? "Components, Gender & Meaning?" : "Sound, Meaning & Sentence?",
+      hintRead: isGermanTarget ? "Components, Gender & Meaning?" : (isEnglishTarget ? "Meaning, Register & Structure?" : "Sound, Meaning & Sentence?"),
       solution: "Solution & Decomposition:",
       clear: "Clear",
       reveal: "Reveal & Deconstruct",
       again: "Again",
       gotIt: "Got it",
-      mnemonicTitle: isGermanTarget ? "Morphological Decomposition" : "Mnemonic",
+      mnemonicTitle: isGermanTarget ? "Morphological Decomposition" : (isEnglishTarget ? "Structural Breakdown & Nuance" : "Mnemonic"),
       headWordLabel: "Head word (determines gender):",
       elementsTitle: "Individual elements & meanings:",
       ruleTitle: "Morphological rule:",
-      day: isGermanTarget ? "Topic" : "Day",
+      day: isDeOrEnTarget ? "Topic" : "Day",
       perfect: "Daily goal reached!",
       finishTitle: "Deck Completed",
       
-      finishFinalTitle: isGermanTarget ? "Phase 4 Complete!" : "Phase 4 Complete!",
-      finishFinalSub: isGermanTarget ? "Compound Scanning MASTERCLASS! 🏛️" : "Masterclass PASSED! 🏯",
+      finishFinalTitle: "Phase 4 Complete!",
+      finishFinalSub: isGermanTarget ? "Compound Scanning MASTERCLASS! 🏛️" : (isEnglishTarget ? "Advanced Fluency MASTERCLASS! 🏛️" : "Masterclass PASSED! 🏯"),
       finishFinalDesc: isGermanTarget
         ? "You completed all 21 days of compound training. You now effortlessly scan long German words from left to right and determine gender via the head word. The entire RADAR system is now fully mastered!"
-        : "You completed all 21 days of Kanji training. This is the point where 95% of all learners fail. Not you! You have built a massive arsenal of knowledge.",
+        : (isEnglishTarget
+            ? "You completed all 21 days of Advanced Fluency training. British business idioms, understatement, and complex structures are now fully mastered!"
+            : "You completed all 21 days of Kanji training. This is the point where 95% of all learners fail. Not you! You have built a massive arsenal of knowledge."),
       finishFinalNext: isGermanTarget ? "Back to Main Menu 🎓" : "To the Final Exam 🎓",
 
       motivations: {
@@ -122,30 +249,32 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
       error1: "エラー: 対象日のデータがありません",
       error2: "",
       backMenu: "メインメニューへ戻る",
-      backDeck: isGermanTarget ? "複合語解体デッキ" : "漢字デッキ",
+      backDeck: isGermanTarget ? "複合語解体デッキ" : (isEnglishTarget ? "上級表現デッキ" : "漢字デッキ"),
       backBtnSuccess: "デッキ一覧へ戻る",
       remaining: "残り:",
-      read: "読解・解体スキャン",
+      read: isEnglishTarget ? "構造・ニュアンス解析" : "読解・解体スキャン",
       write: "筆記演習",
-      hintRead: isGermanTarget ? "構成パーツ・冠詞・意味は？" : "音・訓・意味・例文は？",
+      hintRead: isGermanTarget ? "構成パーツ・冠詞・意味は？" : (isEnglishTarget ? "構成要素・ニュアンス・意味は？" : "音・訓・意味・例文は？"),
       solution: "形態素解体と正解:",
       clear: "消去",
       reveal: "解体・解答を表示",
       again: "もう一度",
       gotIt: "習得完了",
-      mnemonicTitle: isGermanTarget ? "形態素解体（Dekomposition）" : "イメージ連想・記憶法",
+      mnemonicTitle: isGermanTarget ? "形態素解体（Dekomposition）" : (isEnglishTarget ? "表現構造の解体（Breakdown）" : "イメージ連想・記憶法"),
       headWordLabel: "基底語（性別決定核）:",
       elementsTitle: "構成要素・形態素一覧:",
       ruleTitle: "語形成ルール:",
-      day: isGermanTarget ? "単元" : "日目",
+      day: isDeOrEnTarget ? "単元" : "日目",
       perfect: "本日の目標達成！",
       finishTitle: "デッキ演習修了",
       
-      finishFinalTitle: isGermanTarget ? "第4フェーズ完全修了！" : "第4フェーズ完全修了！",
-      finishFinalSub: isGermanTarget ? "複合語解体マスタークラス制覇！🏛️" : "マスタークラス合格！🏯",
+      finishFinalTitle: "第4フェーズ完全修了！",
+      finishFinalSub: isGermanTarget ? "複合語解体マスタークラス制覇！🏛️" : (isEnglishTarget ? "上級表現マスタークラス制覇！🏛️" : "マスタークラス合格！🏯"),
       finishFinalDesc: isGermanTarget
         ? "21日間の複合語解体演習を全て突破しました！最長級のドイツ語複合名詞であっても、左から右へパーツを見抜き、末尾の基底語から瞬時に性別（der/die/das）と本質を特定できます。RADARシステム全フェーズの完全制覇です！"
-        : "21日間の漢字トレーニングをやり抜きました。膨大な語彙ベースが完成しました！",
+        : (isEnglishTarget
+            ? "21日間の上級表現・ビジネス英語演習を全て突破しました！イギリス英語特有の控えめな表現や交渉フレーズが完全に身につきました！"
+            : "21日間の漢字トレーニングをやり抜きました。膨大な語彙ベースが完成しました！"),
       finishFinalNext: isGermanTarget ? "メインメニューへ戻る 🎓" : "最終試験へ進む 🎓",
 
       motivations: {
@@ -174,7 +303,41 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
     }
   };
 
-  const t = texts[currentLang === 'jpn' ? 'jpn' : (texts[currentLang] ? currentLang : 'de')] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
+
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    error1: dbUiTexts?.error1 || fallbackT.error1,
+    error2: dbUiTexts?.error2 !== undefined ? dbUiTexts.error2 : fallbackT.error2,
+    backMenu: dbUiTexts?.backMenu || fallbackT.backMenu,
+    backBtnSuccess: dbUiTexts?.backBtnSuccess || fallbackT.backBtnSuccess,
+    remaining: dbUiTexts?.remaining || fallbackT.remaining,
+    solution: dbUiTexts?.solution || fallbackT.solution,
+    clear: dbUiTexts?.clear || fallbackT.clear,
+    reveal: dbUiTexts?.reveal || fallbackT.reveal,
+    again: dbUiTexts?.again || fallbackT.again,
+    gotIt: dbUiTexts?.gotIt || fallbackT.gotIt,
+    headWordLabel: dbUiTexts?.headWordLabel || fallbackT.headWordLabel,
+    elementsTitle: dbUiTexts?.elementsTitle || fallbackT.elementsTitle,
+    ruleTitle: dbUiTexts?.ruleTitle || fallbackT.ruleTitle,
+    perfect: dbUiTexts?.perfect || fallbackT.perfect,
+    finishTitle: dbUiTexts?.finishDeckTitle || fallbackT.finishTitle,
+    motivations: {
+      ...fallbackT.motivations,
+      ...(dbUiTexts?.motivationsPhase4 || {})
+    },
+    backDeck: dbCourseManifest?.card4BackDeck || fallbackT.backDeck,
+    read: dbCourseManifest?.card4ReadMode || fallbackT.read,
+    write: dbCourseManifest?.card4WriteMode || fallbackT.write,
+    hintRead: dbCourseManifest?.card4HintRead || fallbackT.hintRead,
+    mnemonicTitle: dbCourseManifest?.card4MnemonicTitle || fallbackT.mnemonicTitle,
+    day: dbCourseManifest?.card4DayLabel || fallbackT.day,
+    finishFinalTitle: dbCourseManifest?.card4FinishTitle || fallbackT.finishFinalTitle,
+    finishFinalSub: dbCourseManifest?.card4FinishSub || fallbackT.finishFinalSub,
+    finishFinalDesc: dbCourseManifest?.card4FinishDesc || fallbackT.finishFinalDesc,
+    finishFinalNext: dbCourseManifest?.card4FinishNext || fallbackT.finishFinalNext
+  };
   
   if (!currentDeck) {
     return (
@@ -184,30 +347,6 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
       </div>
     );
   }
-
-  // Queue initialisieren: Deutsch nutzt currentDeck.cards, Japanisch currentDeck direkt als Array[cite: 6]
-  const [queue, setQueue] = useState(() => {
-    if (isGermanTarget) {
-      return currentDeck.cards ? [...currentDeck.cards] : [];
-    }
-    return Array.isArray(currentDeck) ? [...currentDeck] : [];
-  });
-
-  const [isFinished, setIsFinished] = useState(false);
-  const [isRevealed, setIsRevealed] = useState(false);
-  
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  useEffect(() => {
-    if (isGermanTarget) {
-      setQueue(currentDeck.cards ? [...currentDeck.cards] : []);
-    } else {
-      setQueue(Array.isArray(currentDeck) ? [...currentDeck] : []);
-    }
-    setIsFinished(false);
-    setIsRevealed(false);
-  }, [day, currentDeck, isGermanTarget]);
 
   const startDrawing = (e) => {
     if (!canvasRef.current) return;
@@ -247,16 +386,16 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  // Sprachsynthese: de-DE für Deutsch, ja-JP für Japanisch[cite: 6]
+  // Sprachsynthese: de-DE für Deutsch, en-GB für Britisches Englisch, ja-JP für Japanisch
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      const cleanText = isGermanTarget
+      const cleanText = isDeOrEnTarget
         ? text.replace(/\[.*?\]/g, '').trim()
         : text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
-      utterance.rate = isGermanTarget ? 0.90 : 0.80; 
+      utterance.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP');
+      utterance.rate = isDeOrEnTarget ? 0.90 : 0.80; 
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -279,13 +418,13 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
     });
   };
 
-  // Abschluss-Bildschirme[cite: 6]
+  // Abschluss-Bildschirme
   if (isFinished || queue.length === 0) {
     if (day === 21) {
       return (
         <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center animate-fade-in">
           <div className="w-24 h-24 bg-purple-900/30 border-4 border-purple-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-[0_0_40px_rgba(168,85,247,0.4)]">
-            {isGermanTarget ? "🏛️" : "🏯"}
+            {isDeOrEnTarget ? "🏛️" : "🏯"}
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase mb-2 text-center">{t.finishFinalTitle}</h1>
           <h2 className="text-purple-400 font-bold tracking-widest uppercase mb-4 text-center">{t.finishFinalSub}</h2>
@@ -322,8 +461,8 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
 
   const handleReveal = () => {
     setIsRevealed(true);
-    if (isGermanTarget) {
-      playAudio(currentCard.word);
+    if (isDeOrEnTarget || currentCard.word) {
+      playAudio(currentCard.word || currentCard.kanji);
     } else {
       playAudio(currentCard.kanji);
     }
@@ -343,23 +482,25 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
     clearCanvas();
   };
 
-  // --- RENDER-LOGIK FÜR DEUTSCHE KOMPOSITA ---
+  // --- RENDER-LOGIK FÜR DEUTSCHE KOMPOSITA & BRITISCHE FLUENCY-KARTEN ---
   const renderGermanCard = () => {
     return (
       <div className="w-full bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-2xl flex flex-col items-center justify-center min-h-[340px] relative">
         
-        {/* Genus-Badge oben */}
-        <div className="absolute top-4 left-6 flex items-center gap-2">
-          <span className={`text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-md ${
-            currentCard.gender === 'der' ? 'bg-blue-900/60 text-blue-400 border border-blue-500/40' :
-            currentCard.gender === 'die' || currentCard.gender === 'die (Plural)' ? 'bg-red-900/60 text-red-400 border border-red-500/40' :
-            'bg-green-900/60 text-green-400 border border-green-500/40'
-          }`}>
-            {currentCard.gender}
-          </span>
-        </div>
+        {/* Genus- / Register-Badge oben */}
+        {currentCard.gender && (
+          <div className="absolute top-4 left-6 flex items-center gap-2">
+            <span className={`text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-md ${
+              currentCard.gender === 'der' ? 'bg-blue-900/60 text-blue-400 border border-blue-500/40' :
+              currentCard.gender === 'die' || currentCard.gender === 'die (Plural)' ? 'bg-red-900/60 text-red-400 border border-red-500/40' :
+              'bg-green-900/60 text-green-400 border border-green-500/40'
+            }`}>
+              {currentCard.gender}
+            </span>
+          </div>
+        )}
 
-        {/* Morphologische Regel des Tages */}
+        {/* Morphologische / Strukturelle Regel des Tages */}
         {currentDeck.rule && (
           <div className="w-full bg-purple-950/40 border border-purple-500/30 rounded-xl p-3 mb-6 mt-8 text-left">
             <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider block mb-0.5">
@@ -371,7 +512,7 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
           </div>
         )}
 
-        {/* Deutsches Gesamtwort */}
+        {/* Gesamtwort / Ausdruck */}
         <div className="text-center w-full my-4">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide break-words">
             {currentCard.word}
@@ -389,7 +530,7 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
         {isRevealed ? (
           <div className="flex flex-col items-center animate-fade-in w-full mt-4">
             
-            {/* Deutsche Gesamtbedeutung */}
+            {/* Gesamtbedeutung */}
             <p className="text-yellow-400 font-bold text-xl mb-4 text-center">
               "{currentCard.meaning}"
             </p>
@@ -398,14 +539,16 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
             <div className="w-full bg-gray-900/90 rounded-2xl p-4 border border-purple-500/30 text-left space-y-3">
               
               {/* Visuelle Zerlegung */}
-              <div>
-                <span className="text-xs text-purple-400 font-bold tracking-widest uppercase block mb-1">
-                  {t.mnemonicTitle}
-                </span>
-                <p className="font-mono text-base font-extrabold text-cyan-300 tracking-wider">
-                  {currentCard.decomposition}
-                </p>
-              </div>
+              {currentCard.decomposition && (
+                <div>
+                  <span className="text-xs text-purple-400 font-bold tracking-widest uppercase block mb-1">
+                    {t.mnemonicTitle}
+                  </span>
+                  <p className="font-mono text-base font-extrabold text-cyan-300 tracking-wider">
+                    {currentCard.decomposition}
+                  </p>
+                </div>
+              )}
 
               {/* Grundwort-Hervorhebung */}
               {currentCard.headWord && (
@@ -470,7 +613,7 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
     );
   };
 
-  // --- RENDER-LOGIK FÜR JAPANISCH (KANJI & ZEICHEN-CANVAS) ---[cite: 6]
+  // --- RENDER-LOGIK FÜR JAPANISCH (KANJI & ZEICHEN-CANVAS) ---
   const renderJapaneseCard = () => {
     const displayMeaning = currentLang === 'en' && currentCard.meaningEn ? currentCard.meaningEn : currentCard.meaning;
     const displayMnemonic = currentLang === 'en' && currentCard.mnemonicEn ? currentCard.mnemonicEn : currentCard.mnemonic;
@@ -588,7 +731,7 @@ const KanjiCard = ({ day, mode = 'read', onBack, language, targetLanguage = 'jp'
       <div className="w-full max-w-md mx-auto mt-12 flex flex-col items-center">
         
         {/* Renderung nach Zielsprache */}
-        {isGermanTarget ? renderGermanCard() : renderJapaneseCard()}
+        {(isDeOrEnTarget || currentCard.word) ? renderGermanCard() : renderJapaneseCard()}
 
         {/* Buttonleiste unten */}
         <div className="w-full mt-6 flex flex-col gap-3">
