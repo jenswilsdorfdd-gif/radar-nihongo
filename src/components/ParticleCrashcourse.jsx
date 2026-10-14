@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 
-const ParticleCrashcourse = ({ onBack, language }) => {
+const ParticleCrashcourse = ({ onBack, language, targetLanguage = 'jp' }) => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   // Phasen: 'intro' (Allgemein) -> 'briefing' (Detail) -> 'drill' (Übung) -> 'feedback' (Auswertung) -> 'result' (Endstand)
@@ -8,22 +9,129 @@ const ParticleCrashcourse = ({ onBack, language }) => {
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
 
+  const isGermanTarget = targetLanguage === 'de';
+  const isEnglishTarget = targetLanguage === 'en';
+
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = 'crashcourse';
+
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbLessons, setDbLessons] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentLessonIndex, currentExerciseIndex, currentPhase]);
 
+  // Abruf von ui_translations, course_manifests & course_decks aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCrashcourseData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', 1)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        const fetchedLessons = deckRes.data?.content?.lessons || (Array.isArray(deckRes.data?.content) ? deckRes.data.content : null);
+        if (fetchedLessons && fetchedLessons.length > 0 && isMounted) {
+          setDbLessons(fetchedLessons);
+          localStorage.setItem(`radar_decks_${dbTargetLang}_${moduleKey}`, JSON.stringify(fetchedLessons));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Crashkurs-Daten aus Supabase:", err);
+      }
+    };
+
+    fetchCrashcourseData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey]);
+
   const texts = {
     de: {
       back: "Zurück",
-      title: "Die Partikel",
+      title: isGermanTarget ? "Signal-Bausteine" : (isEnglishTarget ? "Zeiten-Matrix & Signale" : "Die Partikel"),
       subtitle: "Grundlagen Crashkurs",
       
-      // NEU: Intro Texte
-      introTitle: "Was sind Partikel?",
-      introP1: "Im Japanischen steht das Verb immer am Ende. Aber woher wissen wir, wer was mit wem macht? Dafür gibt es Partikel!",
-      introP2: "Sie sind der 'Kleber' des Satzes. Ein Partikel wird immer direkt HINTER ein Wort gehängt und bestimmt dessen grammatikalische Funktion (Subjekt, Objekt, Ort, Zeit).",
-      introP3: "Stell sie dir wie kleine Verkehrsschilder vor, die dem japanischen Gehirn sagen: 'Achtung, das Wort davor ist ein Ort!'",
-      introWarning: "Wichtig: Ein Partikel steht niemals am Anfang eines Satzes!",
+      // Intro Texte
+      introTitle: isGermanTarget ? "Was sind Signal-Bausteine?" : (isEnglishTarget ? "Was sind Zeiten-Signale?" : "Was sind Partikel?"),
+      introP1: isGermanTarget 
+        ? "Im Deutschen verschmelzen Präpositionen und Artikel häufig zu festen Signal-Blöcken (z. B. ZUM, ZUR, MIT DEM, IM)."
+        : (isEnglishTarget
+            ? "Im britischen Englisch entscheiden kleine Signalwörter (z. B. ALREADY, YET, SINCE, AGO) strikt darüber, welche Zeitform du nutzen musst."
+            : "Im Japanischen steht das Verb immer am Ende. Aber woher wissen wir, wer was mit wem macht? Dafür gibt es Partikel!"),
+      introP2: isGermanTarget
+        ? "Statt im Gespräch komplizierte Fall-Tabellen (Dativ/Akkusativ) im Kopf auszurechnen, nutzt du diese fertigen Bausteine als direkte Wegweiser."
+        : (isEnglishTarget
+            ? "Sie sind die direkten Trigger für Present Perfect oder Past Simple sowie für präzise Orts- und Zeitpräpositionen (AT, ON, IN)."
+            : "Sie sind der 'Kleber' des Satzes. Ein Partikel wird immer direkt HINTER ein Wort gehängt und bestimmt dessen grammatikalische Funktion (Subjekt, Objekt, Ort, Zeit)."),
+      introP3: isGermanTarget
+        ? "Sie zeigen deinem Gegenüber sofort Richtung, Ort, Transportmittel oder Bestellung an."
+        : (isEnglishTarget
+            ? "Stell sie dir wie Weichensteller vor: Sobald das Signalwort fällt, steht die Satzstruktur sofort fest."
+            : "Stell sie dir wie kleine Verkehrsschilder vor, die dem japanischen Gehirn sagen: 'Achtung, das Wort davor ist ein Ort!'"),
+      introWarning: isGermanTarget
+        ? "Wichtig: Lerne Signal-Bausteine immer als fertigen Block – niemals isoliert!"
+        : (isEnglishTarget
+            ? "Wichtig: Kombiniere niemals ein abgeschlossenes Zeit-Signal (wie YESTERDAY) mit dem Present Perfect!"
+            : "Wichtig: Ein Partikel steht niemals am Anfang eines Satzes!"),
       btnStartCourse: "Verstanden -> Crashkurs starten",
 
       lesson: "Lektion",
@@ -41,15 +149,31 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     },
     en: {
       back: "Back",
-      title: "The Particles",
+      title: isGermanTarget ? "Signal Chunks" : (isEnglishTarget ? "Tense Matrix & Signals" : "The Particles"),
       subtitle: "Basics Crash Course",
       
-      // NEW: Intro Texts
-      introTitle: "What are Particles?",
-      introP1: "In Japanese, the verb is always at the end. But how do we know who is doing what to whom? That's what particles are for!",
-      introP2: "They are the 'glue' of the sentence. A particle is always attached directly AFTER a word and determines its grammatical function (subject, object, location, time).",
-      introP3: "Think of them like tiny traffic signs telling the Japanese brain: 'Attention, the word before me is a location!'",
-      introWarning: "Important: A particle is never placed at the beginning of a sentence!",
+      // Intro Texts
+      introTitle: isGermanTarget ? "What are Signal Chunks?" : (isEnglishTarget ? "What are Tense Signals?" : "What are Particles?"),
+      introP1: isGermanTarget
+        ? "In German, prepositions and articles frequently fuse into fixed signal blocks (e.g., ZUM, ZUR, MIT DEM, IM)."
+        : (isEnglishTarget
+            ? "In British English, specific signal words (e.g., ALREADY, YET, SINCE, AGO) strictly determine which tense must be used."
+            : "In Japanese, the verb is always at the end. But how do we know who is doing what to whom? That's what particles are for!"),
+      introP2: isGermanTarget
+        ? "Instead of calculating complex declension tables in your head while speaking, you deploy these ready-made chunks directly."
+        : (isEnglishTarget
+            ? "They act as immediate triggers for Present Perfect vs. Past Simple as well as core prepositions (AT, ON, IN)."
+            : "They are the 'glue' of the sentence. A particle is always attached directly AFTER a word and determines its grammatical function (subject, object, location, time)."),
+      introP3: isGermanTarget
+        ? "They immediately signal direction, location, transport, or direct orders."
+        : (isEnglishTarget
+            ? "Think of them as railway switches: as soon as the signal word appears, the verb form is locked in."
+            : "Think of them like tiny traffic signs telling the Japanese brain: 'Attention, the word before me is a location!'"),
+      introWarning: isGermanTarget
+        ? "Important: Always drill Signal Chunks as a single unit—never isolate the article!"
+        : (isEnglishTarget
+            ? "Important: Never combine a finished past time marker (like YESTERDAY) with the Present Perfect!"
+            : "Important: A particle is never placed at the beginning of a sentence!"),
       btnStartCourse: "Got it -> Start Crash Course",
 
       lesson: "Lesson",
@@ -64,12 +188,79 @@ const ParticleCrashcourse = ({ onBack, language }) => {
       successQuote: "Your Score:",
       btnRetry: "Practice Again",
       btnHome: "Back to Overview"
+    },
+    jpn: {
+      back: "戻る",
+      title: isGermanTarget ? "6大シグナル・パーツ" : (isEnglishTarget ? "時制マトリックス＆シグナル" : "助詞コード"),
+      subtitle: "基礎クラッシュコース",
+      
+      introTitle: isGermanTarget ? "シグナル・パーツとは？" : (isEnglishTarget ? "時制シグナルとは？" : "助詞（パーティクル）とは？"),
+      introP1: isGermanTarget
+        ? "ドイツ語では前置詞と冠詞が融合し、ZUM・ZUR・MIT DEM・IM などの固定シグナル塊を作ります。"
+        : (isEnglishTarget
+            ? "イギリス英語では、ALREADY・YET・SINCE・AGO などのシグナル語が、使うべき時制を厳格に決定します。"
+            : "日本語では動詞が常に文末に来ます。誰が・どこで・何を・どうするのかを瞬時に示すのが助詞の役割です。"),
+      introP2: isGermanTarget
+        ? "会話中に頭の中で複雑な格変化表（3格・4格）を計算する代わりに、これらの完成されたパーツをそのまま射出します。"
+        : (isEnglishTarget
+            ? "これらは現在完了形と過去形の切り替えや、場所・時間の前置詞（AT, ON, IN）を即座に選択するトリガーとなります。"
+            : "助詞は文の「接着剤」です。常に単語の直後に配置され、主題・目的語・場所・時間などの文法的機能を決定します。"),
+      introP3: isGermanTarget
+        ? "目的地・交通手段・現在地・直接注文を瞬時に伝える交通標識の役割を果たします。"
+        : (isEnglishTarget
+            ? "シグナル語が見えた瞬間に動詞の形が自動的に決まる「ポイント切り替え機」として機能します。"
+            : "直前の単語がどんな役割を持つかを示す「交通標識」として機能します。"),
+      introWarning: isGermanTarget
+        ? "鉄則：冠詞を単独で暗記せず、常に前置詞とセットの塊で自動化せよ！"
+        : (isEnglishTarget
+            ? "鉄則：YESTERDAY などの過去確定ワードと現在完了形（have + 過去分詞）を絶対に組み合わせないこと！"
+            : "重要：助詞が文頭に来ることは絶対にありません！"),
+      btnStartCourse: "理解完了 -> コースを開始",
+
+      lesson: "レッスン",
+      exercise: "演習",
+      exampleLabel: "例文:",
+      startExerciseBtn: "理解完了 -> 演習を開始",
+      correctText: "正解！🎯",
+      wrongText: "不正解！正解は:",
+      whyText: "解説:",
+      btnNext: "理解完了 -> 次へ",
+      successTitle: "クラッシュコース完了",
+      successQuote: "スコア:",
+      btnRetry: "もう一度練習する",
+      btnHome: "メニューへ戻る"
     }
   };
 
-  const t = texts[language] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
 
-  const lessons = [
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    back: dbUiTexts?.back || fallbackT.back,
+    lesson: dbUiTexts?.lesson || fallbackT.lesson,
+    exercise: dbUiTexts?.exercise || fallbackT.exercise,
+    exampleLabel: dbUiTexts?.exampleLabel || fallbackT.exampleLabel,
+    startExerciseBtn: dbUiTexts?.startExerciseBtn || fallbackT.startExerciseBtn,
+    correctText: dbUiTexts?.correctText || fallbackT.correctText,
+    wrongText: dbUiTexts?.wrongText || fallbackT.wrongText,
+    whyText: dbUiTexts?.whyText || fallbackT.whyText,
+    btnNext: dbUiTexts?.btnNext || fallbackT.btnNext,
+    successTitle: dbUiTexts?.successTitle || fallbackT.successTitle,
+    successQuote: dbUiTexts?.successQuote || fallbackT.successQuote,
+    btnRetry: dbUiTexts?.btnRetry || fallbackT.btnRetry,
+    btnHome: dbUiTexts?.btnHome || fallbackT.btnHome,
+    title: dbCourseManifest?.crashTitle || fallbackT.title,
+    subtitle: dbCourseManifest?.crashSubtitle || fallbackT.subtitle,
+    introTitle: dbCourseManifest?.crashIntroTitle || fallbackT.introTitle,
+    introP1: dbCourseManifest?.crashIntroP1 || fallbackT.introP1,
+    introP2: dbCourseManifest?.crashIntroP2 || fallbackT.introP2,
+    introP3: dbCourseManifest?.crashIntroP3 || fallbackT.introP3,
+    introWarning: dbCourseManifest?.crashIntroWarning || fallbackT.introWarning,
+    btnStartCourse: dbCourseManifest?.crashBtnStart || fallbackT.btnStartCourse
+  };
+
+  const fallbackLessons = [
     {
       correct: "は",
       options: ["は", "を", "に"],
@@ -85,10 +276,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "わたし は じぇんす です。",
         exampleTrans: "I am Jens. (As for me: Jens)"
       },
+      jpn: {
+        title: "主題 [ は ]",
+        explanation: "「は」と書いて「わ」と発音します。文の主題（「〜については」）を示します。",
+        exampleSentence: "わたし は じぇんす です。",
+        exampleTrans: "私はイェンスです。"
+      },
       exercises: [
-        { sentence: "わたし [ ? ] ドイツじんです。", de: "Ich bin Deutscher.", en: "I am German." },
-        { sentence: "これ [ ? ] みず です。", de: "Das ist Wasser.", en: "This is water." },
-        { sentence: "やまださん [ ? ] せんせいです。", de: "Herr Yamada ist Lehrer.", en: "Mr. Yamada is a teacher." }
+        { sentence: "わたし [ ? ] ドイツじんです。", de: "Ich bin Deutscher.", en: "I am German.", jpn: "私はドイツ人です。" },
+        { sentence: "これ [ ? ] みず です。", de: "Das ist Wasser.", en: "This is water.", jpn: "これは水です。" },
+        { sentence: "やまださん [ ? ] せんせいです。", de: "Herr Yamada ist Lehrer.", en: "Mr. Yamada is a teacher.", jpn: "山田さんは先生です。" }
       ]
     },
     {
@@ -106,10 +303,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "すし を たべる。",
         exampleTrans: "Eat sushi. (WHAT do you eat? Sushi)"
       },
+      jpn: {
+        title: "直接目的語 [ を ]",
+        explanation: "動作の対象（「何を」食べる・飲む・買う・読むか）を示します。",
+        exampleSentence: "すし を たべる。",
+        exampleTrans: "寿司を食べる。"
+      },
       exercises: [
-        { sentence: "ほん [ ? ] よむ。", de: "Ein Buch lesen.", en: "Read a book." },
-        { sentence: "くるま [ ? ] かう。", de: "Ein Auto kaufen.", en: "Buy a car." },
-        { sentence: "コーヒー [ ? ] のむ。", de: "Kaffee trinken.", en: "Drink coffee." }
+        { sentence: "ほん [ ? ] よむ。", de: "Ein Buch lesen.", en: "Read a book.", jpn: "本を読む。" },
+        { sentence: "くるま [ ? ] かう。", de: "Ein Auto kaufen.", en: "Buy a car.", jpn: "車を買う。" },
+        { sentence: "コーヒー [ ? ] のむ。", de: "Kaffee trinken.", en: "Drink coffee.", jpn: "コーヒーを飲む。" }
       ]
     },
     {
@@ -127,10 +330,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "とうきょう に いきます。",
         exampleTrans: "I go to Tokyo."
       },
+      jpn: {
+        title: "目的地・時点 [ に ]",
+        explanation: "移動の到着点（「〜へ/〜に」）や、具体的な時間を示します。",
+        exampleSentence: "とうきょう に いきます。",
+        exampleTrans: "東京に行きます。"
+      },
       exercises: [
-        { sentence: "ホテル [ ? ] いきます。", de: "Ich gehe zum Hotel.", en: "I go to the hotel." },
-        { sentence: "７じ [ ? ] おきる。", de: "Um 7 Uhr aufstehen.", en: "Wake up at 7 o'clock." },
-        { sentence: "あした、かいしゃ [ ? ] いきます。", de: "Morgen gehe ich zur Firma.", en: "Tomorrow I go to the company." }
+        { sentence: "ホテル [ ? ] いきます。", de: "Ich gehe zum Hotel.", en: "I go to the hotel.", jpn: "ホテルに行きます。" },
+        { sentence: "７じ [ ? ] おきる。", de: "Um 7 Uhr aufstehen.", en: "Wake up at 7 o'clock.", jpn: "7時に起きる。" },
+        { sentence: "あした、かいしゃ [ ? ] いきます。", de: "Morgen gehe ich zur Firma.", en: "Tomorrow I go to the company.", jpn: "明日、会社に行きます。" }
       ]
     },
     {
@@ -148,10 +357,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "でんしゃ で いきます。",
         exampleTrans: "I go by train."
       },
+      jpn: {
+        title: "動作の場所・手段 [ で ]",
+        explanation: "動作を行う場所（「どこで」）や、交通手段・道具（「何で」）を示します。",
+        exampleSentence: "でんしゃ で いきます。",
+        exampleTrans: "電車で行きます。"
+      },
       exercises: [
-        { sentence: "タクシー [ ? ] きた。", de: "Ich bin mit dem Taxi gekommen.", en: "I came by taxi." },
-        { sentence: "レストラン [ ? ] たべる。", de: "Im Restaurant essen.", en: "Eat at the restaurant." },
-        { sentence: "スマホ [ ? ] みる。", de: "Auf dem Smartphone ansehen.", en: "Watch on the smartphone." }
+        { sentence: "タクシー [ ? ] きた。", de: "Ich bin mit dem Taxi gekommen.", en: "I came by taxi.", jpn: "タクシーで来た。" },
+        { sentence: "レストラン [ ? ] たべる。", de: "Im Restaurant essen.", en: "Eat at the restaurant.", jpn: "レストランで食べる。" },
+        { sentence: "スマホ [ ? ] みる。", de: "Auf dem Smartphone ansehen.", en: "Watch on the smartphone.", jpn: "スマホで見る。" }
       ]
     },
     {
@@ -169,10 +384,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "あめ が ふっています。",
         exampleTrans: "Rain is falling. (Describing what is happening)"
       },
+      jpn: {
+        title: "主語・焦点 [ が ]",
+        explanation: "目の前の現象（天気など）や存在（「〜がある/いる」）、疑問詞の主語を示します。",
+        exampleSentence: "あめ が ふっています。",
+        exampleTrans: "雨が降っています。"
+      },
       exercises: [
-        { sentence: "ゆき [ ? ] ふる。", de: "Schnee fällt.", en: "Snow is falling." },
-        { sentence: "おかね [ ? ] あります。", de: "Ich habe Geld. (Geld existiert)", en: "I have money. (Money exists)" },
-        { sentence: "だれ [ ? ] いきますか。", de: "Wer geht?", en: "Who is going?" }
+        { sentence: "ゆき [ ? ] ふる。", de: "Schnee fällt.", en: "Snow is falling.", jpn: "雪が降る。" },
+        { sentence: "おかね [ ? ] あります。", de: "Ich habe Geld. (Geld existiert)", en: "I have money. (Money exists)", jpn: "お金があります。" },
+        { sentence: "だれ [ ? ] いきますか。", de: "Wer geht?", en: "Who is going?", jpn: "誰が行きますか。" }
       ]
     },
     {
@@ -190,10 +411,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "ともだち と たべる。",
         exampleTrans: "Eat with a friend."
       },
+      jpn: {
+        title: "共同・並列 [ と ]",
+        explanation: "名詞と名詞を繋ぐ「〜と」、または人と行動を共にする「〜と一緒に」を示します。",
+        exampleSentence: "ともだち と たべる。",
+        exampleTrans: "友達と食べる。"
+      },
       exercises: [
-        { sentence: "かぞく [ ? ] はなす。", de: "Mit der Familie sprechen.", en: "Talk with family." },
-        { sentence: "パン [ ? ] ぎゅうにゅう。", de: "Brot und Milch.", en: "Bread and milk." },
-        { sentence: "せんせい [ ? ] あう。", de: "Sich mit dem Lehrer treffen.", en: "Meet with the teacher." }
+        { sentence: "かぞく [ ? ] はなす。", de: "Mit der Familie sprechen.", en: "Talk with family.", jpn: "家族と話す。" },
+        { sentence: "パン [ ? ] ぎゅうにゅう。", de: "Brot und Milch.", en: "Bread and milk.", jpn: "パンと牛乳。" },
+        { sentence: "せんせい [ ? ] あう。", de: "Sich mit dem Lehrer treffen.", en: "Meet with the teacher.", jpn: "先生と会う。" }
       ]
     },
     {
@@ -211,10 +438,16 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "えき から きました。",
         exampleTrans: "I came from the station."
       },
+      jpn: {
+        title: "起点 [ から ]",
+        explanation: "場所や時間の出発点・始まり（「〜から」）を示します。",
+        exampleSentence: "えき から きました。",
+        exampleTrans: "駅から来ました。"
+      },
       exercises: [
-        { sentence: "ドイツ [ ? ] きました。", de: "Ich komme aus Deutschland.", en: "I came from Germany." },
-        { sentence: "９じ [ ? ] です。", de: "Es startet ab 9 Uhr.", en: "It starts at 9 o'clock." },
-        { sentence: "えき [ ? ] あるく。", de: "Vom Bahnhof aus laufen.", en: "Walk from the station." }
+        { sentence: "ドイツ [ ? ] きました。", de: "Ich komme aus Deutschland.", en: "I came from Germany.", jpn: "ドイツから来ました。" },
+        { sentence: "９じ [ ? ] です。", de: "Es startet ab 9 Uhr.", en: "It starts at 9 o'clock.", jpn: "9時からです。" },
+        { sentence: "えき [ ? ] あるく。", de: "Vom Bahnhof aus laufen.", en: "Walk from the station.", jpn: "駅から歩く。" }
       ]
     },
     {
@@ -232,13 +465,22 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         exampleSentence: "ホテル まで あるく。",
         exampleTrans: "Walk up to the hotel."
       },
+      jpn: {
+        title: "終点 [ まで ]",
+        explanation: "場所や時間の到達点・終わり（「〜まで」）を示します。",
+        exampleSentence: "ホテル まで あるく。",
+        exampleTrans: "ホテルまで歩く。"
+      },
       exercises: [
-        { sentence: "５じ [ ? ] はたらく。", de: "Bis 5 Uhr arbeiten.", en: "Work until 5 o'clock." },
-        { sentence: "えき [ ? ] おねがいします。", de: "Zum Bahnhof bitte.", en: "To the station, please." },
-        { sentence: "あした [ ? ] まつ。", de: "Bis morgen warten.", en: "Wait until tomorrow." }
+        { sentence: "５じ [ ? ] はたらく。", de: "Bis 5 Uhr arbeiten.", en: "Work until 5 o'clock.", jpn: "5時まで働く。" },
+        { sentence: "えき [ ? ] おねがいします。", de: "Zum Bahnhof bitte.", en: "To the station, please.", jpn: "駅までお願いします。" },
+        { sentence: "あした [ ? ] まつ。", de: "Bis morgen warten.", en: "Wait until tomorrow.", jpn: "明日まで待つ。" }
       ]
     }
   ];
+
+  // Aktives Lektions-Array (Vorrang für Supabase course_decks, sonst lokaler Fallback)
+  const lessons = (dbLessons && dbLessons.length > 0) ? dbLessons : fallbackLessons;
 
   const advanceToNext = () => {
     setFeedback(null);
@@ -282,9 +524,9 @@ const ParticleCrashcourse = ({ onBack, language }) => {
     setCurrentPhase('intro'); // Nach Reset wieder aufs Intro
   };
 
-  const currentLesson = lessons[currentLessonIndex];
-  const currentLessonData = currentLesson[language] || currentLesson.de;
-  const currentExercise = currentLesson.exercises[currentExerciseIndex];
+  const currentLesson = lessons[currentLessonIndex] || fallbackLessons[0];
+  const currentLessonData = currentLesson[currentLang] || currentLesson[dbSourceLang] || currentLesson.de;
+  const currentExercise = currentLesson.exercises[currentExerciseIndex] || currentLesson.exercises[0];
   
   const getSolvedSentence = () => {
     return currentExercise.sentence.replace("[ ? ]", `<span class="text-orange-400 font-extrabold mx-1">${currentLesson.correct}</span>`);
@@ -320,7 +562,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
         <p className="text-gray-400 text-xs tracking-widest uppercase mt-2">{t.subtitle}</p>
       </div>
 
-      {/* NEU: INTRO PHASE */}
+      {/* INTRO PHASE */}
       {currentPhase === 'intro' && (
         <div className="w-full max-w-sm flex flex-col items-center animate-fade-in pb-12">
           <div className="w-full bg-gray-800 rounded-3xl p-6 border border-orange-500/50 shadow-2xl relative mt-4">
@@ -389,7 +631,7 @@ const ParticleCrashcourse = ({ onBack, language }) => {
                     dangerouslySetInnerHTML={{ __html: getSolvedSentence() }}
                   ></p>
                   <p className="text-gray-300 text-sm italic">
-                    {currentExercise[language] || currentExercise.de}
+                    {currentExercise[currentLang] || currentExercise[dbSourceLang] || currentExercise.de}
                   </p>
                 </div>
 
