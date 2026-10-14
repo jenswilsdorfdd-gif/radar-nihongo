@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import { radarData } from '../data/radarData';
 import { deRadarData } from '../data/deRadarData';
 
 const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) => {
   const isGermanTarget = targetLanguage === 'de';
-  const currentLang = language || 'de';
+  const isEnglishTarget = targetLanguage === 'en';
+  const isDeOrEnTarget = isGermanTarget || isEnglishTarget;
+
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = 'phase3';
+  const dbDayNumber = day === 'emergency' ? 99 : Number(day);
 
   // Notfall-Szenarien für Deutsch (day === 'emergency')
   const emergencyScenariosDE = [
@@ -40,9 +49,50 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     }
   ];
 
-  // Datenquelle initialisieren
-  const getInitialQueue = () => {
-    if (isGermanTarget) {
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbDayDeck, setDbDayDeck] = useState(() => {
+    try {
+      const cachedMap = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      if (cachedMap) {
+        const parsed = JSON.parse(cachedMap);
+        return parsed?.[dbDayNumber] || parsed?.[day] || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Hilfsfunktion: Baut die Szenario-Queue aus einem Datenbank-Deck oder dem lokalen Fallback
+  const buildQueueFromDeck = (deckData) => {
+    if (deckData) {
+      if (Array.isArray(deckData)) return [...deckData];
+      if (Array.isArray(deckData.scenarios)) return [...deckData.scenarios];
+      if (Array.isArray(deckData.cards)) return [...deckData.cards];
+      if (deckData.context || deckData.scenario || deckData.german || deckData.english || deckData.userSpeech) {
+        return [deckData];
+      }
+    }
+
+    if (isDeOrEnTarget) {
       if (day === 'emergency') {
         return emergencyScenariosDE;
       }
@@ -65,7 +115,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     return jpData.scenarios ? [...jpData.scenarios] : [];
   };
 
-  const [queue, setQueue] = useState(getInitialQueue);
+  const [queue, setQueue] = useState(() => buildQueueFromDeck(dbDayDeck));
   const [isFinished, setIsFinished] = useState(false);
   
   const [step, setStep] = useState(1);
@@ -79,9 +129,65 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
 
   const [wrongScans, setWrongScans] = useState([]); 
 
+  // Abruf von ui_translations, course_manifests & course_decks aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCardData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', dbDayNumber)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        if (deckRes.data?.content && isMounted) {
+          setDbDayDeck(deckRes.data.content);
+          const loadedQueue = buildQueueFromDeck(deckRes.data.content);
+          if (loadedQueue.length > 0) {
+            setQueue(loadedQueue);
+          }
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Phase-3-Kartendaten aus Supabase:", err);
+      }
+    };
+
+    fetchCardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey, dbDayNumber]);
+
   const texts = {
     de: {
-      back: "Radar-Deck",
+      back: isEnglishTarget ? "UK-Radar-Deck" : "Radar-Deck",
       remaining: "Übrig:",
       scenario: "Szenario",
       action: "Aktion ausführen",
@@ -95,7 +201,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       failedSpeech: "Muster-Lösung:",
       perfectSpeech: "Ziel erfasst! Muster-Lösung:",
       npcReplies: "Gegenüber antwortet",
-      instructionPhase2: isGermanTarget 
+      instructionPhase2: isDeOrEnTarget 
         ? "Audio abspielen. Wie lautet die typische Reaktion vor Ort?"
         : "Audio abspielen und zuhören. Welche Information erkennst du?",
       targetAcquired: "Ziel erfasst",
@@ -109,14 +215,18 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       finishSub: "Radar-Mission beendet",
       backToMenu: "Zurück zum Deck",
       errorMsg: "Noch keine Missionen für Tag",
-      survivalHackTitle: "D/A/CH-Survival Hack:",
+      survivalHackTitle: isEnglishTarget ? "UK-Survival Hack:" : "D/A/CH-Survival Hack:",
+      emergencyLabel: "NOTFALL",
+      missionLabel: "Einsatz",
       
-      finishFinalTitle: isGermanTarget ? "D/A/CH Radar Komplett!" : "Phase 3 Komplett!",
-      finishFinalSub: isGermanTarget ? "21 Tage Survival GEMEISTERT! 🛡️" : "Stresstest ÜBERLEBT! 🥋",
+      finishFinalTitle: isGermanTarget ? "D/A/CH Radar Komplett!" : (isEnglishTarget ? "UK Radar Komplett!" : "Phase 3 Komplett!"),
+      finishFinalSub: isDeOrEnTarget ? "21 Tage Survival GEMEISTERT! 🛡️" : "Stresstest ÜBERLEBT! 🥋",
       finishFinalDesc: isGermanTarget 
         ? "Großartige Leistung! Du hast alle 21 kritischen Alltagstransaktionen in Deutschland, Österreich und der Schweiz trainiert. Bereit für Phase 4: Komposita-Scan?"
-        : "Wahnsinn! Du hast dein Gehör an das echte Japan-Tempo gewöhnt. Wenn du jetzt in Tokio an der Kasse stehst, bist du kein hilfloser Tourist mehr. Halte deine Reflexe scharf und wiederhole Missionen, wann immer du willst! Für tägliche Japan-Hacks sehen wir uns auf Insta. Bereit für den Feinschliff?",
-      finishFinalNext: isGermanTarget ? "Weiter zu Phase 4 (Komposita) 🏛️" : "Weiter zu Phase 4 (Kanji) 🏯",
+        : (isEnglishTarget
+            ? "Großartige Leistung! Du hast alle 21 kritischen Alltagstransaktionen in Großbritannien trainiert. Bereit für Phase 4: Advanced Fluency & Nuance?"
+            : "Wahnsinn! Du hast dein Gehör an das echte Japan-Tempo gewöhnt. Wenn du jetzt in Tokio an der Kasse stehst, bist du kein hilfloser Tourist mehr. Halte deine Reflexe scharf und wiederhole Missionen, wann immer du willst! Für tägliche Japan-Hacks sehen wir uns auf Insta. Bereit für den Feinschliff?"),
+      finishFinalNext: isGermanTarget ? "Weiter zu Phase 4 (Komposita) 🏛️" : (isEnglishTarget ? "Weiter zu Phase 4 (Advanced Fluency) 🏛️" : "Weiter zu Phase 4 (Kanji) 🏯"),
 
       motivations: {
         1: "Willkommen im Radar! Die ersten Signale im Nahverkehr sitzen. Weiter so!",
@@ -143,7 +253,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       }
     },
     en: {
-      back: "Radar Deck",
+      back: isEnglishTarget ? "UK Radar Deck" : "Radar Deck",
       remaining: "Remaining:",
       scenario: "Scenario",
       action: "Perform Action",
@@ -157,7 +267,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       failedSpeech: "Target solution:",
       perfectSpeech: "Target acquired! Solution:",
       npcReplies: "Counterpart replies",
-      instructionPhase2: isGermanTarget 
+      instructionPhase2: isDeOrEnTarget 
         ? "Play audio. How does the local counterpart respond?"
         : "Play audio and listen. What information do you recognize?",
       targetAcquired: "Target acquired",
@@ -171,14 +281,18 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       finishSub: "Radar Mission completed",
       backToMenu: "Back to Deck",
       errorMsg: "No missions yet for Day",
-      survivalHackTitle: "D/A/CH Survival Hack:",
+      survivalHackTitle: isEnglishTarget ? "UK Survival Hack:" : "D/A/CH Survival Hack:",
+      emergencyLabel: "EMERGENCY",
+      missionLabel: "Mission",
       
-      finishFinalTitle: isGermanTarget ? "D/A/CH Radar Complete!" : "Phase 3 Complete!",
-      finishFinalSub: isGermanTarget ? "21 Days of Survival MASTERED! 🛡️" : "Stress Test SURVIVED! 🥋",
+      finishFinalTitle: isGermanTarget ? "D/A/CH Radar Complete!" : (isEnglishTarget ? "UK Radar Complete!" : "Phase 3 Complete!"),
+      finishFinalSub: isDeOrEnTarget ? "21 Days of Survival MASTERED! 🛡️" : "Stress Test SURVIVED! 🥋",
       finishFinalDesc: isGermanTarget
         ? "Outstanding performance! You have mastered all 21 everyday transactions in Germany, Austria, and Switzerland. Ready for Phase 4: Compound Words?"
-        : "Amazing! You've tuned your ears to the real Japanese speed. When you stand at a cash register in Tokyo now, you're no helpless tourist anymore.",
-      finishFinalNext: isGermanTarget ? "Continue to Phase 4 (Compounds) 🏛️" : "Continue to Phase 4 (Kanji) 🏯",
+        : (isEnglishTarget
+            ? "Outstanding performance! You have mastered all 21 everyday survival transactions in the United Kingdom. Ready for Phase 4: Advanced Fluency & Nuance?"
+            : "Amazing! You've tuned your ears to the real Japanese speed. When you stand at a cash register in Tokyo now, you're no helpless tourist anymore."),
+      finishFinalNext: isGermanTarget ? "Continue to Phase 4 (Compounds) 🏛️" : (isEnglishTarget ? "Continue to Phase 4 (Advanced Fluency) 🏛️" : "Continue to Phase 4 (Kanji) 🏯"),
 
       motivations: {
         1: "Welcome to Radar! First signals in local transit are locked in.",
@@ -205,7 +319,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       }
     },
     jpn: {
-      back: "レーダー一覧",
+      back: isEnglishTarget ? "UKレーダー一覧" : "レーダー一覧",
       remaining: "残り:",
       scenario: "現場シチュエーション",
       action: "必須アクション",
@@ -219,7 +333,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       failedSpeech: "模範解答:",
       perfectSpeech: "即応成功！模範解答:",
       npcReplies: "相手の定型応答",
-      instructionPhase2: isGermanTarget 
+      instructionPhase2: isDeOrEnTarget 
         ? "音声を再生して相手（店員・駅員・警察）の応答を確認せよ。"
         : "音声を再生して内容を聞き取ってください。",
       targetAcquired: "目標捕捉",
@@ -233,12 +347,16 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       finishSub: "レーダー演習終了",
       backToMenu: "レーダー一覧へ戻る",
       errorMsg: "対象日のデータがありません",
-      survivalHackTitle: "D/A/CHサバイバル鉄則:",
+      survivalHackTitle: isEnglishTarget ? "UKサバイバル鉄則:" : "D/A/CHサバイバル鉄則:",
+      emergencyLabel: "緊急",
+      missionLabel: "ミッション",
       
-      finishFinalTitle: "実戦D/A/CHレーダー完全クリア！",
+      finishFinalTitle: isEnglishTarget ? "実戦UKレーダー完全クリア！" : "実戦D/A/CHレーダー完全クリア！",
       finishFinalSub: "21日間サバイバル制覇！🛡️",
-      finishFinalDesc: "圧倒的成果です！ドイツ・オーストリア・スイスの21大現場トランザクションをすべて反射レベルでクリアしました。次は第4フェーズ：複合語スキャン（Komposita）へ進みます！",
-      finishFinalNext: "第4フェーズ（複合語スキャン）へ進む 🏛️",
+      finishFinalDesc: isEnglishTarget
+        ? "圧倒的成果です！イギリスの21大現場トランザクションをすべて反射レベルでクリアしました。次は第4フェーズ：上級表現＆ビジネスニュアンスへ進みます！"
+        : "圧倒的成果です！ドイツ・オーストリア・スイスの21大現場トランザクションをすべて反射レベルでクリアしました。次は第4フェーズ：複合語スキャン（Komposita）へ進みます！",
+      finishFinalNext: isEnglishTarget ? "第4フェーズ（上級表現）へ進む 🏛️" : "第4フェーズ（複合語スキャン）へ進む 🏛️",
 
       motivations: {
         1: "レーダーへようこそ！信用乗車の打刻確認が身体に染み込みました。",
@@ -266,39 +384,83 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     }
   };
 
-  const t = texts[currentLang === 'jpn' ? 'jpn' : (texts[currentLang] ? currentLang : 'de')] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
+
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    remaining: dbUiTexts?.remaining || fallbackT.remaining,
+    scenario: dbUiTexts?.scenario || fallbackT.scenario,
+    action: dbUiTexts?.action || fallbackT.action,
+    vocabHint: dbUiTexts?.vocabHint || fallbackT.vocabHint,
+    scanActive: dbUiTexts?.scanActive || fallbackT.scanActive,
+    listenActive: dbUiTexts?.listenActive || fallbackT.listenActive,
+    listenPrompt: dbUiTexts?.listenPrompt || fallbackT.listenPrompt,
+    yourInput: dbUiTexts?.yourInput || fallbackT.yourInput,
+    retrySpeech: dbUiTexts?.retrySpeech || fallbackT.retrySpeech,
+    retrySpeechSuffix: dbUiTexts?.retrySpeechSuffix || fallbackT.retrySpeechSuffix,
+    failedSpeech: dbUiTexts?.failedSpeech || fallbackT.failedSpeech,
+    perfectSpeech: dbUiTexts?.perfectSpeech || fallbackT.perfectSpeech,
+    npcReplies: dbUiTexts?.npcReplies || fallbackT.npcReplies,
+    targetAcquired: dbUiTexts?.targetAcquired || fallbackT.targetAcquired,
+    targetFailed: dbUiTexts?.targetFailed || fallbackT.targetFailed,
+    btnNextPhase: dbUiTexts?.btnNextPhase || fallbackT.btnNextPhase,
+    btnRetry: dbUiTexts?.btnRetry || fallbackT.btnRetry,
+    btnGotIt: dbUiTexts?.btnGotIt || fallbackT.btnGotIt,
+    btnSkip: dbUiTexts?.btnSkip || fallbackT.btnSkip,
+    btnNextCard: dbUiTexts?.btnNextCard || fallbackT.btnNextCard,
+    finishTitle: dbUiTexts?.finishTitle || fallbackT.finishTitle,
+    finishSub: dbUiTexts?.finishSub || fallbackT.finishSub,
+    backToMenu: dbUiTexts?.backToMenu || fallbackT.backToMenu,
+    errorMsg: dbUiTexts?.errorMsg || fallbackT.errorMsg,
+    emergencyLabel: dbUiTexts?.emergencyLabel || fallbackT.emergencyLabel,
+    missionLabel: dbUiTexts?.missionLabel || fallbackT.missionLabel,
+    motivations: {
+      ...fallbackT.motivations,
+      ...(dbUiTexts?.motivationsPhase3 || {})
+    },
+    back: dbCourseManifest?.card3BackDeck || fallbackT.back,
+    instructionPhase2: dbCourseManifest?.card3InstructionPhase2 || fallbackT.instructionPhase2,
+    survivalHackTitle: dbCourseManifest?.card3SurvivalHackTitle || fallbackT.survivalHackTitle,
+    finishFinalTitle: dbCourseManifest?.card3FinishFinalTitle || fallbackT.finishFinalTitle,
+    finishFinalSub: dbCourseManifest?.card3FinishFinalSub || fallbackT.finishFinalSub,
+    finishFinalDesc: dbCourseManifest?.card3FinishFinalDesc || fallbackT.finishFinalDesc,
+    finishFinalNext: dbCourseManifest?.card3FinishFinalNext || fallbackT.finishFinalNext
+  };
 
   useEffect(() => {
-    setQueue(getInitialQueue());
+    setQueue(buildQueueFromDeck(dbDayDeck));
     setIsFinished(false);
     resetState();
-  }, [day, targetLanguage]);
+  }, [day, targetLanguage, dbDayDeck]);
 
   const currentScenario = queue[0];
-  const isScanner = !isGermanTarget && currentScenario?.type === 'scanner'; 
+  const isScanner = !isDeOrEnTarget && currentScenario?.type === 'scanner'; 
 
-  // Sprachsynthese: Dynamisch de-DE oder ja-JP
+  // Sprachsynthese: Dynamisch de-DE, en-GB oder ja-JP
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      const cleanText = isGermanTarget
+      const cleanText = isDeOrEnTarget
         ? text.replace(/\[.*?\]/g, '').trim()
         : text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
-      utterance.rate = isGermanTarget ? 0.92 : 0.90; 
+      utterance.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP');
+      utterance.rate = isDeOrEnTarget ? 0.92 : 0.90; 
       window.speechSynthesis.speak(utterance);
     }
   };
 
   useEffect(() => {
     if (speechResult === 'failed' && currentScenario) {
-      const speechToPlay = isGermanTarget ? currentScenario.audioText : currentScenario.userSpeech;
+      const speechToPlay = isDeOrEnTarget
+        ? (currentScenario.audioText || currentScenario.german || currentScenario.english || currentScenario.userSpeech)
+        : currentScenario.userSpeech;
       if (speechToPlay) playAudio(speechToPlay);
     }
-  }, [speechResult, currentScenario, isGermanTarget]);
+  }, [speechResult, currentScenario, isDeOrEnTarget]);
 
-  // Spracherkennung[cite: 4]
+  // Spracherkennung
   const handleListen = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -307,7 +469,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = isGermanTarget ? 'de-DE' : 'ja-JP'; 
+    recognition.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP'); 
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -321,8 +483,10 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       const result = event.results[0][0].transcript;
       setTranscript(result);
       
-      const expectedText = isGermanTarget ? currentScenario.german : currentScenario.userSpeech;
-      const isPerfect = isGermanTarget 
+      const expectedText = isDeOrEnTarget
+        ? (currentScenario.german || currentScenario.english || currentScenario.userSpeech)
+        : currentScenario.userSpeech;
+      const isPerfect = isDeOrEnTarget 
         ? evaluateSpeechDE(expectedText, result)
         : evaluateSpeechJP(expectedText, result);
       
@@ -388,7 +552,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     setWrongScans([]); 
   };
 
-  // Tolerante Erkennung für deutsche Transkriptionen
+  // Tolerante Erkennung für deutsche & englische Transkriptionen
   const evaluateSpeechDE = (expectedRaw, transcriptRaw) => {
     if (!transcriptRaw || !expectedRaw) return false;
     const clean = (s) => s.toLowerCase().replace(/[^a-zäöüß0-9]/gi, '');
@@ -397,7 +561,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     return cleanInput.includes(cleanExpected) || cleanExpected.includes(cleanInput);
   };
 
-  // Ursprüngliche Erkennung für Japanisch[cite: 4]
+  // Ursprüngliche Erkennung für Japanisch
   const evaluateSpeechJP = (expectedRaw, transcriptRaw) => {
     if (!transcriptRaw || !expectedRaw) return false;
 
@@ -417,22 +581,22 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     return cleanTranscript.includes(expectedKanji) || cleanTranscript.includes(expectedKana);
   };
 
-  const particleInfo = {
-    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')" },
-    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)" },
-    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)" },
-    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)" },
-    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)" },
-    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)" },
-    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)" },
-    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)" },
-    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)" }
+  const fallbackParticleInfo = {
+    "は": { de: "Thema ('Was ... angeht')", en: "Topic ('As for...')", jpn: "主題（〜は）" },
+    "を": { de: "Objekt (Ziel der Handlung)", en: "Object (Target of action)", jpn: "目的語（〜を）" },
+    "に": { de: "Ziel/Zeit (Wohin/Wann)", en: "Target/Time (Where to/When)", jpn: "到着点・時間（〜に）" },
+    "で": { de: "Ort/Mittel (Wo/Womit)", en: "Location/Means (Where/With what)", jpn: "場所・手段（〜で）" },
+    "が": { de: "Subjekt (Wer/Was)", en: "Subject (Who/What)", jpn: "主語（〜が）" },
+    "と": { de: "Mit/Und (Zusammen mit)", en: "With/And (Together with)", jpn: "共同・並列（〜と）" },
+    "へ": { de: "Richtung (Nach/Zu)", en: "Direction (Towards)", jpn: "方向（〜へ）" },
+    "から": { de: "Start (Von/Aus/Ab)", en: "Starting point (From/Since)", jpn: "起点（〜から）" },
+    "まで": { de: "Endpunkt (Bis)", en: "Ending point (Until/Up to)", jpn: "終点（〜まで）" }
   };
   const particleRegex = /(から|まで|を|は(?![いじんらかきし])|が(?![っつお])|に(?![くもちほんぎ])|で(?![すしんき])|と(?![もてけきこ])|へ)/g;
 
   const renderTextWithFuriganaAndParticles = (text) => {
     if (!text) return null;
-    if (isGermanTarget) return <span>{text}</span>;
+    if (isDeOrEnTarget) return <span>{text}</span>;
     
     const parts = text.split(/([^\s、。！？「」]+{[^}]+})/g);
     
@@ -450,13 +614,14 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
       
       const subParts = part.split(particleRegex);
       return subParts.map((sub, j) => {
-        if (particleInfo[sub]) {
+        if (fallbackParticleInfo[sub]) {
+          const tooltipText = dbUiTexts?.particleInfo?.[sub] || fallbackParticleInfo[sub][currentLang] || fallbackParticleInfo[sub].de;
           return (
             <span key={`${i}-${j}`} className="relative group inline-block cursor-help text-orange-400 font-bold mx-[1px] transition-colors hover:text-orange-300">
               {sub}
               <span className="absolute bottom-[120%] left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-gray-200 text-xs sm:text-sm p-3 rounded-xl border-2 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-relaxed font-sans font-normal whitespace-normal block">
                 <span className="block text-orange-400 font-bold mb-1 border-b border-gray-700 pb-1 text-lg leading-none">{sub}</span>
-                {particleInfo[sub][currentLang]}
+                {tooltipText}
                 <span className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-orange-500/50"></span>
               </span>
             </span>
@@ -539,12 +704,15 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
     return (
       <div className="flex-1 w-full bg-gray-900 text-white p-6 flex flex-col items-center justify-center">
         <h2 className="text-xl font-bold text-yellow-500 mb-4">{t.errorMsg} {day}</h2>
-        <button onClick={onBack} className="bg-gray-700 py-3 px-6 rounded-xl font-bold cursor-pointer">Zurück</button>
+        <button onClick={onBack} className="bg-gray-700 py-3 px-6 rounded-xl font-bold cursor-pointer">{t.backToMenu}</button>
       </div>
     );
   }
 
-  const isAnswerCorrect = isGermanTarget ? true : (isScanner ? step === 3 : selectedIndex === currentScenario.correctIndex);
+  const isAnswerCorrect = isDeOrEnTarget ? true : (isScanner ? step === 3 : selectedIndex === currentScenario.correctIndex);
+  const targetSpeechText = isDeOrEnTarget
+    ? (currentScenario.german || currentScenario.english || currentScenario.userSpeech)
+    : currentScenario.userSpeech;
 
   return (
     <div className="flex-1 w-full max-w-full bg-gray-900 text-white p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -555,7 +723,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
           &larr; {t.back}
         </button>
         <span className="text-yellow-500 text-xs sm:text-sm font-bold">
-          {day === 'emergency' ? 'NOTFALL' : `Einsatz ${day}`} | {t.remaining} {queue.length}
+          {day === 'emergency' ? t.emergencyLabel : `${t.missionLabel} ${day}`} | {t.remaining} {queue.length}
         </span>
       </div>
 
@@ -651,10 +819,10 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
                   )}
                   <div className="flex justify-between items-start">
                     <p className="text-lg font-bold text-white leading-relaxed">
-                      {isGermanTarget ? currentScenario.german : renderTextWithFuriganaAndParticles(currentScenario.userSpeech)}
+                      {isDeOrEnTarget ? targetSpeechText : renderTextWithFuriganaAndParticles(targetSpeechText)}
                     </p>
                     <button 
-                      onClick={() => playAudio(isGermanTarget ? currentScenario.german : currentScenario.userSpeech)} 
+                      onClick={() => playAudio(targetSpeechText)} 
                       className="text-blue-400 text-lg ml-2 active:scale-90 flex-shrink-0 cursor-pointer"
                     >
                       🔊
@@ -679,7 +847,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
         </div>
 
         {/* Phase 2: Gegenüber antwortet (nur Japanisch) */}
-        {step === 2 && !isGermanTarget && !isScanner && (
+        {step === 2 && !isDeOrEnTarget && !isScanner && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-4 animate-fade-in text-center">
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">{t.npcReplies}</p>
             
@@ -705,13 +873,13 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
           </div>
         )}
 
-        {/* Phase 2 für Deutsch: Gegenüber antwortet & Survival Hack */}
-        {step === 2 && isGermanTarget && (
+        {/* Phase 2 für Deutsch / Englisch: Gegenüber antwortet & Survival Hack */}
+        {step === 2 && isDeOrEnTarget && (
           <div className="w-full bg-gray-800 rounded-2xl p-6 border border-blue-500/40 mb-4 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
               <p className="text-blue-400 text-xs font-bold tracking-widest uppercase">{t.npcReplies}</p>
               <button 
-                onClick={() => playAudio(currentScenario.counterpart)} 
+                onClick={() => playAudio(currentScenario.counterpart || currentScenario.npcReply)} 
                 className="text-blue-400 hover:text-white text-xl cursor-pointer"
               >
                 🔊
@@ -719,10 +887,10 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
             </div>
 
             <p className="text-lg font-bold text-white mb-2 leading-relaxed">
-              "{currentScenario.counterpart}"
+              "{currentScenario.counterpart || currentScenario.npcReply}"
             </p>
             <p className="text-sm text-yellow-400 italic mb-6">
-              "{currentScenario.counterpartTranslation}"
+              "{currentScenario.counterpartTranslation || currentScenario.npcTranslation}"
             </p>
 
             {currentScenario.survivalHack && (
@@ -739,7 +907,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
         )}
 
         {/* Phase 3: Abschluss/Auswertung für Japanisch */}
-        {step === 3 && !isGermanTarget && (
+        {step === 3 && !isDeOrEnTarget && (
           <div className={`w-full rounded-2xl p-6 border mb-4 animate-fade-in relative overflow-hidden ${isAnswerCorrect ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
             <div className={`absolute top-0 left-0 w-1 h-full ${isAnswerCorrect ? 'bg-green-500' : 'bg-red-500'}`}></div>
             
@@ -799,8 +967,8 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
           </div>
         )}
 
-        {/* Next Card Trigger bei Deutsch in Phase 2 */}
-        {step === 2 && isGermanTarget && (
+        {/* Next Card Trigger bei Deutsch / Englisch in Phase 2 */}
+        {step === 2 && isDeOrEnTarget && (
           <div className="flex gap-2">
             <button 
               onClick={() => advanceQueue(false)} 
@@ -818,7 +986,7 @@ const Flashcard = ({ day, onBack, onNextDay, language, targetLanguage = 'jp' }) 
         )}
         
         {/* Next Card Trigger bei Japanisch in Phase 3 */}
-        {step === 3 && !isGermanTarget && (
+        {step === 3 && !isDeOrEnTarget && (
           <button 
             onClick={() => advanceQueue(isAnswerCorrect)} 
             className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white active:scale-95 transition-all shadow-lg border border-gray-600 cursor-pointer"
