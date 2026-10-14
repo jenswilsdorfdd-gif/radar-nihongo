@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 const Welcome = ({ onStart }) => {
@@ -15,6 +15,58 @@ const Welcome = ({ onStart }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageStatus, setMessageStatus] = useState(null); // 'success' | 'error' | null
+
+  // Normierter Sprach-Key für Supabase ('de', 'en', 'jp')
+  const dbSourceLang = (sourceLang === 'jpn' || sourceLang === 'jp') ? 'jp' : (sourceLang || 'en');
+
+  // --- SUPABASE STATE (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Abruf von ui_translations aus Supabase bei Änderung der Ausgangssprache
+  useEffect(() => {
+    let isMounted = true;
+
+    // Sofort aus LocalStorage-Cache laden, falls bereits vorhanden
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      if (cached && isMounted) {
+        setDbUiTexts(JSON.parse(cached));
+      }
+    } catch {
+      // Cache-Fehler ignorieren
+    }
+
+    const fetchWelcomeTexts = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('ui_translations')
+          .select('content')
+          .eq('lang_code', dbSourceLang)
+          .single();
+
+        if (!fetchError && data?.content && isMounted) {
+          setDbUiTexts(data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(data.content));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der Welcome-Texte aus Supabase:", err);
+      }
+    };
+
+    fetchWelcomeTexts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang]);
 
   // --- GOD MODE TRIGGER ---
   const [clickCount, setClickCount] = useState(0);
@@ -90,8 +142,40 @@ const Welcome = ({ onStart }) => {
   };
 
   // Live-Übersetzung basierend auf der aktuellen Dropdown-Auswahl der Muttersprache
-  const activeTextKey = sourceLang === 'jp' ? 'jpn' : sourceLang;
-  const t = texts[activeTextKey] || texts.de;
+  const activeTextKey = (sourceLang === 'jp' || sourceLang === 'jpn') ? 'jpn' : sourceLang;
+  const fallbackT = texts[activeTextKey] || texts.de;
+
+  // Zusammenführung: Supabase-Werte aus ui_translations haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    title: dbUiTexts?.welcomeTitle || fallbackT.title,
+    subtitle: dbUiTexts?.welcomeSubtitle || fallbackT.subtitle,
+    intro: dbUiTexts?.welcomeIntro || fallbackT.intro,
+    targetLabel: dbUiTexts?.welcomeTargetLabel || fallbackT.targetLabel,
+    sourceLabel: dbUiTexts?.welcomeSourceLabel || fallbackT.sourceLabel,
+    btnGuest: dbUiTexts?.welcomeBtnGuest || fallbackT.btnGuest,
+    cloudDivider: dbUiTexts?.welcomeCloudDivider || fallbackT.cloudDivider,
+    cloudHint: dbUiTexts?.welcomeCloudHint || fallbackT.cloudHint,
+    emailLabel: dbUiTexts?.welcomeEmailLabel || fallbackT.emailLabel,
+    emailPlaceholder: dbUiTexts?.welcomeEmailPlaceholder || fallbackT.emailPlaceholder,
+    btnStart: dbUiTexts?.welcomeBtnStart || fallbackT.btnStart,
+    btnLoading: dbUiTexts?.welcomeBtnLoading || fallbackT.btnLoading,
+    successMsg: dbUiTexts?.welcomeSuccessMsg || fallbackT.successMsg,
+    errorMsg: dbUiTexts?.welcomeErrorMsg || fallbackT.errorMsg,
+    langs: {
+      ...fallbackT.langs,
+      ...(dbUiTexts?.welcomeLangs || {})
+    }
+  };
+
+  // Falls bereits eine Statusmeldung sichtbar ist, bei Sprachwechsel dynamisch mitübersetzen
+  useEffect(() => {
+    if (messageStatus === 'success') {
+      setMessage(t.successMsg);
+    } else if (messageStatus === 'error') {
+      setMessage(t.errorMsg);
+    }
+  }, [sourceLang, dbUiTexts]);
 
   // Gast-Start: Direkt ohne Login loslegen
   const handleStartAsGuest = () => {
@@ -109,6 +193,7 @@ const Welcome = ({ onStart }) => {
 
     setLoading(true);
     setMessage('');
+    setMessageStatus(null);
 
     try {
       // Supabase Magic Link
@@ -127,14 +212,18 @@ const Welcome = ({ onStart }) => {
       const result = await Promise.race([supabaseCall, timeoutPromise]);
 
       if (result && result.timeout) {
+        setMessageStatus('success');
         setMessage(t.successMsg);
       } else if (result.error) {
+        setMessageStatus('error');
         setMessage(t.errorMsg);
         console.error("Auth Error:", result.error.message, result.error);
       } else {
+        setMessageStatus('success');
         setMessage(t.successMsg);
       }
     } catch (err) {
+      setMessageStatus('error');
       setMessage(t.errorMsg);
       console.error("Unexpected Auth Error:", err);
     } finally {
@@ -247,7 +336,7 @@ const Welcome = ({ onStart }) => {
           </p>
 
           {message ? (
-            <div className={`w-full p-3 rounded-xl font-bold text-xs ${message === t.successMsg ? 'bg-green-900/30 text-green-400 border border-green-500/30' : 'bg-red-900/30 text-red-400 border border-red-500/30'}`}>
+            <div className={`w-full p-3 rounded-xl font-bold text-xs ${messageStatus === 'success' || message === t.successMsg ? 'bg-green-900/30 text-green-400 border border-green-500/30' : 'bg-red-900/30 text-red-400 border border-red-500/30'}`}>
               {message}
             </div>
           ) : (
