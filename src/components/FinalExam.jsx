@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 
 // --- ROBUSTER SHUFFLE ALGORITHMUS (Fisher-Yates) ---
 const shuffleArray = (array) => {
@@ -13,94 +14,94 @@ const shuffleArray = (array) => {
 // --- FRAGENPOOL JAPANISCH (JLPT-N5 & RADAR JP) ---
 const masterPoolJP = [
   // --- KANA ---
-  { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びょういん", en: "Hospital or Hairdresser? Read: びょういん" }, options: [{de: "Krankenhaus", en: "Hospital"}, {de: "Friseur", en: "Hairdresser"}, {de: "Arzt", en: "Doctor"}, {de: "Firma", en: "Company"}], correct: 0 },
-  { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びよういん", en: "Hospital or Hairdresser? Read: びよういん" }, options: [{de: "Friseur", en: "Hairdresser"}, {de: "Krankenhaus", en: "Hospital"}, {de: "Schule", en: "School"}, {de: "Arzt", en: "Doctor"}], correct: 0 },
-  { category: 'kana', q: { de: "Oma oder Tante? Lies: おばあさん", en: "Grandma or Aunt? Read: おばあさん" }, options: [{de: "Oma / Ältere Frau", en: "Grandma / Old lady"}, {de: "Tante", en: "Aunt"}, {de: "Mutter", en: "Mother"}, {de: "Schwester", en: "Sister"}], correct: 0 },
-  { category: 'kana', q: { de: "Lies das Katakana-Wort: コンピューター", en: "Read the Katakana: コンピューター" }, options: [{de: "Computer", en: "Computer"}, {de: "Kamera", en: "Camera"}, {de: "Kaffee", en: "Coffee"}, {de: "Konzert", en: "Concert"}], correct: 0 },
-  { category: 'kana', q: { de: "Was bedeutet: ぎゅうにゅう", en: "What means: ぎゅうにゅう" }, options: [{de: "Kuhmilch", en: "Cow milk"}, {de: "Rindfleisch", en: "Beef"}, {de: "Schwein", en: "Pork"}, {de: "Zwiebel", en: "Onion"}], correct: 0 },
-  { category: 'kana', q: { de: "Lies: じゅぎょう", en: "Read: じゅぎょう" }, options: [{de: "Unterricht", en: "Class / Lesson"}, {de: "Firma", en: "Company"}, {de: "Mitarbeiter", en: "Employee"}, {de: "Schüler", en: "Student"}], correct: 0 },
-  { category: 'kana', q: { de: "Finde die Silbe: 'pya'", en: "Find the syllable: 'pya'" }, options: ["ぴゃ", "びゃ", "ひゃ", "ぱや"], correct: 0 },
-  { category: 'kana', q: { de: "Lies: きょう", en: "Read: きょう" }, options: [{de: "Heute", en: "Today"}, {de: "Morgen", en: "Tomorrow"}, {de: "Gestern", en: "Yesterday"}, {de: "Kaiser", en: "Emperor"}], correct: 0 },
-  { category: 'kana', q: { de: "Finde das Katakana 'shi':", en: "Find Katakana 'shi':" }, options: ["シ", "ツ", "ソ", "ン"], correct: 0 },
-  { category: 'kana', q: { de: "Lies: がっこう", en: "Read: がっこう" }, options: [{de: "Schule", en: "School"}, {de: "Schüler", en: "Student"}, {de: "Lehrer", en: "Teacher"}, {de: "Firma", en: "Company"}], correct: 0 },
-  { category: 'kana', q: { de: "Lies: しゅくだい", en: "Read: しゅくだい" }, options: [{de: "Hausaufgaben", en: "Homework"}, {de: "Unterricht", en: "Lesson"}, {de: "Prüfung", en: "Exam"}, {de: "Lehrer", en: "Teacher"}], correct: 0 },
-  { category: 'kana', q: { de: "Lies das Katakana: コーヒー", en: "Read Katakana: コーヒー" }, options: [{de: "Kaffee", en: "Coffee"}, {de: "Kola", en: "Cola"}, {de: "Kuchen", en: "Cake"}, {de: "Kopie", en: "Copy"}], correct: 0 },
-  { category: 'kana', q: { de: "Was bedeutet: ちょっと", en: "What means: ちょっと" }, options: [{de: "Ein bisschen / Kurz", en: "A little / A moment"}, {de: "Viel", en: "A lot"}, {de: "Warte", en: "Wait"}, {de: "Schnell", en: "Fast"}], correct: 0 },
-  { category: 'kana', q: { de: "Finde die Silbe: 'gyo'", en: "Find the syllable: 'gyo'" }, options: ["ぎょ", "ぎゅ", "きゃ", "きょ"], correct: 0 },
+  { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びょういん", en: "Hospital or Hairdresser? Read: びょういん", jpn: "読み分け問題: びょういん" }, options: [{de: "Krankenhaus", en: "Hospital", jpn: "病院"}, {de: "Friseur", en: "Hairdresser", jpn: "美容院"}, {de: "Arzt", en: "Doctor", jpn: "医者"}, {de: "Firma", en: "Company", jpn: "会社"}], correct: 0 },
+  { category: 'kana', q: { de: "Krankenhaus oder Friseur? Lies: びよういん", en: "Hospital or Hairdresser? Read: びよういん", jpn: "読み分け問題: びよういん" }, options: [{de: "Friseur", en: "Hairdresser", jpn: "美容院"}, {de: "Krankenhaus", en: "Hospital", jpn: "病院"}, {de: "Schule", en: "School", jpn: "学校"}, {de: "Arzt", en: "Doctor", jpn: "医者"}], correct: 0 },
+  { category: 'kana', q: { de: "Oma oder Tante? Lies: おばあさん", en: "Grandma or Aunt? Read: おばあさん", jpn: "長音識別: おばあさん" }, options: [{de: "Oma / Ältere Frau", en: "Grandma / Old lady", jpn: "祖母・年配の女性"}, {de: "Tante", en: "Aunt", jpn: "叔母"}, {de: "Mutter", en: "Mother", jpn: "母"}, {de: "Schwester", en: "Sister", jpn: "姉妹"}], correct: 0 },
+  { category: 'kana', q: { de: "Lies das Katakana-Wort: コンピューター", en: "Read the Katakana: コンピューター", jpn: "カタカナ読解: コンピューター" }, options: [{de: "Computer", en: "Computer", jpn: "Computer"}, {de: "Kamera", en: "Camera", jpn: "Camera"}, {de: "Kaffee", en: "Coffee", jpn: "Coffee"}, {de: "Konzert", en: "Concert", jpn: "Concert"}], correct: 0 },
+  { category: 'kana', q: { de: "Was bedeutet: ぎゅうにゅう", en: "What means: ぎゅうにゅう", jpn: "語彙の意味: ぎゅうにゅう" }, options: [{de: "Kuhmilch", en: "Cow milk", jpn: "牛乳"}, {de: "Rindfleisch", en: "Beef", jpn: "牛肉"}, {de: "Schwein", en: "Pork", jpn: "豚肉"}, {de: "Zwiebel", en: "Onion", jpn: "玉ねぎ"}], correct: 0 },
+  { category: 'kana', q: { de: "Lies: じゅぎょう", en: "Read: じゅぎょう", jpn: "語彙の意味: じゅぎょう" }, options: [{de: "Unterricht", en: "Class / Lesson", jpn: "授業"}, {de: "Firma", en: "Company", jpn: "会社"}, {de: "Mitarbeiter", en: "Employee", jpn: "社員"}, {de: "Schüler", en: "Student", jpn: "生徒"}], correct: 0 },
+  { category: 'kana', q: { de: "Finde die Silbe: 'pya'", en: "Find the syllable: 'pya'", jpn: "拗音を選択: 'pya'" }, options: ["ぴゃ", "びゃ", "ひゃ", "ぱや"], correct: 0 },
+  { category: 'kana', q: { de: "Lies: きょう", en: "Read: きょう", jpn: "意味を選択: きょう" }, options: [{de: "Heute", en: "Today", jpn: "今日"}, {de: "Morgen", en: "Tomorrow", jpn: "明日"}, {de: "Gestern", en: "Yesterday", jpn: "昨日"}, {de: "Kaiser", en: "Emperor", jpn: "天皇"}], correct: 0 },
+  { category: 'kana', q: { de: "Finde das Katakana 'shi':", en: "Find Katakana 'shi':", jpn: "カタカナの「shi」はどれ？" }, options: ["シ", "ツ", "ソ", "ン"], correct: 0 },
+  { category: 'kana', q: { de: "Lies: がっこう", en: "Read: がっこう", jpn: "意味を選択: がっこう" }, options: [{de: "Schule", en: "School", jpn: "学校"}, {de: "Schüler", en: "Student", jpn: "学生"}, {de: "Lehrer", en: "Teacher", jpn: "先生"}, {de: "Firma", en: "Company", jpn: "会社"}], correct: 0 },
+  { category: 'kana', q: { de: "Lies: しゅくだい", en: "Read: しゅくだい", jpn: "意味を選択: しゅくだい" }, options: [{de: "Hausaufgaben", en: "Homework", jpn: "宿題"}, {de: "Unterricht", en: "Lesson", jpn: "授業"}, {de: "Prüfung", en: "Exam", jpn: "試験"}, {de: "Lehrer", en: "Teacher", jpn: "先生"}], correct: 0 },
+  { category: 'kana', q: { de: "Lies das Katakana: コーヒー", en: "Read Katakana: コーヒー", jpn: "カタカナ読解: コーヒー" }, options: [{de: "Kaffee", en: "Coffee", jpn: "Coffee"}, {de: "Kola", en: "Cola", jpn: "Cola"}, {de: "Kuchen", en: "Cake", jpn: "Cake"}, {de: "Kopie", en: "Copy", jpn: "Copy"}], correct: 0 },
+  { category: 'kana', q: { de: "Was bedeutet: ちょっと", en: "What means: ちょっと", jpn: "意味を選択: ちょっと" }, options: [{de: "Ein bisschen / Kurz", en: "A little / A moment", jpn: "少し・ちょっと"}, {de: "Viel", en: "A lot", jpn: "たくさん"}, {de: "Warte", en: "Wait", jpn: "待って"}, {de: "Schnell", en: "Fast", jpn: "速い"}], correct: 0 },
+  { category: 'kana', q: { de: "Finde die Silbe: 'gyo'", en: "Find the syllable: 'gyo'", jpn: "拗音を選択: 'gyo'" }, options: ["ぎょ", "ぎゅ", "きゃ", "きょ"], correct: 0 },
 
   // --- KANJI (N5) ---
-  { category: 'kanji', q: { de: "Lies: 今日", en: "Read: 今日" }, options: ["きょう", "まいにち", "あした", "きのう"], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 毎日", en: "Read: 毎日" }, options: ["まいにち", "きょう", "いつか", "にちようび"], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 日本", en: "What means: 日本" }, options: [{de: "Japan", en: "Japan"}, {de: "Sonntag", en: "Sunday"}, {de: "Buch", en: "Book"}, {de: "Heute", en: "Today"}], correct: 0 },
-  { category: 'kanji', q: { de: "Finde das Kanji für 'Mensch/Person':", en: "Find Kanji for 'Person':" }, options: ["人", "入", "八", "大"], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 水曜日", en: "Read: 水曜日" }, options: [{de: "すいようび (Mittwoch)", en: "すいようび (Wednesday)"}, {de: "かようび (Dienstag)", en: "かようび (Tuesday)"}, {de: "もくようび (Donnerstag)", en: "もくようび (Thursday)"}, {de: "きんようび (Freitag)", en: "きんようび (Friday)"}], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 休み", en: "What means: 休み" }, options: [{de: "Pause / Ausruhen", en: "Break / Rest"}, {de: "Baum", en: "Tree"}, {de: "Buch", en: "Book"}, {de: "Körper", en: "Body"}], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 月", en: "Read: 月" }, options: ["つき / げつ", "ひ / にち", "き", "みず"], correct: 0 },
-  { category: 'kanji', q: { de: "Finde das Kanji für 'Baum/Holz':", en: "Find Kanji for 'Tree':" }, options: ["木", "本", "休", "体"], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 男の人", en: "What means: 男の人" }, options: [{de: "Mann", en: "Man"}, {de: "Frau", en: "Woman"}, {de: "Kind", en: "Child"}, {de: "Mädchen", en: "Girl"}], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 山川さん", en: "What means: 山川さん" }, options: [{de: "Yamakawa-san (Name)", en: "Yamakawa-san (Name)"}, {de: "Fluss und Berg", en: "River and Mountain"}, {de: "Herr Berg", en: "Mr. Mountain"}, {de: "Frau Fluss", en: "Ms. River"}], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 食べます", en: "Read: 食べます" }, options: ["たべます", "のみます", "みます", "いきます"], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 飲みます", en: "Read: 飲みます" }, options: ["のみます", "たべます", "よみます", "かきます"], correct: 0 },
-  { category: 'kanji', q: { de: "Finde das Kanji für 'Groß':", en: "Find Kanji for 'Big':" }, options: ["大", "小", "中", "太"], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 行きます", en: "Read: 行きます" }, options: ["いきます", "きます", "みます", "します"], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 百", en: "What means: 百" }, options: [{de: "Hundert", en: "Hundred"}, {de: "Tausend", en: "Thousand"}, {de: "Zehntausend", en: "Ten thousand"}, {de: "Weiß", en: "White"}], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 千円", en: "What means: 千円" }, options: [{de: "1000 Yen", en: "1000 Yen"}, {de: "100 Yen", en: "100 Yen"}, {de: "10000 Yen", en: "10000 Yen"}, {de: "Yen", en: "Yen"}], correct: 0 },
-  { category: 'kanji', q: { de: "Finde das Kanji für 'Auge':", en: "Find Kanji for 'Eye':" }, options: ["目", "日", "口", "耳"], correct: 0 },
-  { category: 'kanji', q: { de: "Was bedeutet: 天気", en: "What means: 天気" }, options: [{de: "Wetter", en: "Weather"}, {de: "Himmel", en: "Sky"}, {de: "Luft", en: "Air"}, {de: "Geist", en: "Spirit"}], correct: 0 },
-  { category: 'kanji', q: { de: "Finde das Kanji-Wort für 'Auto':", en: "Find the Kanji for 'Car':" }, options: [{de: "車 (くるま)", en: "車 (くるま)"}, {de: "電車 (でんしゃ)", en: "電車 (でんしゃ)"}, {de: "自転車 (じてんしゃ)", en: "自転車 (じてんしゃ)"}, {de: "駅 (えき)", en: "駅 (えき)"}], correct: 0 },
-  { category: 'kanji', q: { de: "Lies: 見ます", en: "Read: 見ます" }, options: ["みます", "ききます", "はなします", "かきます"], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 今日", en: "Read: 今日", jpn: "読みを選択: 今日" }, options: ["きょう", "まいにち", "あした", "きのう"], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 毎日", en: "Read: 毎日", jpn: "読みを選択: 毎日" }, options: ["まいにち", "きょう", "いつか", "にちようび"], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 日本", en: "What means: 日本", jpn: "意味を選択: 日本" }, options: [{de: "Japan", en: "Japan", jpn: "Japan"}, {de: "Sonntag", en: "Sunday", jpn: "日曜日"}, {de: "Buch", en: "Book", jpn: "本"}, {de: "Heute", en: "Today", jpn: "今日"}], correct: 0 },
+  { category: 'kanji', q: { de: "Finde das Kanji für 'Mensch/Person':", en: "Find Kanji for 'Person':", jpn: "「Person」を表す漢字は？" }, options: ["人", "入", "八", "大"], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 水曜日", en: "Read: 水曜日", jpn: "読みを選択: 水曜日" }, options: [{de: "すいようび (Mittwoch)", en: "すいようび (Wednesday)", jpn: "すいようび"}, {de: "かようび (Dienstag)", en: "かようび (Tuesday)", jpn: "かようび"}, {de: "もくようび (Donnerstag)", en: "もくようび (Thursday)", jpn: "もくようび"}, {de: "きんようび (Freitag)", en: "きんようび (Friday)", jpn: "きんようび"}], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 休み", en: "What means: 休み", jpn: "意味を選択: 休み" }, options: [{de: "Pause / Ausruhen", en: "Break / Rest", jpn: "Rest / Break"}, {de: "Baum", en: "Tree", jpn: "Tree"}, {de: "Buch", en: "Book", jpn: "Book"}, {de: "Körper", en: "Body", jpn: "Body"}], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 月", en: "Read: 月", jpn: "読みを選択: 月" }, options: ["つき / げつ", "ひ / にち", "き", "みず"], correct: 0 },
+  { category: 'kanji', q: { de: "Finde das Kanji für 'Baum/Holz':", en: "Find Kanji for 'Tree':", jpn: "「Tree / Wood」を表す漢字は？" }, options: ["木", "本", "休", "体"], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 男の人", en: "What means: 男の人", jpn: "意味を選択: 男の人" }, options: [{de: "Mann", en: "Man", jpn: "男性"}, {de: "Frau", en: "Woman", jpn: "女性"}, {de: "Kind", en: "Child", jpn: "子供"}, {de: "Mädchen", en: "Girl", jpn: "女の子"}], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 山川さん", en: "What means: 山川さん", jpn: "意味を選択: 山川さん" }, options: [{de: "Yamakawa-san (Name)", en: "Yamakawa-san (Name)", jpn: "Yamakawa-san (人名)"}, {de: "Fluss und Berg", en: "River and Mountain", jpn: "川と山"}, {de: "Herr Berg", en: "Mr. Mountain", jpn: "山さん"}, {de: "Frau Fluss", en: "Ms. River", jpn: "川さん"}], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 食べます", en: "Read: 食べます", jpn: "読みを選択: 食べます" }, options: ["たべます", "のみます", "みます", "いきます"], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 飲みます", en: "Read: 飲みます", jpn: "読みを選択: 飲みます" }, options: ["のみます", "たべます", "よみます", "かきます"], correct: 0 },
+  { category: 'kanji', q: { de: "Finde das Kanji für 'Groß':", en: "Find Kanji for 'Big':", jpn: "「Big」を表す漢字は？" }, options: ["大", "小", "中", "太"], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 行きます", en: "Read: 行きます", jpn: "読みを選択: 行きます" }, options: ["いきます", "きます", "みます", "します"], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 百", en: "What means: 百", jpn: "数を選択: 百" }, options: [{de: "Hundert", en: "Hundred", jpn: "100"}, {de: "Tausend", en: "Thousand", jpn: "1000"}, {de: "Zehntausend", en: "Ten thousand", jpn: "10000"}, {de: "Weiß", en: "White", jpn: "白"}], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 千円", en: "What means: 千円", jpn: "金額を選択: 千円" }, options: [{de: "1000 Yen", en: "1000 Yen", jpn: "1000 Yen"}, {de: "100 Yen", en: "100 Yen", jpn: "100 Yen"}, {de: "10000 Yen", en: "10000 Yen", jpn: "10000 Yen"}, {de: "Yen", en: "Yen", jpn: "1 Yen"}], correct: 0 },
+  { category: 'kanji', q: { de: "Finde das Kanji für 'Auge':", en: "Find Kanji for 'Eye':", jpn: "「Eye」を表す漢字は？" }, options: ["目", "日", "口", "耳"], correct: 0 },
+  { category: 'kanji', q: { de: "Was bedeutet: 天気", en: "What means: 天気", jpn: "意味を選択: 天気" }, options: [{de: "Wetter", en: "Weather", jpn: "Weather"}, {de: "Himmel", en: "Sky", jpn: "Sky"}, {de: "Luft", en: "Air", jpn: "Air"}, {de: "Geist", en: "Spirit", jpn: "Spirit"}], correct: 0 },
+  { category: 'kanji', q: { de: "Finde das Kanji-Wort für 'Auto':", en: "Find the Kanji for 'Car':", jpn: "「Car」を表す漢字は？" }, options: [{de: "車 (くるま)", en: "車 (くるま)", jpn: "車 (くるま)"}, {de: "電車 (でんしゃ)", en: "電車 (でんしゃ)", jpn: "電車 (でんしゃ)"}, {de: "自転車 (じてんしゃ)", en: "自転車 (じてんしゃ)", jpn: "自転車 (じてんしゃ)"}, {de: "駅 (えき)", en: "駅 (えき)", jpn: "駅 (えき)"}], correct: 0 },
+  { category: 'kanji', q: { de: "Lies: 見ます", en: "Read: 見ます", jpn: "読みを選択: 見ます" }, options: ["みます", "ききます", "はなします", "かきます"], correct: 0 },
 
   // --- PARTICLE MATRIX ---
   { 
-    category: 'particle', q: { de: "わたし [ ? ] ドイツじんです。", en: "わたし [ ? ] ドイツじんです。" }, options: ["は", "を", "で", "に"], correct: 0,
-    translation: { de: "Ich bin Deutscher.", en: "I am German." },
-    explanation: { de: "Das Partikel 'は' (wa) markiert hier das Thema des Satzes (Ich).", en: "The particle 'は' (wa) marks the topic of the sentence (here: I)." }
+    category: 'particle', q: { de: "わたし [ ? ] ドイツじんです。", en: "わたし [ ? ] ドイツじんです。", jpn: "わたし [ ? ] ドイツじんです。" }, options: ["は", "を", "で", "に"], correct: 0,
+    translation: { de: "Ich bin Deutscher.", en: "I am German.", jpn: "私はドイツ人です。" },
+    explanation: { de: "Das Partikel 'は' (wa) markiert hier das Thema des Satzes (Ich).", en: "The particle 'は' (wa) marks the topic of the sentence (here: I).", jpn: "助詞「は」は文の主題（私）を示します。" }
   },
   { 
-    category: 'particle', q: { de: "みず [ ? ] のみます。", en: "みず [ ? ] のみます。" }, options: ["を", "は", "に", "が"], correct: 0,
-    translation: { de: "Ich trinke Wasser.", en: "I drink water." },
-    explanation: { de: "Das Partikel 'を' (wo/o) markiert das direkte Objekt (das Wasser).", en: "The particle 'を' (wo/o) marks the direct object (the water)." }
+    category: 'particle', q: { de: "みず [ ? ] のみます。", en: "みず [ ? ] のみます。", jpn: "みず [ ? ] のみます。" }, options: ["を", "は", "に", "が"], correct: 0,
+    translation: { de: "Ich trinke Wasser.", en: "I drink water.", jpn: "水を飲みます。" },
+    explanation: { de: "Das Partikel 'を' (wo/o) markiert das direkte Objekt (das Wasser).", en: "The particle 'を' (wo/o) marks the direct object (the water).", jpn: "助詞「を」は直接目的語（水）を示します。" }
   },
   { 
-    category: 'particle', q: { de: "あした、とうきょう [ ? ] いきます。", en: "あした、とうきょう [ ? ] いきます。" }, options: ["へ / に", "を", "で", "が"], correct: 0,
-    translation: { de: "Ich fahre morgen nach Tokio.", en: "I am going to Tokyo tomorrow." },
-    explanation: { de: "'へ' (e) oder 'に' (ni) zeigen Richtung oder Ziel einer Bewegung an.", en: "'へ' (e) or 'に' (ni) indicate direction or destination." }
+    category: 'particle', q: { de: "あした、とうきょう [ ? ] いきます。", en: "あした、とうきょう [ ? ] いきます。", jpn: "あした、とうきょう [ ? ] いきます。" }, options: ["へ / に", "を", "で", "が"], correct: 0,
+    translation: { de: "Ich fahre morgen nach Tokio.", en: "I am going to Tokyo tomorrow.", jpn: "明日、東京へ行きます。" },
+    explanation: { de: "'へ' (e) oder 'に' (ni) zeigen Richtung oder Ziel einer Bewegung an.", en: "'へ' (e) or 'に' (ni) indicate direction or destination.", jpn: "「へ」または「に」は移動の方向・目的地を示します。" }
   },
   { 
-    category: 'particle', q: { de: "レストラン [ ? ] すしを たべる。", en: "レストラン [ ? ] すしを たべる。" }, options: ["で", "に", "は", "が"], correct: 0,
-    translation: { de: "Ich esse Sushi im Restaurant.", en: "I eat sushi at the restaurant." },
-    explanation: { de: "'で' (de) markiert den Ort einer aktiven Handlung.", en: "'で' (de) marks the location of an action." }
+    category: 'particle', q: { de: "レストラン [ ? ] すしを たべる。", en: "レストラン [ ? ] すしを たべる。", jpn: "レストラン [ ? ] すしを たべる。" }, options: ["で", "に", "は", "が"], correct: 0,
+    translation: { de: "Ich esse Sushi im Restaurant.", en: "I eat sushi at the restaurant.", jpn: "レストランで寿司を食べる。" },
+    explanation: { de: "'で' (de) markiert den Ort einer aktiven Handlung.", en: "'で' (de) marks the location of an action.", jpn: "「で」は動作が行われる場所を示します。" }
   },
   { 
-    category: 'particle', q: { de: "タクシー [ ? ] かえります。", en: "タクシー [ ? ] かえります。" }, options: ["で", "に", "を", "は"], correct: 0,
-    translation: { de: "Ich fahre mit dem Taxi nach Hause.", en: "I go home by taxi." },
-    explanation: { de: "'で' (de) markiert Mittel oder Werkzeug (mit dem Taxi).", en: "'で' (de) marks the means or tool (by taxi)." }
+    category: 'particle', q: { de: "タクシー [ ? ] かえります。", en: "タクシー [ ? ] かえります。", jpn: "タクシー [ ? ] かえります。" }, options: ["で", "に", "を", "は"], correct: 0,
+    translation: { de: "Ich fahre mit dem Taxi nach Hause.", en: "I go home by taxi.", jpn: "タクシーで帰ります。" },
+    explanation: { de: "'で' (de) markiert Mittel oder Werkzeug (mit dem Taxi).", en: "'で' (de) marks the means or tool (by taxi).", jpn: "「で」は交通手段や道具を示します。" }
   },
   { 
-    category: 'particle', q: { de: "あめ [ ? ] ふっています。(Fokus!)", en: "あめ [ ? ] ふっています。(Focus!)" }, options: ["が", "を", "で", "は"], correct: 0,
-    translation: { de: "Es regnet (gerade).", en: "It is raining." },
-    explanation: { de: "'が' (ga) markiert das Subjekt bei Naturphänomenen.", en: "'が' (ga) marks the subject for natural phenomena." }
+    category: 'particle', q: { de: "あめ [ ? ] ふっています。(Fokus!)", en: "あめ [ ? ] ふっています。(Focus!)", jpn: "あめ [ ? ] ふっています。" }, options: ["が", "を", "で", "は"], correct: 0,
+    translation: { de: "Es regnet (gerade).", en: "It is raining.", jpn: "雨が降っています。" },
+    explanation: { de: "'が' (ga) markiert das Subjekt bei Naturphänomenen.", en: "'が' (ga) marks the subject for natural phenomena.", jpn: "自然現象の主語には「が」を用います。" }
   },
   { 
-    category: 'particle', q: { de: "ともだち [ ? ] えいがを みます。", en: "ともだち [ ? ] えいがを みます。" }, options: ["と", "から", "まで", "に"], correct: 0,
-    translation: { de: "Ich schaue mit einem Freund einen Film.", en: "I watch a movie with a friend." },
-    explanation: { de: "'と' (to) bedeutet 'mit' (zusammen mit einer Person).", en: "'と' (to) means 'with'." }
+    category: 'particle', q: { de: "ともだち [ ? ] えいがを みます。", en: "ともだち [ ? ] えいがを みます。", jpn: "ともだち [ ? ] えいがを みます。" }, options: ["と", "から", "まで", "に"], correct: 0,
+    translation: { de: "Ich schaue mit einem Freund einen Film.", en: "I watch a movie with a friend.", jpn: "友達と映画を見ます。" },
+    explanation: { de: "'と' (to) bedeutet 'mit' (zusammen mit einer Person).", en: "'と' (to) means 'with'.", jpn: "「と」は一緒に行動する相手を示します。" }
   },
   { 
-    category: 'particle', q: { de: "あさ、９じ [ ? ] おきます。", en: "あさ、９じ [ ? ] おきます。" }, options: ["に", "で", "を", "は"], correct: 0,
-    translation: { de: "Ich stehe morgens um 9 Uhr auf.", en: "I wake up at 9 AM in the morning." },
-    explanation: { de: "'に' (ni) markiert einen spezifischen Zeitpunkt auf der Uhr.", en: "'に' (ni) marks a specific point in time." }
+    category: 'particle', q: { de: "あさ、９じ [ ? ] おきます。", en: "あさ、９じ [ ? ] おきます。", jpn: "あさ、９じ [ ? ] おきます。" }, options: ["に", "で", "を", "は"], correct: 0,
+    translation: { de: "Ich stehe morgens um 9 Uhr auf.", en: "I wake up at 9 AM in the morning.", jpn: "朝、9時に起きます。" },
+    explanation: { de: "'に' (ni) markiert einen spezifischen Zeitpunkt auf der Uhr.", en: "'に' (ni) marks a specific point in time.", jpn: "具体的な時刻には助詞「に」を用います。" }
   },
 
   // --- RADAR: TEXT & AUDIO ---
-  { category: 'radar', q: { de: "Wie fragst du, wo die Toilette ist?", en: "How do you ask where the toilet is?" }, options: ["トイレは どこですか。", "トイレは いつですか。", "トイレは なんですか。", "トイレは いくらですか。"], correct: 0, translation: { de: "Die Toilette, wo ist sie?", en: "The toilet, where is it?" } },
-  { category: 'radar', q: { de: "Du möchtest etwas kaufen. Zeig darauf und sag:", en: "You want to buy something. Point and say:" }, options: ["これを ください。", "ありがとう。", "わかりません。", "それです。"], correct: 0, translation: { de: "Das hier, bitte.", en: "This one, please." } },
-  { category: 'radar', audioText: "すみません、えきは どこですか。", q: { de: "🎧 Was möchte die Person?", en: "🎧 What does the person want?" }, options: [{de: "Sucht den Bahnhof", en: "Looks for station"}, {de: "Sucht die Toilette", en: "Looks for toilet"}, {de: "Fragt den Preis", en: "Asks for price"}, {de: "Fragt die Uhrzeit", en: "Asks the time"}], correct: 0, translation: { de: "Entschuldigung, wo ist der Bahnhof?", en: "Excuse me, where is the station?" } },
-  { category: 'radar', audioText: "いらっしゃいませ", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?" }, options: [{de: "Laden-Personal", en: "Shop staff"}, {de: "Ich selbst", en: "Myself"}, {de: "Gastfamilie", en: "Host family"}, {de: "Passant", en: "Stranger"}], correct: 0, translation: { de: "Herzlich Willkommen (vom Personal gerufen).", en: "Welcome (called by staff)." } },
-  { category: 'radar', audioText: "これ、いくらですか。", q: { de: "🎧 Was fragt die Person?", en: "🎧 What is asked?" }, options: [{de: "Wie viel das kostet", en: "How much it costs"}, {de: "Wo das ist", en: "Where it is"}, {de: "Was das ist", en: "What it is"}, {de: "Wem das gehört", en: "Whose it is"}], correct: 0, translation: { de: "Das hier, wie viel kostet es?", en: "This here, how much is it?" } },
-  { category: 'radar', audioText: "カードで いいですか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "Kartenzahlung an der Kasse", en: "Card payment at register"}, {de: "Nach dem Namen fragen", en: "Asking for name"}, {de: "Ticketkontrolle im Zug", en: "Ticket check"}, {de: "Brief einwerfen", en: "Mailing a letter"}], correct: 0, translation: { de: "Ist Kartenzahlung in Ordnung?", en: "Is card payment okay?" } },
-  { category: 'radar', audioText: "ふくろは いりますか。", q: { de: "🎧 Situation?", en: "🎧 Situation?" }, options: [{de: "An der Kasse (Tüte?)", en: "Register (Need a bag?)"}, {de: "Im Restaurant (Getränke?)", en: "Restaurant (Drinks?)"}, {de: "Auf der Straße (Hilfe?)", en: "Street (Help?)"}, {de: "Im Hotel (Schlüssel?)", en: "Hotel (Key?)"}], correct: 0, translation: { de: "Brauchen Sie eine Tüte?", en: "Do you need a bag?" } },
-  { category: 'radar', audioText: "えきまで おねがいします。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?" }, options: [{de: "Im Taxi", en: "In a taxi"}, {de: "Im Restaurant", en: "In a restaurant"}, {de: "Im Supermarkt", en: "In a supermarket"}, {de: "Auf der Post", en: "At the post office"}], correct: 0, translation: { de: "Zum Bahnhof, bitte.", en: "To the station, please." } }
+  { category: 'radar', q: { de: "Wie fragst du, wo die Toilette ist?", en: "How do you ask where the toilet is?", jpn: "トイレの場所を尋ねる表現は？" }, options: ["トイレは どこですか。", "トイレは いつですか。", "トイレは なんですか。", "トイレは いくらですか。"], correct: 0, translation: { de: "Die Toilette, wo ist sie?", en: "The toilet, where is it?", jpn: "トイレはどこですか。" } },
+  { category: 'radar', q: { de: "Du möchtest etwas kaufen. Zeig darauf und sag:", en: "You want to buy something. Point and say:", jpn: "商品を指差して注文する表現は？" }, options: ["これを ください。", "ありがとう。", "わかりません。", "それです。"], correct: 0, translation: { de: "Das hier, bitte.", en: "This one, please.", jpn: "これをください。" } },
+  { category: 'radar', audioText: "すみません、えきは どこですか。", q: { de: "🎧 Was möchte die Person?", en: "🎧 What does the person want?", jpn: "🎧 話者は何を尋ねていますか？" }, options: [{de: "Sucht den Bahnhof", en: "Looks for station", jpn: "駅の場所"}, {de: "Sucht die Toilette", en: "Looks for toilet", jpn: "トイレの場所"}, {de: "Fragt den Preis", en: "Asks for price", jpn: "値段"}, {de: "Fragt die Uhrzeit", en: "Asks the time", jpn: "現在の時刻"}], correct: 0, translation: { de: "Entschuldigung, wo ist der Bahnhof?", en: "Excuse me, where is the station?", jpn: "すみません、駅はどこですか。" } },
+  { category: 'radar', audioText: "いらっしゃいませ", q: { de: "🎧 Wer sagt das?", en: "🎧 Who says this?", jpn: "🎧 この表現を使うのは誰？" }, options: [{de: "Laden-Personal", en: "Shop staff", jpn: "店舗スタッフ"}, {de: "Ich selbst", en: "Myself", jpn: "客自身"}, {de: "Gastfamilie", en: "Host family", jpn: "ホストファミリー"}, {de: "Passant", en: "Stranger", jpn: "通行人"}], correct: 0, translation: { de: "Herzlich Willkommen (vom Personal gerufen).", en: "Welcome (called by staff).", jpn: "いらっしゃいませ（店員の挨拶）。" } },
+  { category: 'radar', audioText: "これ、いくらですか。", q: { de: "🎧 Was fragt die Person?", en: "🎧 What is asked?", jpn: "🎧 何を確認していますか？" }, options: [{de: "Wie viel das kostet", en: "How much it costs", jpn: "商品の値段"}, {de: "Wo das ist", en: "Where it is", jpn: "場所"}, {de: "Was das ist", en: "What it is", jpn: "物の名前"}, {de: "Wem das gehört", en: "Whose it is", jpn: "所有者"}], correct: 0, translation: { de: "Das hier, wie viel kostet es?", en: "This here, how much is it?", jpn: "これ、いくらですか。" } },
+  { category: 'radar', audioText: "カードで いいですか。", q: { de: "🎧 Situation?", en: "🎧 Situation?", jpn: "🎧 どのような場面ですか？" }, options: [{de: "Kartenzahlung an der Kasse", en: "Card payment at register", jpn: "レジでのカード決済確認"}, {de: "Nach dem Namen fragen", en: "Asking for name", jpn: "名前の確認"}, {de: "Ticketkontrolle im Zug", en: "Ticket check", jpn: "車内検札"}, {de: "Brief einwerfen", en: "Mailing a letter", jpn: "郵便投函"}], correct: 0, translation: { de: "Ist Kartenzahlung in Ordnung?", en: "Is card payment okay?", jpn: "カードでいいですか。" } },
+  { category: 'radar', audioText: "ふくろは いりますか。", q: { de: "🎧 Situation?", en: "🎧 Situation?", jpn: "🎧 どのような場面ですか？" }, options: [{de: "An der Kasse (Tüte?)", en: "Register (Need a bag?)", jpn: "レジ（レジ袋の確認）"}, {de: "Im Restaurant (Getränke?)", en: "Restaurant (Drinks?)", jpn: "レストラン（飲み物の注文）"}, {de: "Auf der Straße (Hilfe?)", en: "Street (Help?)", jpn: "路上（道案内）"}, {de: "Im Hotel (Schlüssel?)", en: "Hotel (Key?)", jpn: "ホテル（鍵の受け渡し）"}], correct: 0, translation: { de: "Brauchen Sie eine Tüte?", en: "Do you need a bag?", jpn: "袋はいりますか。" } },
+  { category: 'radar', audioText: "えきまで おねがいします。", q: { de: "🎧 Wo bist du?", en: "🎧 Where are you?", jpn: "🎧 どこで使われる表現ですか？" }, options: [{de: "Im Taxi", en: "In a taxi", jpn: "タクシー車内"}, {de: "Im Restaurant", en: "In a restaurant", jpn: "レストラン"}, {de: "Im Supermarkt", en: "In a supermarket", jpn: "スーパーマーケット"}, {de: "Auf der Post", en: "At the post office", jpn: "郵便局"}], correct: 0, translation: { de: "Zum Bahnhof, bitte.", en: "To the station, please.", jpn: "駅までお願いします。" } }
 ];
 
 // --- FRAGENPOOL DEUTSCH (PHASEN 1-4 DAF / RADAR DE) ---
@@ -246,7 +247,14 @@ const masterPoolDE = [
 
 const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
   const isGermanTarget = targetLanguage === 'de';
-  const currentLang = language || 'de';
+  const isEnglishTarget = targetLanguage === 'en';
+  const isDeOrEnTarget = isGermanTarget || isEnglishTarget;
+
+  // Normierte Sprach-Keys für Supabase ('jp', 'de', 'en') und lokales Fallback ('jpn', 'de', 'en')
+  const dbSourceLang = (language === 'jpn' || language === 'jp') ? 'jp' : (language || 'de');
+  const dbTargetLang = (targetLanguage === 'jpn' || targetLanguage === 'jp') ? 'jp' : (targetLanguage || 'jp');
+  const currentLang = (language === 'jp' || language === 'jpn') ? 'jpn' : (language || 'de');
+  const moduleKey = 'final_exam';
 
   const [examState, setExamState] = useState('intro'); // intro, exam, result
   const [questions, setQuestions] = useState([]);
@@ -263,18 +271,102 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     cat4: { correct: 0, total: 0 }
   });
 
+  // --- SUPABASE STATES (MIT LOCALSTORAGE-CACHE) ---
+  const [dbUiTexts, setDbUiTexts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_ui_trans_${dbSourceLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbCourseManifest, setDbCourseManifest] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [dbQuestionPool, setDbQuestionPool] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`radar_decks_${dbTargetLang}_${moduleKey}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [examState, currentIndex]);
 
+  // Abruf von ui_translations, course_manifests & course_decks (final_exam) aus Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchExamData = async () => {
+      try {
+        const [uiRes, manifestRes, deckRes] = await Promise.all([
+          supabase
+            .from('ui_translations')
+            .select('content')
+            .eq('lang_code', dbSourceLang)
+            .single(),
+          supabase
+            .from('course_manifests')
+            .select('manifest')
+            .eq('source_lang', dbSourceLang)
+            .eq('target_lang', dbTargetLang)
+            .single(),
+          supabase
+            .from('course_decks')
+            .select('content')
+            .eq('target_lang', dbTargetLang)
+            .eq('module_key', moduleKey)
+            .eq('day_number', 1)
+            .maybeSingle()
+        ]);
+
+        if (uiRes.data?.content && isMounted) {
+          setDbUiTexts(uiRes.data.content);
+          localStorage.setItem(`radar_ui_trans_${dbSourceLang}`, JSON.stringify(uiRes.data.content));
+        }
+
+        if (manifestRes.data?.manifest && isMounted) {
+          setDbCourseManifest(manifestRes.data.manifest);
+          localStorage.setItem(`radar_manifest_${dbSourceLang}_${dbTargetLang}`, JSON.stringify(manifestRes.data.manifest));
+        }
+
+        const fetchedPool = deckRes.data?.content?.questions || (Array.isArray(deckRes.data?.content) ? deckRes.data.content : null);
+        if (fetchedPool && fetchedPool.length > 0 && isMounted) {
+          setDbQuestionPool(fetchedPool);
+          localStorage.setItem(`radar_decks_${dbTargetLang}_${moduleKey}`, JSON.stringify(fetchedPool));
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden der FinalExam-Daten aus Supabase:", err);
+      }
+    };
+
+    fetchExamData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dbSourceLang, dbTargetLang, moduleKey]);
+
   const texts = {
     de: {
       back: "Zurück",
-      introTitle: isGermanTarget ? "Die D/A/CH Abschluss-Prüfung" : "Die Abschluss-Prüfung",
-      introSub: isGermanTarget ? "Der 4-Phasen Stresstest (DaF Meisterklasse)" : "Der ultimative Stresstest",
+      introTitle: isGermanTarget ? "Die D/A/CH Abschluss-Prüfung" : (isEnglishTarget ? "Die UK Abschluss-Prüfung" : "Die Abschluss-Prüfung"),
+      introSub: isGermanTarget ? "Der 4-Phasen Stresstest (DaF Meisterklasse)" : (isEnglishTarget ? "Der 4-Phasen Stresstest (British Mastery)" : "Der ultimative Stresstest"),
       introDesc: isGermanTarget
         ? "Prüfung über alle 4 Phasen des RADAR-Systems: Deutsche Phonetik, Satzklammer-Architektur, 21-Tage Survival-Radar und Komposita-Dekomposition. Echte Audioscans und Realtransaktionen ohne Grammatiktabellen!"
-        : "30 zufällige Fragen aus einem riesigen Pool. Komplexe Laute, N5-Kanjis, Partikel-Matrix und vor allem pures Audio-Hörverstehen (Radar). Kein Romaji. Fast kein Deutsch. Überlebe!",
+        : (isEnglishTarget
+            ? "Prüfung über alle 4 Phasen des UK-RADAR-Systems: Core Grammar & Vocabulary, Connected Speech & Phrasal Verbs, 21-Tage UK-Survival-Radar und Advanced Business Nuance!"
+            : "30 zufällige Fragen aus einem riesigen Pool. Komplexe Laute, N5-Kanjis, Partikel-Matrix und vor allem pures Audio-Hörverstehen (Radar). Kein Romaji. Fast kein Deutsch. Überlebe!"),
       startBtn: "Prüfung Starten",
       question: "Frage",
       btnNext: "Weiter",
@@ -291,12 +383,13 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
       expLabel: "Erklärung:",
       btnHome: "Zurück zum Dashboard",
       btnRetry: "Prüfung wiederholen",
+      examCancel: "Abbrechen",
       
       // Kategorienamen
-      cat1Label: isGermanTarget ? "Phonetik & Aussprache" : "Kana-Matrix (Erweitert)",
-      cat2Label: isGermanTarget ? "Satzklammer & V2-Flow" : "N5 Kanji (Bedeutung & Lesung)",
-      cat3Label: isGermanTarget ? "D/A/CH Survival-Radar" : "Partikel-Code",
-      cat4Label: isGermanTarget ? "Komposita-Dekomposition" : "Radar (Audio & Dialoge)",
+      cat1Label: isGermanTarget ? "Phonetik & Aussprache" : (isEnglishTarget ? "Core Grammar & Vocabulary" : "Kana-Matrix (Erweitert)"),
+      cat2Label: isGermanTarget ? "Satzklammer & V2-Flow" : (isEnglishTarget ? "Connected Speech & Tenses" : "N5 Kanji (Bedeutung & Lesung)"),
+      cat3Label: isGermanTarget ? "D/A/CH Survival-Radar" : (isEnglishTarget ? "UK Survival-Radar" : "Partikel-Code"),
+      cat4Label: isGermanTarget ? "Komposita-Dekomposition" : (isEnglishTarget ? "Idioms & Business Nuance" : "Radar (Audio & Dialoge)"),
 
       evalPerfect: "Hervorragend! Dieses Gebiet sitzt blind im Langzeitgedächtnis.",
       evalGood: "Solide Leistung, aber im Ernstfall noch etwas langsam. Dranbleiben!",
@@ -304,11 +397,13 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     },
     en: {
       back: "Back",
-      introTitle: isGermanTarget ? "D/A/CH Final Exam" : "Final Exam",
-      introSub: isGermanTarget ? "4-Phase Stress Test (German Mastery)" : "The Ultimate Stress Test",
+      introTitle: isGermanTarget ? "D/A/CH Final Exam" : (isEnglishTarget ? "UK Final Exam" : "Final Exam"),
+      introSub: isGermanTarget ? "4-Phase Stress Test (German Mastery)" : (isEnglishTarget ? "4-Phase Stress Test (British Mastery)" : "The Ultimate Stress Test"),
       introDesc: isGermanTarget
         ? "Comprehensive exam across all 4 phases: German Phonetics, Sentence Bracket Architecture, 21-Day Survival Radar, and Compound Word Decomposition. Real-world audio scans and survival reflexes!"
-        : "30 random questions from a massive pool. Complex sounds, N5 Kanjis, Particle Matrix and pure audio listening comprehension (Radar). No Romaji. Survive!",
+        : (isEnglishTarget
+            ? "Comprehensive exam across all 4 phases: Core Grammar & Vocabulary, Connected Speech & Phrasal Verbs, 21-Day UK Survival Radar, and Advanced Idioms & Business Nuance!"
+            : "30 random questions from a massive pool. Complex sounds, N5 Kanjis, Particle Matrix and pure audio listening comprehension (Radar). No Romaji. Survive!"),
       startBtn: "Start Exam",
       question: "Question",
       btnNext: "Next",
@@ -325,11 +420,12 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
       expLabel: "Explanation:",
       btnHome: "Back to Dashboard",
       btnRetry: "Retry Exam",
+      examCancel: "Cancel",
 
-      cat1Label: isGermanTarget ? "Phonetics & Pronunciation" : "Kana Matrix (Advanced)",
-      cat2Label: isGermanTarget ? "Sentence Bracket & V2" : "N5 Kanji (Meaning & Reading)",
-      cat3Label: isGermanTarget ? "D/A/CH Survival Radar" : "Particle Code",
-      cat4Label: isGermanTarget ? "Compound Decomposition" : "Radar (Audio & Dialogues)",
+      cat1Label: isGermanTarget ? "Phonetics & Pronunciation" : (isEnglishTarget ? "Core Grammar & Vocabulary" : "Kana Matrix (Advanced)"),
+      cat2Label: isGermanTarget ? "Sentence Bracket & V2" : (isEnglishTarget ? "Connected Speech & Tenses" : "N5 Kanji (Meaning & Reading)"),
+      cat3Label: isGermanTarget ? "D/A/CH Survival Radar" : (isEnglishTarget ? "UK Survival Radar" : "Particle Code"),
+      cat4Label: isGermanTarget ? "Compound Decomposition" : (isEnglishTarget ? "Idioms & Business Nuance" : "Radar (Audio & Dialogues)"),
 
       evalPerfect: "Excellent! This area is completely locked in your long-term memory.",
       evalGood: "Solid performance, but might be too slow in real situations. Keep practicing!",
@@ -337,11 +433,13 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     },
     jpn: {
       back: "戻る",
-      introTitle: isGermanTarget ? "実戦D/A/CH 総合修了試験" : "最終卒業試験",
-      introSub: isGermanTarget ? "ドイツ語4大フェーズ完全制覇ストレステスト" : "究極のストレステスト",
+      introTitle: isGermanTarget ? "実戦D/A/CH 総合修了試験" : (isEnglishTarget ? "実戦UK 総合修了試験" : "最終卒業試験"),
+      introSub: isGermanTarget ? "ドイツ語4大フェーズ完全制覇ストレステスト" : (isEnglishTarget ? "イギリス英語4大フェーズ完全制覇ストレステスト" : "究極のストレステスト"),
       introDesc: isGermanTarget
         ? "RADARシステム全4段階（発音・母音長短／文枠構造・V2配置／21日日常サバイバル／複合語形態素解体）を網羅した実戦試験です。日本語の格変化表を捨て、現場のシグナル塊で即座に解答せよ！"
-        : "膨大なプールからランダム抽出された30問。複合音・N5漢字・助詞コード、そして実戦音声聴取。ローマ字なしで生き残れ！",
+        : (isEnglishTarget
+            ? "UK-RADARシステム全4段階（コア文法・語彙／音声連結・時制／21日UK日常サバイバル／上級イディオム＆ビジネス表現）を網羅した実戦試験です！"
+            : "膨大なプールからランダム抽出された30問。複合音・N5漢字・助詞コード、そして実戦音声聴取。ローマ字なしで生き残れ！"),
       startBtn: "試験を開始する",
       question: "問題",
       btnNext: "次へ進む",
@@ -358,11 +456,12 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
       expLabel: "文法・発音解説:",
       btnHome: "ダッシュボードへ戻る",
       btnRetry: "試験を再受験する",
+      examCancel: "中断する",
 
-      cat1Label: isGermanTarget ? "第1期: 音声・発音規則" : "仮名マトリクス",
-      cat2Label: isGermanTarget ? "第2期: 文枠構造・動詞第2位" : "N5必須漢字",
-      cat3Label: isGermanTarget ? "第3期: 現地サバイバルレーダー" : "助詞コード",
-      cat4Label: isGermanTarget ? "第4期: 複合名詞形態素解体" : "実戦音響レーダー",
+      cat1Label: isGermanTarget ? "第1期: 音声・発音規則" : (isEnglishTarget ? "第1期: コア文法・必須語彙" : "仮名マトリクス"),
+      cat2Label: isGermanTarget ? "第2期: 文枠構造・動詞第2位" : (isEnglishTarget ? "第2期: 音声連結・時制マトリックス" : "N5必須漢字"),
+      cat3Label: isGermanTarget ? "第3期: 現地サバイバルレーダー" : (isEnglishTarget ? "第3期: UK現地サバイバルレーダー" : "助詞コード"),
+      cat4Label: isGermanTarget ? "第4期: 複合名詞形態素解体" : (isEnglishTarget ? "第4期: イディオム＆上級ニュアンス" : "実戦音響レーダー"),
 
       evalPerfect: "完璧です！この領域は長期記憶に完全に定着しています。",
       evalGood: "合格水準ですが、実戦では即答が必要です。反復演習を継続してください。",
@@ -370,18 +469,51 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     }
   };
 
-  const t = texts[currentLang === 'jpn' ? 'jpn' : (texts[currentLang] ? currentLang : 'de')] || texts.de;
+  const fallbackT = texts[currentLang] || texts.de;
 
-  // Sprachsynthese: Dynamisch de-DE oder ja-JP
+  // Zusammenführung: Supabase-Werte aus ui_translations & course_manifests haben Vorrang vor lokalem Fallback
+  const t = {
+    ...fallbackT,
+    back: dbUiTexts?.back || fallbackT.back,
+    startBtn: dbUiTexts?.examStartBtn || fallbackT.startBtn,
+    question: dbUiTexts?.examQuestion || fallbackT.question,
+    btnNext: dbUiTexts?.next || fallbackT.btnNext,
+    btnFinish: dbUiTexts?.examBtnFinish || fallbackT.btnFinish,
+    resultsTitle: dbUiTexts?.examResultsTitle || fallbackT.resultsTitle,
+    totalScore: dbUiTexts?.examTotalScore || fallbackT.totalScore,
+    rank: dbUiTexts?.examRank || fallbackT.rank,
+    recommendations: dbUiTexts?.examRecommendations || fallbackT.recommendations,
+    errorLogTitle: dbUiTexts?.examErrorLogTitle || fallbackT.errorLogTitle,
+    errorLogEmpty: dbUiTexts?.examErrorLogEmpty || fallbackT.errorLogEmpty,
+    yourAnswer: dbUiTexts?.examYourAnswer || fallbackT.yourAnswer,
+    correctAnswer: dbUiTexts?.examCorrectAnswer || fallbackT.correctAnswer,
+    transLabel: dbUiTexts?.examTransLabel || fallbackT.transLabel,
+    expLabel: dbUiTexts?.examExpLabel || fallbackT.expLabel,
+    btnHome: dbUiTexts?.examBtnHome || fallbackT.btnHome,
+    btnRetry: dbUiTexts?.examBtnRetry || fallbackT.btnRetry,
+    examCancel: dbUiTexts?.examCancel || fallbackT.examCancel,
+    evalPerfect: dbUiTexts?.evalPerfect || fallbackT.evalPerfect,
+    evalGood: dbUiTexts?.evalGood || fallbackT.evalGood,
+    evalCritical: dbUiTexts?.evalCritical || fallbackT.evalCritical,
+    introTitle: dbCourseManifest?.examIntroTitle || fallbackT.introTitle,
+    introSub: dbCourseManifest?.examIntroSub || fallbackT.introSub,
+    introDesc: dbCourseManifest?.examIntroDesc || fallbackT.introDesc,
+    cat1Label: dbCourseManifest?.examCat1Label || fallbackT.cat1Label,
+    cat2Label: dbCourseManifest?.examCat2Label || fallbackT.cat2Label,
+    cat3Label: dbCourseManifest?.examCat3Label || fallbackT.cat3Label,
+    cat4Label: dbCourseManifest?.examCat4Label || fallbackT.cat4Label
+  };
+
+  // Sprachsynthese: Dynamisch de-DE, en-GB oder ja-JP
   const playAudio = (text) => {
     if ('speechSynthesis' in window && text) {
       window.speechSynthesis.cancel();
-      const cleanText = isGermanTarget
+      const cleanText = isDeOrEnTarget
         ? text.replace(/\[.*?\]/g, '').trim()
         : text.replace(/([^{]+){([^}]+)}/g, "$1");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = isGermanTarget ? 'de-DE' : 'ja-JP';
-      utterance.rate = isGermanTarget ? 0.90 : 0.85; 
+      utterance.lang = isGermanTarget ? 'de-DE' : (isEnglishTarget ? 'en-GB' : 'ja-JP');
+      utterance.rate = isDeOrEnTarget ? 0.90 : 0.85; 
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -389,11 +521,12 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
   const getOptionText = (opt) => {
     if (!opt) return "N/A";
     if (typeof opt === 'string') return opt;
-    return opt[currentLang] || opt.de || opt.en || "N/A";
+    return opt[currentLang] || opt[dbSourceLang] || opt.de || opt.en || "N/A";
   };
 
   const startExam = () => {
-    const rawPool = isGermanTarget ? masterPoolDE : masterPoolJP;
+    const fallbackPool = isDeOrEnTarget ? masterPoolDE : masterPoolJP;
+    const rawPool = (dbQuestionPool && dbQuestionPool.length > 0) ? dbQuestionPool : fallbackPool;
     const shuffledPool = shuffleArray(rawPool);
     const questionLimit = Math.min(shuffledPool.length, 30);
     
@@ -429,11 +562,12 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
   };
 
   const mapCategoryToKey = (cat) => {
-    if (isGermanTarget) {
-      if (cat === 'phonetik') return 'cat1';
-      if (cat === 'klammer') return 'cat2';
+    if (cat === 'cat1' || cat === 'cat2' || cat === 'cat3' || cat === 'cat4') return cat;
+    if (isDeOrEnTarget) {
+      if (cat === 'phonetik' || cat === 'grammar' || cat === 'vocab') return 'cat1';
+      if (cat === 'klammer' || cat === 'flow' || cat === 'tenses') return 'cat2';
       if (cat === 'radar') return 'cat3';
-      if (cat === 'komposita') return 'cat4';
+      if (cat === 'komposita' || cat === 'idioms' || cat === 'nuance') return 'cat4';
     } else {
       if (cat === 'kana') return 'cat1';
       if (cat === 'kanji') return 'cat2';
@@ -455,7 +589,7 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     } else {
       const questionPrompt = currentQ.audioText 
         ? `🎧 (Audio: ${currentQ.audioText})` 
-        : (currentQ.q[currentLang] || currentQ.q.de || currentQ.q.en);
+        : (currentQ.q[currentLang] || currentQ.q[dbSourceLang] || currentQ.q.de || currentQ.q.en);
 
       const correctChoiceObj = currentQ.options[currentQ.correct] || currentQ.options[0];
       const userChoiceObj = currentQ.options[selectedAnswer] || "N/A";
@@ -464,8 +598,8 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
         questionText: questionPrompt,
         userChoice: getOptionText(userChoiceObj),
         correctChoice: getOptionText(correctChoiceObj),
-        translation: currentQ.translation ? (currentQ.translation[currentLang] || currentQ.translation.de || currentQ.translation.en) : null,
-        explanation: currentQ.explanation ? (currentQ.explanation[currentLang] || currentQ.explanation.de || currentQ.explanation.en) : null
+        translation: currentQ.translation ? (currentQ.translation[currentLang] || currentQ.translation[dbSourceLang] || currentQ.translation.de || currentQ.translation.en) : null,
+        explanation: currentQ.explanation ? (currentQ.explanation[currentLang] || currentQ.explanation[dbSourceLang] || currentQ.explanation.de || currentQ.explanation.en) : null
       }]);
     }
     
@@ -486,8 +620,9 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
   };
 
   const getRank = (percentage) => {
-    if (isGermanTarget) {
-      if (percentage >= 90) return { title: "D/A/CH INSIDER 🎖️", desc: currentLang === 'jpn' ? "現地即応完了・ネイティブレベル" : "Vollkommene Beherrschung aller D/A/CH-Transaktionen.", color: "text-yellow-400" };
+    if (isDeOrEnTarget) {
+      const regionTitle = isEnglishTarget ? "UK INSIDER 🎖️" : "D/A/CH INSIDER 🎖️";
+      if (percentage >= 90) return { title: regionTitle, desc: currentLang === 'jpn' ? "現地即応完了・ネイティブレベル" : "Vollkommene Beherrschung aller Realtransaktionen.", color: "text-yellow-400" };
       if (percentage >= 75) return { title: "SURVIVAL EXPERT 🛡️", desc: currentLang === 'jpn' ? "現場対応力確立・生活自立レベル" : "Souveräne Alltags-Reflexe im gesamten Sprachraum.", color: "text-cyan-400" };
       if (percentage >= 50) return { title: "NAVIGATOR 🧭", desc: currentLang === 'jpn' ? "基本構造把握・要反復演習" : "Solide Basis, aber noch Verzögerungen bei Notfällen.", color: "text-green-400" };
       return { title: "ANFÄNGER ⚠️", desc: currentLang === 'jpn' ? "基礎再受講推奨" : "Kritische Lücken. Bitte Kernmodule wiederholen!", color: "text-red-400" };
@@ -519,7 +654,7 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
         
         <div className="mt-16 flex flex-col items-center max-w-md text-center animate-fade-in">
           <div className="w-24 h-24 bg-red-900/30 rounded-full border-2 border-red-500 flex items-center justify-center shadow-[0_0_40px_rgba(239,68,68,0.3)] mb-6">
-            <span className="text-5xl">{isGermanTarget ? "🏛️" : "⛩️"}</span>
+            <span className="text-5xl">{isDeOrEnTarget ? "🏛️" : "⛩️"}</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-widest text-red-500 uppercase mb-2 leading-tight">
             {t.introTitle}
@@ -559,13 +694,13 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
     };
 
     const getBadgeLabel = (cat) => {
-      if (isGermanTarget) {
-        if (cat === 'phonetik') return "PHONETIK";
-        if (cat === 'klammer') return "SATZKLAMMER";
+      if (isDeOrEnTarget) {
+        if (cat === 'phonetik') return isEnglishTarget ? "CORE ENGLISH" : "PHONETIK";
+        if (cat === 'klammer') return isEnglishTarget ? "CONNECTED SPEECH" : "SATZKLAMMER";
         if (cat === 'radar') return "SURVIVAL RADAR";
-        if (cat === 'komposita') return "KOMPOSITA";
+        if (cat === 'komposita') return isEnglishTarget ? "IDIOMS & NUANCE" : "KOMPOSITA";
       }
-      return cat.toUpperCase();
+      return (cat || "").toUpperCase();
     };
 
     return (
@@ -581,7 +716,7 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
 
         <div className="w-full max-w-md flex justify-between items-center mt-6 mb-6">
           <button onClick={onBack} className="text-gray-500 text-xs uppercase font-bold tracking-widest hover:text-white cursor-pointer">
-            ✕ {currentLang === 'jpn' ? '中断する' : 'Abbrechen'}
+            ✕ {t.examCancel}
           </button>
           <span className="text-gray-400 text-xs font-bold tracking-widest">
             {t.question} {currentIndex + 1} / {questions.length}
@@ -610,7 +745,7 @@ const FinalExam = ({ onBack, language, targetLanguage = 'jp' }) => {
             )}
 
             <h2 className="text-lg sm:text-xl font-bold text-white leading-relaxed">
-              {q.q[currentLang] || q.q.de || q.q.en}
+              {q.q[currentLang] || q.q[dbSourceLang] || q.q.de || q.q.en}
             </h2>
           </div>
 
