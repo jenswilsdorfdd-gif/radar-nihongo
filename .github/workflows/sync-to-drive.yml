@@ -22,10 +22,10 @@ jobs:
 
       - name: Alle Projektdateien als CODE_*.md nach Google Drive (02_Code_Sync) synchronisieren
         env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID || secrets.GOOGLE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET || secrets.GOOGLE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN || secrets.GOOGLE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID || secrets.GOOGLE_FOLDER_ID }}
           GITHUB_REPOSITORY_NAME: ${{ github.repository }}
           GITHUB_SHA_COMMIT: ${{ github.sha }}
         run: |
@@ -45,7 +45,12 @@ jobs:
           const COMMIT_SHA = process.env.GITHUB_SHA_COMMIT || 'manual';
 
           if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !FOLDER_ID) {
-            console.error('FEHLER: Eines der 4 Secrets fehlt!');
+            console.error('FEHLER: Fehlende Secrets ->', {
+              hasClientId: Boolean(CLIENT_ID),
+              hasClientSecret: Boolean(CLIENT_SECRET),
+              hasRefreshToken: Boolean(REFRESH_TOKEN),
+              hasFolderId: Boolean(FOLDER_ID)
+            });
             process.exit(1);
           }
 
