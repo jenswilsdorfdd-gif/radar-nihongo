@@ -13,16 +13,49 @@ import ReadingCard from './components/ReadingCard';
 import ParticleCrashcourse from './components/ParticleCrashcourse';
 import FinalExam from './components/FinalExam';
 
+// Prüft beim Start, ob der exklusive JP -> DE Prüfer-Zugangslink (?access=jp-de) aktiv ist
+const checkJpDeReviewAccess = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const accessParam = (
+      params.get('access') ||
+      params.get('test') ||
+      params.get('demo') ||
+      ''
+    ).toLowerCase();
+
+    // Admin-Ausstieg per ?access=unlock, um die Sperre im eigenen Browser wieder aufzuheben
+    if (accessParam === 'unlock' || accessParam === 'normal') {
+      localStorage.removeItem('radar_locked_access');
+      return false;
+    }
+
+    if (accessParam === 'jp-de') {
+      localStorage.setItem('radar_locked_access', 'jp-de');
+      return true;
+    }
+
+    return localStorage.getItem('radar_locked_access') === 'jp-de';
+  } catch {
+    return false;
+  }
+};
+
 function App() {
+  // --- EXKLUSIVER JP -> DE TEST-/PRÜFER-MODUS ---
+  const [isJpDeLocked] = useState(() => checkJpDeReviewAccess());
+
   // --- AUTH & CLOUD STATE ---
   const [session, setSession] = useState(null);
-  const [isCloudLoading, setIsCloudLoading] = useState(true);
+  const [isCloudLoading, setIsCloudLoading] = useState(!isJpDeLocked);
 
   // DEV MODE CHECK
   const devModeActive = localStorage.getItem('radarDevMode') === 'true';
 
-  // Standardsprache: radar_source_lang hat immer oberste Priorität
+  // Standardsprache: Im JP->DE-Prüfermodus hart auf Japanisch ('jpn'), sonst radar_source_lang
   const [appLanguage, setAppLanguage] = useState(() => {
+    if (isJpDeLocked) return 'jpn';
     const sourceSaved = localStorage.getItem('radar_source_lang');
     if (sourceSaved) {
       return sourceSaved === 'jp' ? 'jpn' : sourceSaved;
@@ -32,7 +65,7 @@ function App() {
     return 'de';
   });
 
-  const [activeView, setActiveView] = useState('welcome'); 
+  const [activeView, setActiveView] = useState(() => (isJpDeLocked ? 'home' : 'welcome'));
   const [kanaMode, setKanaMode] = useState('read');
   
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -40,28 +73,34 @@ function App() {
     return saved !== null ? JSON.parse(saved) : true; 
   });
 
-  // Zielsprache mit direktem LocalStorage-Fallback
+  // Zielsprache: Im JP->DE-Prüfermodus hart auf Deutsch ('de'), sonst LocalStorage-Fallback
   const [targetLanguage, setTargetLanguage] = useState(() => {
+    if (isJpDeLocked) return 'de';
     return localStorage.getItem('radar_target_lang') || 'jp';
   });
 
   // --- SPRACHWECHSEL-KONFLIKT STATE ---
   const [langConflict, setLangConflict] = useState(null);
 
-  // Startwerte mit direktem LocalStorage-Fallback für Gast-Nutzer
+  // Startwerte: Im JP->DE-Prüfermodus sind alle Phasen & Tage sofort komplett freigeschaltet
   const [currentRadarDay, setCurrentRadarDay] = useState(() => {
+    if (isJpDeLocked) return 21;
     return Number(localStorage.getItem('radar_day')) || 1;
   });
   const [kanaReadDay, setKanaReadDay] = useState(() => {
+    if (isJpDeLocked) return 14;
     return Number(localStorage.getItem('kana_read_day')) || 1;
   });
   const [kanaWriteDay, setKanaWriteDay] = useState(() => {
+    if (isJpDeLocked) return 14;
     return Number(localStorage.getItem('kana_write_day')) || 1;
   });
   const [readingDay, setReadingDay] = useState(() => {
+    if (isJpDeLocked) return 21;
     return Number(localStorage.getItem('reading_day')) || 1;
   });
   const [currentKanjiDay, setCurrentKanjiDay] = useState(() => {
+    if (isJpDeLocked) return 21;
     return Number(localStorage.getItem('kanji_day')) || 1;
   });
 
@@ -74,7 +113,9 @@ function App() {
   const readingTotalDays = 21; 
 
   // Normierter Sprach-Key für Supabase ('de', 'en', 'jp')
-  const dbSourceLang = (appLanguage === 'jpn' || appLanguage === 'jp') ? 'jp' : (appLanguage || 'de');
+  const dbSourceLang = isJpDeLocked
+    ? 'jp'
+    : ((appLanguage === 'jpn' || appLanguage === 'jp') ? 'jp' : (appLanguage || 'de'));
 
   // --- SUPABASE STATE FÜR GLOBALE SYSTEMTEXTE (MIT LOCALSTORAGE-CACHE) ---
   const [dbUiTexts, setDbUiTexts] = useState(() => {
@@ -122,20 +163,22 @@ function App() {
     };
   }, [dbSourceLang]);
 
-  // Synchronisation von targetLanguage in den LocalStorage
+  // Synchronisation von targetLanguage in den LocalStorage (im Prüfermodus nicht nötig)
   useEffect(() => {
+    if (isJpDeLocked) return;
     if (targetLanguage) {
       localStorage.setItem('radar_target_lang', targetLanguage);
     }
-  }, [targetLanguage]);
+  }, [targetLanguage, isJpDeLocked]);
 
-  // Synchronisation von appLanguage & radar_source_lang
+  // Synchronisation von appLanguage & radar_source_lang (im Prüfermodus nicht nötig)
   useEffect(() => { 
+    if (isJpDeLocked) return;
     if (appLanguage) {
       localStorage.setItem('appLanguage', appLanguage);
       localStorage.setItem('radar_source_lang', appLanguage === 'jpn' ? 'jp' : appLanguage);
     }
-  }, [appLanguage]);
+  }, [appLanguage, isJpDeLocked]);
 
   useEffect(() => { 
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); 
@@ -143,6 +186,20 @@ function App() {
 
   // --- SESSION CHECK & DB FETCH ---
   useEffect(() => {
+    // Im exklusiven JP->DE-Prüfermodus komplett ohne Login und ohne Cloud-Überschreibung starten
+    if (isJpDeLocked) {
+      setTargetLanguage('de');
+      setAppLanguage('jpn');
+      setKanaReadDay(14);
+      setKanaWriteDay(14);
+      setReadingDay(21);
+      setCurrentRadarDay(21);
+      setCurrentKanjiDay(21);
+      setIsCloudLoading(false);
+      setActiveView('home');
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -173,9 +230,14 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isJpDeLocked]);
 
   const fetchCloudProgress = async (userId) => {
+    if (isJpDeLocked) {
+      setIsCloudLoading(false);
+      return;
+    }
+
     setIsCloudLoading(true);
     
     try {
@@ -297,6 +359,9 @@ function App() {
 
   // Persistenz-Funktion
   const updateCloudProgress = async (updates) => {
+    // Im JP->DE-Prüfermodus weder lokale Fortschritte noch Cloud-Daten überschreiben
+    if (isJpDeLocked) return;
+
     Object.entries(updates).forEach(([key, val]) => {
       localStorage.setItem(key, String(val));
     });
@@ -311,7 +376,7 @@ function App() {
           ...updates,
           updated_at: new Date().toISOString()
         });
-        
+      
       if (error) console.error("Cloud-Save Error:", error);
     } catch (err) {
       console.error("Unexpected Cloud Save Error:", err);
@@ -319,13 +384,23 @@ function App() {
   };
 
   const handleReset = () => {
+    // Im JP->DE-Prüfermodus bleiben alle Phasen dauerhaft offen
+    if (isJpDeLocked) {
+      setCurrentRadarDay(21);
+      setKanaReadDay(14);
+      setKanaWriteDay(14);
+      setReadingDay(21);
+      setCurrentKanjiDay(21);
+      return;
+    }
+
     const fallbackConfirm = appLanguage === 'en' 
       ? "Danger! Do you really want to reset all your progress to Day 1?" 
       : (appLanguage === 'jpn' || appLanguage === 'jp'
-          ? "警告！学習進捗をすべて1日目にリセットしてもよろしいですか？"
-          : "Gefahr! Willst du deinen gesamten Lern-Fortschritt wirklich auf Tag 1 zurücksetzen?");
+        ? "警告！学習進捗をすべて1日目にリセットしてもよろしいですか？"
+        : "Gefahr! Willst du deinen gesamten Lern-Fortschritt wirklich auf Tag 1 zurücksetzen?");
     const confirmMsg = dbUiTexts?.appConfirmReset || fallbackConfirm;
-      
+    
     if (window.confirm(confirmMsg)) {
       setCurrentRadarDay(1);
       setKanaReadDay(1);
@@ -344,7 +419,7 @@ function App() {
   };
 
   const handleFinishRadar = (day) => {
-    if (day === currentRadarDay && day < 21) {
+    if (!isJpDeLocked && day === currentRadarDay && day < 21) {
       const nextDay = currentRadarDay + 1;
       setCurrentRadarDay(nextDay);
       updateCloudProgress({ radar_day: nextDay });
@@ -353,24 +428,26 @@ function App() {
   };
 
   const handleFinishKana = (day) => {
-    if (kanaMode === 'read') {
-      if (day === kanaReadDay && day < kanaTotalDays) {
-        const nextDay = kanaReadDay + 1;
-        setKanaReadDay(nextDay);
-        updateCloudProgress({ kana_read_day: nextDay });
-      }
-    } else {
-      if (day === kanaWriteDay && day < kanaTotalDays) {
-        const nextDay = kanaWriteDay + 1;
-        setKanaWriteDay(nextDay);
-        updateCloudProgress({ kana_write_day: nextDay });
+    if (!isJpDeLocked) {
+      if (kanaMode === 'read') {
+        if (day === kanaReadDay && day < kanaTotalDays) {
+          const nextDay = kanaReadDay + 1;
+          setKanaReadDay(nextDay);
+          updateCloudProgress({ kana_read_day: nextDay });
+        }
+      } else {
+        if (day === kanaWriteDay && day < kanaTotalDays) {
+          const nextDay = kanaWriteDay + 1;
+          setKanaWriteDay(nextDay);
+          updateCloudProgress({ kana_write_day: nextDay });
+        }
       }
     }
     setActiveView('kana-deck');
   };
 
   const handleFinishReading = (day) => {
-    if (day === readingDay && day < readingTotalDays) {
+    if (!isJpDeLocked && day === readingDay && day < readingTotalDays) {
       const nextDay = readingDay + 1;
       setReadingDay(nextDay);
       updateCloudProgress({ reading_day: nextDay });
@@ -379,7 +456,7 @@ function App() {
   };
 
   const handleFinishKanji = (day) => {
-    if (day === currentKanjiDay && day < 21) {
+    if (!isJpDeLocked && day === currentKanjiDay && day < 21) {
       const nextDay = currentKanjiDay + 1;
       setCurrentKanjiDay(nextDay);
       updateCloudProgress({ kanji_day: nextDay });
@@ -388,6 +465,10 @@ function App() {
   };
 
   const handleLogout = async () => {
+    if (isJpDeLocked) {
+      setActiveView('home');
+      return;
+    }
     await supabase.auth.signOut();
     setActiveView('welcome');
   };
@@ -403,10 +484,11 @@ function App() {
     return code;
   };
 
-  // Direkte Weitergabe der gewählten Zielsprache ('jp', 'de', 'en') an alle Module
-  const deckTargetLanguage = targetLanguage;
+  // Im JP->DE-Prüfermodus strikt auf 'de' verriegeln, sonst gewählte Zielsprache
+  const deckTargetLanguage = isJpDeLocked ? 'de' : targetLanguage;
+  const effectiveAppLanguage = isJpDeLocked ? 'jpn' : appLanguage;
 
-  const loadingText = dbUiTexts?.appLoadingText || (appLanguage === 'en' ? 'System working...' : (appLanguage === 'jpn' ? 'システム起動中...' : 'System arbeitet...'));
+  const loadingText = dbUiTexts?.appLoadingText || (effectiveAppLanguage === 'en' ? 'System working...' : (effectiveAppLanguage === 'jpn' ? 'システム起動中...' : 'System arbeitet...'));
   const conflictTitle = dbUiTexts?.appConflictTitle || 'Lernstand gefunden';
   const conflictKeepBtn = dbUiTexts?.appConflictKeepBtn || 'Mit Cloud-Sprache weiterlernen';
   const conflictSwitchBtn = dbUiTexts?.appConflictSwitchBtn || 'Cloud auf neue Sprache umstellen';
@@ -433,7 +515,7 @@ function App() {
     <div className="h-[100dvh] w-screen max-w-full bg-gray-900 overflow-hidden font-sans flex flex-col transition-all duration-300" style={!isDarkMode ? { filter: 'invert(1) hue-rotate(180deg)' } : {}}>
       
       {/* SPRACHWECHSEL-BESTÄTIGUNGSDIALOG */}
-      {langConflict && (
+      {!isJpDeLocked && langConflict && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-md bg-gray-800 rounded-3xl border border-cyan-500/40 shadow-2xl overflow-hidden p-6 text-white text-center">
             <div className="w-14 h-14 bg-cyan-900/40 border border-cyan-500/50 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
@@ -467,7 +549,7 @@ function App() {
         </div>
       )}
 
-      {activeView === 'welcome' && (
+      {activeView === 'welcome' && !isJpDeLocked && (
         <Welcome 
           onStart={() => {
             const savedTarget = localStorage.getItem('radar_target_lang');
@@ -481,7 +563,7 @@ function App() {
             }
             setActiveView('home');
           }} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
         />
       )}
 
@@ -505,7 +587,9 @@ function App() {
             if (mode === 'final-exam-de') setActiveView('final-exam');
           }} 
           onReset={handleReset} 
-          onGoToWelcome={() => setActiveView('welcome')} 
+          onGoToWelcome={() => {
+            if (!isJpDeLocked) setActiveView('welcome');
+          }} 
           
           kanaReadDay={kanaReadDay} 
           setKanaReadDay={(val) => { setKanaReadDay(val); updateCloudProgress({ kana_read_day: val }); }}
@@ -518,13 +602,14 @@ function App() {
           kanjiDay={currentKanjiDay} 
           setKanjiDay={(val) => { setCurrentKanjiDay(val); updateCloudProgress({ kanji_day: val }); }}
           
-          language={appLanguage}
-          targetLanguage={targetLanguage} 
+          language={effectiveAppLanguage}
+          targetLanguage={deckTargetLanguage} 
           
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
           onLogout={handleLogout}
-          userEmail={session?.user?.email || null}
+          userEmail={isJpDeLocked ? null : (session?.user?.email || null)}
+          isLockedJpDe={isJpDeLocked}
         />
       )}
       
@@ -536,7 +621,7 @@ function App() {
           mode={kanaMode} 
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningKanaDay(day); setActiveView('learning-kana'); }} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -545,7 +630,7 @@ function App() {
           day={learningKanaDay} 
           mode={kanaMode} 
           onBack={() => handleFinishKana(learningKanaDay)} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -555,7 +640,7 @@ function App() {
           totalDays={readingTotalDays} 
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningReadingDay(day); setActiveView('learning-reading'); }} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -563,7 +648,7 @@ function App() {
         <ReadingCard 
           day={learningReadingDay} 
           onBack={() => handleFinishReading(learningReadingDay)} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -572,7 +657,7 @@ function App() {
           currentDay={currentRadarDay} 
           onStartDay={(day) => { setLearningRadarDay(day); setActiveView('learning-radar'); }} 
           onBackToHome={() => setActiveView('home')} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -581,7 +666,7 @@ function App() {
           day={learningRadarDay} 
           onBack={() => handleFinishRadar(learningRadarDay)} 
           onNextDay={() => { handleFinishRadar(learningRadarDay); setActiveView('dashboard'); }} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -590,7 +675,7 @@ function App() {
           currentDay={currentKanjiDay} 
           onBackToHome={() => setActiveView('home')} 
           onStartDay={(day) => { setLearningKanjiDay(day); setActiveView('learning-kanji'); }} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
@@ -598,14 +683,14 @@ function App() {
         <KanjiCard 
           day={learningKanjiDay} 
           onBack={() => handleFinishKanji(learningKanjiDay)} 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
         />
       )}
       
       {activeView === 'particle-crashcourse' && (
         <ParticleCrashcourse 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
           onBack={() => setActiveView('home')} 
         />
@@ -613,7 +698,7 @@ function App() {
 
       {activeView === 'final-exam' && (
         <FinalExam 
-          language={appLanguage} 
+          language={effectiveAppLanguage} 
           targetLanguage={deckTargetLanguage}
           onBack={() => setActiveView('home')} 
         />
