@@ -1,0 +1,230 @@
+name: Sync Code to Google Drive (SONAR_RADAR)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  sync-to-drive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Alle Projektdateien als CODE_*.md nach Google Drive (02_Code_Sync) synchronisieren
+        env:
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
+          GITHUB_SHA_COMMIT: ${{ github.sha }}
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const CLIENT_ID = (process.env.GDRIVE_CLIENT_ID || '').trim();
+          const CLIENT_SECRET = (process.env.GDRIVE_CLIENT_SECRET || '').trim();
+          const REFRESH_TOKEN = (process.env.GDRIVE_REFRESH_TOKEN || '').trim();
+          const RAW_FOLDER = (process.env.GDRIVE_FOLDER_ID || '').trim();
+          const FOLDER_ID = RAW_FOLDER.includes('/folders/')
+            ? RAW_FOLDER.split('/folders/')[1].split(/[/?#]/)[0].trim()
+            : RAW_FOLDER.split(/[/?#]/)[0].trim();
+
+          const REPO_NAME = process.env.GITHUB_REPOSITORY_NAME || 'jenswilsdorfdd-gif/radar-nihongo';
+          const COMMIT_SHA = process.env.GITHUB_SHA_COMMIT || 'manual';
+
+          if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !FOLDER_ID) {
+            console.error('FEHLER: Eines der 4 Secrets fehlt!');
+            process.exit(1);
+          }
+
+          const IGNORE_DIRS = new Set([
+            '.git',
+            '.github',
+            'node_modules',
+            'dist',
+            'build',
+            '.bolt',
+            '.vscode',
+            'coverage'
+          ]);
+
+          const IGNORE_FILES = new Set([
+            'package-lock.json',
+            'yarn.lock',
+            'pnpm-lock.yaml',
+            '.DS_Store',
+            '.env',
+            '.env.local',
+            '.env.production'
+          ]);
+
+          const ALLOWED_EXTENSIONS = new Set([
+            '.js', '.jsx', '.ts', '.tsx', '.css', '.scss',
+            '.html', '.json', '.md', '.sql', '.yml', '.yaml'
+          ]);
+
+          function collectFiles(dir, baseDir = dir, result = []) {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
+              const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+
+              if (entry.isDirectory()) {
+                if (!IGNORE_DIRS.has(entry.name)) {
+                  collectFiles(fullPath, baseDir, result);
+                }
+              } else if (entry.isFile()) {
+                if (IGNORE_FILES.has(entry.name) || entry.name.startsWith('.env')) continue;
+                const ext = path.extname(entry.name).toLowerCase();
+                if (ALLOWED_EXTENSIONS.has(ext)) {
+                  result.push({ fullPath, relPath, ext: ext.replace('.', '') || 'txt' });
+                }
+              }
+            }
+            return result;
+          }
+
+          async function getAccessToken() {
+            const params = new URLSearchParams({
+              client_id: CLIENT_ID,
+              client_secret: CLIENT_SECRET,
+              refresh_token: REFRESH_TOKEN,
+              grant_type: 'refresh_token'
+            });
+
+            const res = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: params.toString()
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.access_token) {
+              throw new Error('OAuth Token-Abruf fehlgeschlagen: ' + JSON.stringify(data));
+            }
+            return data.access_token;
+          }
+
+          async function listExistingCodeFiles(token) {
+            const map = new Map();
+            let pageToken = '';
+            do {
+              const q = encodeURIComponent(`'${FOLDER_ID}' in parents and trashed = false and name contains 'CODE_'`);
+              const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name)&pageSize=100${pageToken ? '&pageToken=' + pageToken : ''}`;
+              const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                throw new Error('Drive-List-Fehler: ' + JSON.stringify(data));
+              }
+              for (const f of data.files || []) {
+                map.set(f.name, f.id);
+              }
+              pageToken = data.nextPageToken || '';
+            } while (pageToken);
+            return map;
+          }
+
+          async function upsertDriveFile(token, existingMap, driveFileName, markdownContent) {
+            const existingId = existingMap.get(driveFileName);
+
+            if (existingId) {
+              const res = await fetch(
+                `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=media`,
+                {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'text/markdown; charset=UTF-8'
+                  },
+                  body: markdownContent
+                }
+              );
+              if (!res.ok) {
+                throw new Error(`Update fehlgeschlagen (${driveFileName}): ` + (await res.text()));
+              }
+              console.log(`Aktualisiert: ${driveFileName}`);
+            } else {
+              const boundary = '-------SonarRadarDriveBoundary' + Date.now();
+              const metadata = JSON.stringify({
+                name: driveFileName,
+                parents: [FOLDER_ID],
+                mimeType: 'text/markdown'
+              });
+
+              const multipartBody =
+                `--${boundary}\r\n` +
+                `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+                `${metadata}\r\n` +
+                `--${boundary}\r\n` +
+                `Content-Type: text/markdown; charset=UTF-8\r\n\r\n` +
+                `${markdownContent}\r\n` +
+                `--${boundary}--`;
+
+              const res = await fetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+                {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': `multipart/related; boundary=${boundary}`
+                  },
+                  body: multipartBody
+                }
+              );
+              if (!res.ok) {
+                throw new Error(`Erstellen fehlgeschlagen (${driveFileName}): ` + (await res.text()));
+              }
+              console.log(`Neu angelegt: ${driveFileName}`);
+            }
+          }
+
+          (async () => {
+            try {
+              const token = await getAccessToken();
+              const existingMap = await listExistingCodeFiles(token);
+              const files = collectFiles(process.cwd());
+              const syncTime = new Date().toISOString();
+
+              console.log(`Starte Sync für ${files.length} Dateien in SONAR_RADAR/02_Code_Sync...`);
+
+              for (const file of files) {
+                const rawCode = fs.readFileSync(file.fullPath, 'utf8');
+                const driveName = `CODE_${file.relPath.replace(/\//g, '__')}.md`;
+                const wrappedMd = [
+                  `# Datei: ${file.relPath}`,
+                  `- **Projekt:** SONAR_RADAR`,
+                  `- **Repository:** ${REPO_NAME}`,
+                  `- **Commit:** ${COMMIT_SHA}`,
+                  `- **Synchronisiert am:** ${syncTime}`,
+                  ``,
+                  `---`,
+                  ``,
+                  `\`\`\`${file.ext}`,
+                  rawCode,
+                  `\`\`\``
+                ].join('\n');
+
+                await upsertDriveFile(token, existingMap, driveName, wrappedMd);
+              }
+
+              console.log('SONAR_RADAR Code-Sync erfolgreich abgeschlossen!');
+            } catch (err) {
+              console.error('Sync-Fehler:', err);
+              process.exit(1);
+            }
+          })();
+          EOF
